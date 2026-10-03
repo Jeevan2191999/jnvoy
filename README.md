@@ -1,4 +1,5 @@
-# Jnvoy - AI Privacy Firewall
+**Live API:** https://jnvoy.onrender.com  
+**API Docs:** https://jnvoy.onrender.com/docs
 
 Protect sensitive data before it reaches any LLM API.
 
