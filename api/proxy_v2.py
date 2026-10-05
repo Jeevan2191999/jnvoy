@@ -1,12 +1,13 @@
 """
 Jnvoy Proxy API v2
-Production-grade async proxy with full intelligence layer wired in.
+Production-grade async proxy with full intelligence layer and PostgreSQL persistence.
 
 New in v2:
 - Semantic cache: identical or similar queries return cached responses instantly
 - Intelligent router: routes each query to the cheapest capable model automatically
 - Outage detector: tracks provider health and records failures
 - Detector v2: uses Presidio for enterprise-grade PII detection
+- PostgreSQL persistence: permanent audit logs for compliance
 - Pydantic v2 compatible: uses model_dump() instead of dict()
 - dotenv loaded with absolute path for reliability
 """
@@ -37,12 +38,17 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from core.detector_v2 import PIIDetectorV2
 from core.intelligence import semantic_cache, intelligent_router, outage_detector
+from core.database import (
+    init_pool, init_schema, write_audit_entry_async,
+    query_audit_log, get_compliance_summary,
+    health_check_db, AuditEntry
+)
 
 # Initialise app
 app = FastAPI(
     title="Jnvoy",
-    description="AI Privacy Firewall with intelligent routing and semantic caching",
-    version="2.0.0"
+    description="AI Privacy Firewall with intelligent routing, semantic caching, and persistent audit logs",
+    version="2.1.0"
 )
 
 app.add_middleware(
@@ -52,11 +58,37 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Single detector instance — loaded once at startup
+# Single detector instance loaded once at startup
 detector = PIIDetectorV2(confidence_threshold=0.6)
 
-# In-memory audit log (replaced by PostgreSQL in Day 3)
+# In-memory fallback audit log used when database is unavailable
 audit_log: list[dict] = []
+
+# Database availability flag
+_db_available = False
+
+
+# ── Startup ───────────────────────────────────────────────────────────────────
+
+@app.on_event("startup")
+async def startup():
+    """Initialise database connection pool and schema on startup."""
+    global _db_available
+    try:
+        init_pool()
+        init_schema()
+        _db_available = True
+        print("Database connected and schema initialised")
+    except Exception as e:
+        _db_available = False
+        print(f"Database unavailable, using in-memory fallback: {e}")
+
+
+@app.on_event("shutdown")
+async def shutdown():
+    """Close database connection pool on shutdown."""
+    from core.database import close_pool
+    close_pool()
 
 
 # ── Request and Response Models ───────────────────────────────────────────────
@@ -72,7 +104,6 @@ class ProxyRequest(BaseModel):
     temperature: Optional[float] = 0.7
     provider: Optional[str] = "anthropic"
     stream: Optional[bool] = False
-    # New in v2: allow caller to disable cache or routing
     use_cache: Optional[bool] = True
     use_routing: Optional[bool] = True
 
@@ -166,16 +197,13 @@ async def call_openai(messages: list[dict], model: str, max_tokens: int, tempera
 
 async def run_proxy_pipeline(request: ProxyRequest) -> dict:
     """
-    Full Jnvoy pipeline with intelligence layer:
-
+    Full Jnvoy pipeline:
     1. Scan all messages for PII and redact
-    2. Build the combined query text for cache lookup
-    3. Check semantic cache (if enabled)
-    4. Route to cheapest capable model (if enabled)
-    5. Call LLM with redacted messages
-    6. Restore PII in response
-    7. Store in cache for future requests
-    8. Return result with full intelligence summary
+    2. Check semantic cache
+    3. Route to cheapest capable model
+    4. Call LLM with redacted messages
+    5. Restore PII in response
+    6. Store in cache
     """
     start_time = time.time()
 
@@ -210,12 +238,11 @@ async def run_proxy_pipeline(request: ProxyRequest) -> dict:
 
     if request.use_routing and not cache_hit:
         routing_decision = intelligent_router.route(cache_query)
-        # Only override if the routed model is different and provider is healthy
         if (routing_decision.recommended_model != request.model and
                 outage_detector.is_healthy(request.provider or "anthropic")):
             routed_model = routing_decision.recommended_model
 
-    # Step 5: Get response (from cache or LLM)
+    # Step 5: Get response from cache or LLM
     estimated_cost = 0.0
     cost_saved = 0.0
 
@@ -236,11 +263,13 @@ async def run_proxy_pipeline(request: ProxyRequest) -> dict:
         else:
             raise HTTPException(status_code=400, detail=f"Unknown provider: {provider}")
 
-        # Estimate cost for this call
         from core.llm_gateway import calculate_cost
-        estimated_cost = calculate_cost(routed_model, len(cache_query.split()) * 2, len(llm_response_raw.split()) * 2)
+        estimated_cost = calculate_cost(
+            routed_model,
+            len(cache_query.split()) * 2,
+            len(llm_response_raw.split()) * 2
+        )
 
-        # Store in cache for future requests
         if request.use_cache and redacted_query:
             semantic_cache.set(
                 query=redacted_query,
@@ -271,15 +300,15 @@ async def run_proxy_pipeline(request: ProxyRequest) -> dict:
 
 @app.get("/health")
 async def health():
-    """Health check with provider status."""
-    provider_health = outage_detector.get_dashboard()
-    cache_stats = semantic_cache.stats
+    """Health check with provider, cache, and database status."""
+    db_health = health_check_db() if _db_available else {"status": "unavailable"}
     return {
         "status": "healthy",
-        "version": "2.0.0",
+        "version": "2.1.0",
         "timestamp": datetime.now(timezone.utc).isoformat(),
-        "providers": provider_health,
-        "cache": cache_stats,
+        "providers": outage_detector.get_dashboard(),
+        "cache": semantic_cache.stats,
+        "database": db_health,
     }
 
 
@@ -291,12 +320,11 @@ async def proxy_request(
     """
     Main proxy endpoint with full intelligence layer.
     Automatically caches, routes, and protects every request.
+    Audit logs written to PostgreSQL permanently.
     """
     audit_id = str(uuid.uuid4())
-
     result = await run_proxy_pipeline(request)
 
-    # Write audit log asynchronously
     asyncio.create_task(_write_audit(
         audit_id=audit_id,
         pii_summary=result["pii_summary"],
@@ -355,8 +383,13 @@ async def providers_health():
 
 
 @app.get("/v1/audit")
-async def get_audit_log(limit: int = 50):
-    """Return recent audit entries."""
+async def get_audit_log(limit: int = 50, offset: int = 0):
+    """Return recent audit entries from PostgreSQL."""
+    if _db_available:
+        try:
+            return query_audit_log(tenant_id="default", limit=limit, offset=offset)
+        except Exception:
+            pass
     return {
         "entries": audit_log[-limit:],
         "total": len(audit_log),
@@ -366,29 +399,35 @@ async def get_audit_log(limit: int = 50):
 
 @app.get("/v1/audit/summary")
 async def get_audit_summary():
-    """Compliance summary for the audit period."""
+    """
+    Compliance summary from PostgreSQL.
+    This is the data that goes into FCA and GDPR compliance reports.
+    Sensitive data was never stored. Zero transmitted to any LLM.
+    """
+    if _db_available:
+        try:
+            return get_compliance_summary(tenant_id="default")
+        except Exception:
+            pass
+
+    # In-memory fallback
     if not audit_log:
         return {"message": "No audit entries yet"}
 
-    total_calls = len(audit_log)
+    total = len(audit_log)
     total_pii = sum(e["total_pii_instances"] for e in audit_log)
     cache_hits = sum(1 for e in audit_log if e.get("cache_hit"))
     pii_types: dict[str, int] = {}
-
     for entry in audit_log:
         for pii_type, count in entry["pii_detected"].items():
             pii_types[pii_type] = pii_types.get(pii_type, 0) + count
 
-    avg_latency = sum(e["latency_ms"] for e in audit_log) / total_calls
-    cache_hit_rate = round((cache_hits / total_calls) * 100, 1)
-
     return {
-        "total_api_calls": total_calls,
+        "total_api_calls": total,
         "total_pii_instances_detected_and_redacted": total_pii,
         "pii_types_breakdown": pii_types,
-        "cache_hit_rate_percent": cache_hit_rate,
-        "cache_hits": cache_hits,
-        "average_latency_ms": round(avg_latency, 2),
+        "cache_hit_rate_percent": round(cache_hits / total * 100, 1),
+        "average_latency_ms": round(sum(e["latency_ms"] for e in audit_log) / total, 2),
         "sensitive_data_transmitted_to_llm": False,
         "compliance_statement": "Zero sensitive data was transmitted to any LLM API during this period.",
         "generated_at": datetime.now(timezone.utc).isoformat()
@@ -404,7 +443,27 @@ async def _write_audit(
     cache_hit: bool,
     api_key_hash: str
 ):
-    """Write audit entry to in-memory log."""
+    """
+    Write audit entry to PostgreSQL with in-memory fallback.
+    Never blocks the main request path.
+    """
+    if _db_available:
+        entry = AuditEntry(
+            audit_id=audit_id,
+            request_hash=audit_id[:16],
+            pii_detected=pii_summary,
+            provider=provider,
+            model=model,
+            latency_ms=latency_ms,
+            cache_hit=cache_hit,
+            api_key_hash=api_key_hash,
+            tenant_id="default",
+        )
+        success = await write_audit_entry_async(entry)
+        if success:
+            return
+
+    # Fallback to in-memory
     audit_log.append({
         "audit_id": audit_id,
         "timestamp": datetime.now(timezone.utc).isoformat(),
