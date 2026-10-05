@@ -1,0 +1,74 @@
+version: '3.9'
+
+# Jnvoy AI Privacy Firewall - Full Stack
+# Starts: API + Redis + PostgreSQL in one command
+# Usage: docker-compose up
+
+services:
+
+  # ── Jnvoy API ──────────────────────────────────────────────────────────────
+  api:
+    build: .
+    container_name: jnvoy-api
+    ports:
+      - "8000:8000"
+    environment:
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+      - MISTRAL_API_KEY=${MISTRAL_API_KEY}
+      - REDIS_URL=redis://redis:6379
+      - DATABASE_URL=postgresql://jnvoy:jnvoy@postgres:5432/jnvoy
+      - ENVIRONMENT=production
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # ── Redis (token store and semantic cache) ─────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: jnvoy-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── PostgreSQL (audit log and compliance data) ─────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: jnvoy-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=jnvoy
+      - POSTGRES_PASSWORD=jnvoy
+      - POSTGRES_DB=jnvoy
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/init.sql:/docker-entrypoint-initdb.d/init.sql
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U jnvoy"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  redis_data:
+  postgres_data:

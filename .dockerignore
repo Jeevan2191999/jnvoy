@@ -1,0 +1,14 @@
+.env
+venv/
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+*.egg-info/
+.DS_Store
+.git/
+.gitignore
+README.md
+*.pdf
+*.pptx
+node_modules/
