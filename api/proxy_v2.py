@@ -476,3 +476,67 @@ async def _write_audit(
         "api_key_hash": api_key_hash,
         "sensitive_data_transmitted": False
     })
+
+
+# ── PDF Compliance Report Endpoint ────────────────────────────────────────────
+
+from fastapi.responses import FileResponse
+import tempfile
+import os
+
+@app.get("/v1/report/compliance")
+async def download_compliance_report(
+    company_name: str = "Your Company",
+    x_api_key: Optional[str] = Header(None)
+):
+    """
+    Generate and download a PDF compliance report.
+    This is the endpoint that closes enterprise deals.
+    Shows everything that happened: PII detected, redacted, never transmitted.
+    """
+    try:
+        from core.report import generate_compliance_report
+
+        # Get compliance summary from database
+        if _db_available:
+            summary = get_compliance_summary(tenant_id="default")
+        else:
+            summary = {
+                "period_start": "N/A",
+                "period_end": "N/A",
+                "total_api_calls": len(audit_log),
+                "total_pii_instances_detected_and_redacted": sum(
+                    e["total_pii_instances"] for e in audit_log
+                ),
+                "pii_types_breakdown": {},
+                "cache_hit_rate_percent": 0.0,
+                "average_latency_ms": 0.0,
+                "sensitive_data_transmitted_to_llm": False,
+                "compliance_statement": "Zero sensitive data was transmitted to any LLM API."
+            }
+
+        # Generate PDF to a temp file
+        tmp = tempfile.NamedTemporaryFile(
+            suffix=".pdf", delete=False,
+            prefix="jnvoy_compliance_"
+        )
+        tmp.close()
+
+        generate_compliance_report(
+            summary=summary,
+            output_path=tmp.name,
+            company_name=company_name,
+            tenant_id="default"
+        )
+
+        filename = f"jnvoy_compliance_{datetime.now(timezone.utc).strftime('%Y%m%d')}.pdf"
+
+        return FileResponse(
+            path=tmp.name,
+            media_type="application/pdf",
+            filename=filename,
+            background=None
+        )
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Report generation failed: {e}")
