@@ -15,6 +15,8 @@ New in v2:
 from dotenv import load_dotenv
 from pathlib import Path
 import os
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 
 # Load env from project root regardless of working directory
 _env_path = Path(__file__).parent.parent / ".env"
@@ -90,6 +92,18 @@ async def shutdown():
     from core.database import close_pool
     close_pool()
 
+
+
+
+# Serve landing page
+import os as _os
+_static_dir = _os.path.join(_os.path.dirname(__file__), '..', 'static')
+if _os.path.exists(_static_dir):
+    app.mount('/static', StaticFiles(directory=_static_dir), name='static')
+
+@app.get('/', include_in_schema=False)
+async def landing():
+    return FileResponse(_os.path.join(_static_dir, 'index.html'))
 
 # ── Request and Response Models ───────────────────────────────────────────────
 
@@ -481,8 +495,12 @@ async def _write_audit(
 # ── PDF Compliance Report Endpoint ────────────────────────────────────────────
 
 from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.staticfiles import StaticFiles
 import tempfile
 import os
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 
 @app.get("/v1/report/compliance")
 async def download_compliance_report(
