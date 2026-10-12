@@ -42,6 +42,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from core.detector_v2 import PIIDetectorV2
 from core.intelligence import semantic_cache, intelligent_router, outage_detector
 from core.injection import InjectionDetector
+from core.mcp_security import MCPSecurityScanner
 from core.database import (
     init_pool, init_schema, write_audit_entry_async,
     query_audit_log, get_compliance_summary,
@@ -67,6 +68,9 @@ detector = PIIDetectorV2(confidence_threshold=0.6)
 
 # Injection detector — scans every request before it reaches the LLM
 injection_detector = InjectionDetector(action="block", confidence_threshold=0.6)
+
+# MCP security scanner — protects tool calls in both directions
+mcp_scanner = MCPSecurityScanner(action="block", confidence_threshold=0.6)
 
 # Serve landing page at root
 _static_dir = os.path.join(os.path.dirname(__file__), "..", "static")
@@ -590,6 +594,61 @@ async def download_compliance_report(
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Report generation failed: {e}")
+
+
+@app.post("/v1/mcp/scan")
+async def scan_mcp_payload(payload: dict):
+    """
+    Scan an MCP tool call, response, or tool description for threats.
+    Detects tool poisoning, secret leakage, PII in tool calls.
+    """
+    result = mcp_scanner.scan_mcp_payload(payload)
+    return {
+        "threat_detected": result.threat_detected,
+        "blocked": result.blocked,
+        "action": result.action,
+        "scan_type": result.scan_type,
+        "highest_severity": result.highest_severity,
+        "threats": result.threat_summary,
+        "pii_detected": result.pii_detected,
+        "detection_time_ms": result.detection_time_ms,
+    }
+
+
+@app.post("/v1/mcp/scan/tool-response")
+async def scan_tool_response(tool_name: str, payload: dict):
+    """
+    Scan a tool response before it enters the LLM context.
+    Prevents PII and secrets from flowing into the model context window.
+    """
+    result = mcp_scanner.scan_tool_response(tool_name, payload)
+    return {
+        "threat_detected": result.threat_detected,
+        "blocked": result.blocked,
+        "action": result.action,
+        "highest_severity": result.highest_severity,
+        "threats": result.threat_summary,
+        "pii_detected": result.pii_detected,
+        "redacted": result.redacted_content is not None,
+        "detection_time_ms": result.detection_time_ms,
+    }
+
+
+@app.post("/v1/mcp/scan/tool-description")
+async def scan_tool_description(tool_name: str, description: str):
+    """
+    Scan a tool description for tool poisoning attempts.
+    Detects hidden instructions injected into tool metadata.
+    """
+    result = mcp_scanner.scan_tool_description(tool_name, description)
+    return {
+        "threat_detected": result.threat_detected,
+        "blocked": result.blocked,
+        "action": result.action,
+        "highest_severity": result.highest_severity,
+        "threats": result.threat_summary,
+        "detection_time_ms": result.detection_time_ms,
+    }
 
 
 @app.get("/v1/report/eu-ai-act")
