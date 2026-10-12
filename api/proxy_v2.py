@@ -590,3 +590,51 @@ async def download_compliance_report(
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Report generation failed: {e}")
+
+
+@app.get("/v1/report/eu-ai-act")
+async def download_eu_ai_act_report(
+    company_name: str = "Your Company",
+    system_name: str = "AI Assistant",
+    risk_classification: str = "Limited Risk",
+    x_api_key: Optional[str] = Header(None)
+):
+    """
+    Generate and download an EU AI Act Article 50 compliance report.
+    Covers transparency obligations effective August 2, 2026.
+    """
+    try:
+        from core.report import generate_eu_ai_act_report
+        import tempfile
+
+        if _db_available:
+            summary = get_compliance_summary(tenant_id="default")
+        else:
+            summary = {
+                "period_start": "N/A", "period_end": "N/A",
+                "total_api_calls": len(audit_log),
+                "total_pii_instances_detected_and_redacted": sum(
+                    e["total_pii_instances"] for e in audit_log),
+                "pii_types_breakdown": {},
+                "cache_hit_rate_percent": 0.0,
+                "average_latency_ms": 0.0,
+                "sensitive_data_transmitted_to_llm": False,
+            }
+
+        tmp = tempfile.NamedTemporaryFile(suffix=".pdf", delete=False, prefix="jnvoy_eu_")
+        tmp.close()
+
+        generate_eu_ai_act_report(
+            summary=summary,
+            output_path=tmp.name,
+            company_name=company_name,
+            system_name=system_name,
+            risk_classification=risk_classification,
+            tenant_id="default"
+        )
+
+        filename = f"jnvoy_eu_ai_act_{datetime.now(timezone.utc).strftime('%Y%m%d')}.pdf"
+        return FileResponse(path=tmp.name, media_type="application/pdf", filename=filename)
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Report generation failed: {e}")
