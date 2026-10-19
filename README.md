@@ -118,4 +118,4 @@ jnvoy.com
 
 ## Licence
 
-MIT
+Business Source License 1.1. See LICENSE for details. Converts to Apache 2.0 after four years.
