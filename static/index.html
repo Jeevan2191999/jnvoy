@@ -347,6 +347,55 @@
   .clause p{ margin-top:8px; font-size:0.9rem; color:var(--ink-soft); }
 
   /* ============================================================
+     PRICING: card grid, one featured tier, self-host callout
+     ============================================================ */
+  .pricing-grid{
+    display:grid; grid-template-columns:repeat(4,1fr); gap:0;
+    border-top:1px solid var(--line-strong);
+    border-left:1px solid var(--line-strong);
+  }
+  @media (max-width:980px){ .pricing-grid{ grid-template-columns:repeat(2,1fr); } }
+  @media (max-width:620px){ .pricing-grid{ grid-template-columns:1fr; } }
+  .price-card{
+    padding:30px 26px;
+    border-right:1px solid var(--line-strong);
+    border-bottom:1px solid var(--line-strong);
+    display:flex; flex-direction:column;
+  }
+  .price-card.featured{ background:var(--paper-raised); }
+  .price-card .tier-tag{
+    display:flex; align-items:center; gap:8px;
+    font-family:var(--mono); font-size:0.75rem; font-weight:600;
+    color:var(--red); text-transform:uppercase; letter-spacing:0.03em;
+  }
+  .price-card .tier-tag .flag{
+    font-family:var(--sans); text-transform:none; letter-spacing:0;
+    background:var(--red); color:#fff; padding:0.15em 0.6em;
+    border-radius:10px; font-size:0.7rem; font-weight:600;
+  }
+  .price-card h3{ margin-top:10px; font-size:1.1rem; font-weight:600; }
+  .price-card .amount{
+    margin-top:16px; font-family:var(--mono); font-weight:700;
+    font-size:2rem; color:var(--ink);
+  }
+  .price-card .amount span{
+    font-family:var(--sans); font-weight:500; font-size:0.875rem; color:var(--ink-faint);
+  }
+  .price-card .cap{ margin-top:4px; font-size:0.875rem; color:var(--ink-soft); }
+  .price-card ul{ list-style:none; margin:22px 0 0; padding:0; display:grid; gap:10px; flex-grow:1; }
+  .price-card li{ font-size:0.875rem; color:var(--ink-soft); padding-left:20px; position:relative; }
+  .price-card li::before{ content:"✓"; position:absolute; left:0; color:var(--green); font-weight:700; }
+  .price-card .btn{ margin-top:24px; justify-content:center; width:100%; }
+  .price-foot{
+    margin-top:28px; display:flex; align-items:center; justify-content:space-between;
+    gap:20px; flex-wrap:wrap;
+    padding:20px 24px; border:1px solid var(--line-strong); border-radius:var(--radius-page);
+    background:var(--paper-raised);
+  }
+  .price-foot p{ font-size:0.9375rem; color:var(--ink-soft); max-width:48ch; }
+  .price-foot p b{ color:var(--ink); }
+
+  /* ============================================================
      INTEGRATION: raw page (dark) vs protected page (paper)
      ============================================================ */
   .providers{
@@ -701,42 +750,78 @@
   <div class="wrap">
     <div class="shead">
       <h2>Pricing</h2>
-      <p>Start free. Scale as traffic grows. Every tier includes full PII protection, injection detection, and audit logging.</p>
+      <p>Start free as a developer. When you're ready to put production or regulated traffic through it, we'll scope a plan around your volume and compliance needs.</p>
     </div>
-    <div class="ledger" style="margin-bottom:48px;">
-      <div class="ledger-row head">
-        <div>Plan</div><div>Price</div><div>Included</div>
+
+    <div class="pricing-grid">
+      <div class="price-card">
+        <div class="tier-tag">Free</div>
+        <h3>Get started</h3>
+        <div class="amount">£0<span> /month</span></div>
+        <div class="cap">10,000 calls</div>
+        <ul>
+          <li>20+ PII entity types</li>
+          <li>Prompt injection detection</li>
+          <li>Audit logging, 7-day retention</li>
+          <li>Community support</li>
+        </ul>
+        <a href="/docs" class="btn btn-ghost">Start free</a>
       </div>
-      <div class="ledger-row">
-        <div class="type" data-k="Plan">Free</div>
-        <div class="example" data-k="Price">£0 / month</div>
-        <div class="why" data-k="Included">10,000 calls</div>
+
+      <div class="price-card">
+        <div class="tier-tag">Pro</div>
+        <h3>For live products</h3>
+        <div class="amount">Custom<span> pricing</span></div>
+        <div class="cap">From 100,000 calls /month</div>
+        <ul>
+          <li>Everything in Free</li>
+          <li>Semantic cache & intelligent routing</li>
+          <li>Compliance report PDF</li>
+          <li>90-day audit log retention</li>
+          <li>Email support</li>
+        </ul>
+        <a href="mailto:j.nagaraj2109@gmail.com?subject=Jnvoy%20Pro" class="btn btn-ghost">Talk to sales</a>
       </div>
-      <div class="ledger-row">
-        <div class="type" data-k="Plan">Pro</div>
-        <div class="example" data-k="Price">£49 / month</div>
-        <div class="why" data-k="Included">100,000 calls</div>
+
+      <div class="price-card featured">
+        <div class="tier-tag">Business <span class="flag">recommended</span></div>
+        <h3>For regulated teams</h3>
+        <div class="amount">Custom<span> pricing</span></div>
+        <div class="cap">From 1,000,000 calls /month</div>
+        <ul>
+          <li>Everything in Pro</li>
+          <li>Multi-tenant API keys</li>
+          <li>Automatic provider failover</li>
+          <li>1-year audit log retention</li>
+          <li>Priority support</li>
+        </ul>
+        <a href="mailto:j.nagaraj2109@gmail.com?subject=Jnvoy%20Business" class="btn btn-primary">Talk to sales</a>
       </div>
-      <div class="ledger-row">
-        <div class="type" data-k="Plan">Business</div>
-        <div class="example" data-k="Price">£299 / month</div>
-        <div class="why" data-k="Included">1,000,000 calls</div>
-      </div>
-      <div class="ledger-row">
-        <div class="type" data-k="Plan">Enterprise</div>
-        <div class="example" data-k="Price">£999 / month</div>
-        <div class="why" data-k="Included">Unlimited calls</div>
+
+      <div class="price-card">
+        <div class="tier-tag">Enterprise</div>
+        <h3>Custom deployment</h3>
+        <div class="amount">Custom<span> pricing</span></div>
+        <div class="cap">Unlimited calls</div>
+        <ul>
+          <li>Everything in Business</li>
+          <li>Dedicated audit database</li>
+          <li>Custom PII recognisers</li>
+          <li>SLA & onboarding support</li>
+          <li>Dedicated Slack channel</li>
+        </ul>
+        <a href="mailto:j.nagaraj2109@gmail.com?subject=Jnvoy%20Enterprise" class="btn btn-ghost">Talk to sales</a>
       </div>
     </div>
 
-    <!-- Live Stripe checkout. Replace YOUR_PUBLISHABLE_KEY with your full
-         pk_test_... (or pk_live_...) key from the Stripe dashboard:
-         Developers → API keys. The pricing-table-id below is already
-         your real table. -->
-    <script async src="https://js.stripe.com/v3/pricing-table.js"></script>
-    <stripe-pricing-table pricing-table-id="prctbl_1UQ7dsH0OTHV50ihsQm9AFYu"
-      publishable-key="YOUR_PUBLISHABLE_KEY">
-    </stripe-pricing-table>
+    <!-- Free tier CTA links to /docs for self-serve sign-up. The three paid
+         tiers route to a mailto: swap these for a real contact form or
+         scheduling link (Calendly, etc.) once you have one. -->
+
+    <div class="price-foot">
+      <p><b>Prefer to self-host?</b> Jnvoy is source-available under BSL 1.1 — run it on your own infrastructure, in production, for free, forever.</p>
+      <a href="https://github.com/Jeevan2191999/jnvoy" class="btn btn-ghost btn-sm">View source on GitHub</a>
+    </div>
   </div>
 </section>
 
@@ -843,7 +928,7 @@ response = httpx.post(
     <div class="mark">unsolicited<br>feedback</div>
     <div>
       <blockquote>"We built PII stripping internally and it took weeks. The problem is real. The larger enterprise partners always ask about it before signing."</blockquote>
-      <div class="cite"><b>Neal Lathia</b>, Co-founder, Gradient Labs ($26M Series A)</div>
+      <div class="cite"><b>Co-founder</b>, Series A fintech startup</div>
     </div>
   </div>
 </div>
