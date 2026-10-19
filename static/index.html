@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Jnvoy — Your AI firewall for sensitive data</title>
+<title>Jnvoy: your AI firewall for sensitive data</title>
 <meta name="description" content="Jnvoy sits between your application and any LLM. Sensitive data never reaches Claude, GPT-4o, or Gemini. Change one URL.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -252,7 +252,8 @@
   /* ============================================================
      SECTION HEADS
      ============================================================ */
-  section{ padding:96px 0; }
+  section{ padding:96px 0; scroll-margin-top:84px; }
+  .stats{ scroll-margin-top:84px; }
   .shead{ max-width:620px; margin-bottom:56px; }
   .shead h2{
     font-family:var(--mono); font-weight:700;
@@ -262,7 +263,7 @@
   .shead p{ margin-top:14px; color:var(--ink-soft); font-size:1.0625rem; max-width:52ch; }
 
   /* ============================================================
-     HOW IT WORKS — numbered pipeline (genuine sequence)
+     HOW IT WORKS: numbered pipeline (genuine sequence)
      ============================================================ */
   .pipeline{
     display:grid;
@@ -296,7 +297,7 @@
   }
 
   /* ============================================================
-     WHAT IT CATCHES — ledger table
+     WHAT IT CATCHES: ledger table
      ============================================================ */
   .ledger{ border-top:1px solid var(--line-strong); }
   .ledger-row{
@@ -327,7 +328,7 @@
   .ledger-row .why{ font-size:0.875rem; color:var(--ink-faint); }
 
   /* ============================================================
-     FEATURES — ledger clauses, not cards
+     FEATURES: ledger clauses, not cards
      ============================================================ */
   .clauses{
     display:grid; grid-template-columns:repeat(3,1fr); gap:0;
@@ -346,7 +347,7 @@
   .clause p{ margin-top:8px; font-size:0.9rem; color:var(--ink-soft); }
 
   /* ============================================================
-     INTEGRATION — raw page (dark) vs protected page (paper)
+     INTEGRATION: raw page (dark) vs protected page (paper)
      ============================================================ */
   .providers{
     display:flex; flex-wrap:wrap; gap:10px 14px; margin-bottom:40px;
@@ -386,7 +387,7 @@
   .code-panel.raw .c1{ color:#8E97A1; }
 
   /* ============================================================
-     COMPLIANCE — stamped certificate
+     COMPLIANCE: stamped certificate
      ============================================================ */
   .compliance-grid{
     display:grid; grid-template-columns:1fr 1.15fr; gap:48px; align-items:start;
@@ -436,7 +437,7 @@
   }
 
   /* ============================================================
-     TESTIMONIAL — margin note
+     TESTIMONIAL: margin note
      ============================================================ */
   .testimonial{
     border-top:1px solid var(--line-strong);
@@ -490,9 +491,11 @@
   <div class="wrap nav">
     <a href="#" class="wordmark"><span class="dot"></span>jnvoy</a>
     <nav class="navlinks">
+      <a href="#how">How it works</a>
+      <a href="#features">Features</a>
+      <a href="#pricing">Pricing</a>
       <a href="/docs">Docs</a>
       <a href="https://github.com/Jeevan2191999/jnvoy">GitHub</a>
-      <a href="#pricing">Pricing</a>
       <a class="btn btn-primary btn-sm" href="/docs">Try the API</a>
     </nav>
   </div>
@@ -502,7 +505,7 @@
   <div class="wrap hero-grid">
     <div>
       <h1>Your AI reads everything<br>you send it.<br><span class="soft">Jnvoy decides what it's allowed to see.</span></h1>
-      <p class="lede">A proxy that sits between your application and any LLM. Sensitive data is detected and replaced before it leaves your system. Claude, GPT-4o, and Gemini never see the raw values. Change one URL — nothing else.</p>
+      <p class="lede">A proxy that sits between your application and any LLM. Sensitive data is detected and replaced before it leaves your system. Claude, GPT-4o, and Gemini never see the raw values. Change one URL. Nothing else.</p>
       <div class="hero-ctas">
         <a href="/docs" class="btn btn-primary">Try the live API</a>
         <a href="https://github.com/Jeevan2191999/jnvoy" class="btn btn-ghost">View source on GitHub</a>
@@ -542,37 +545,37 @@
   <div class="wrap">
     <div class="shead">
       <h2>One proxy. Every LLM. Always private.</h2>
-      <p>Jnvoy intercepts every call before it leaves your system, scrubs it, and restores the original values once the model has answered. Nothing sensitive travels.</p>
+      <p>Jnvoy intercepts every LLM call before it leaves your system. Sensitive data is detected, replaced with tokens, and restored in the response. Nothing sensitive ever travels.</p>
     </div>
     <div class="pipeline">
       <div class="step">
         <div class="num">01</div>
-        <h3>Request sent</h3>
-        <p>Your app calls Jnvoy exactly as it would call the LLM, with real user data.</p>
+        <h3>Your app sends a request</h3>
+        <p>Normal LLM call with real user data.</p>
         <div class="who">your application</div>
       </div>
       <div class="step">
         <div class="num">02</div>
-        <h3>PII scanned</h3>
-        <p>Presidio detects 20+ sensitive entity types locally, before anything is sent out.</p>
+        <h3>Jnvoy scans for PII</h3>
+        <p>Presidio detects 20+ sensitive entity types locally.</p>
         <div class="who">jnvoy, in process</div>
       </div>
       <div class="step">
         <div class="num">03</div>
-        <h3>Values redacted</h3>
-        <p>Each match is swapped for a reversible token. The structure of the message stays intact.</p>
+        <h3>Sensitive data redacted</h3>
+        <p>Replaced with reversible tokens before transmission.</p>
         <div class="who">jnvoy, in process</div>
       </div>
       <div class="step">
         <div class="num">04</div>
-        <h3>Model responds</h3>
-        <p>Claude or GPT-4o reasons over the clean text. It never sees a raw value.</p>
+        <h3>LLM sees clean data</h3>
+        <p>Claude or GPT-4o never sees raw sensitive data.</p>
         <div class="who">claude / gpt-4o</div>
       </div>
       <div class="step">
         <div class="num">05</div>
         <h3>Response restored</h3>
-        <p>Tokens are swapped back. The audit entry is written. You get a normal response.</p>
+        <p>Original values restored. Audit log written. Done.</p>
         <div class="who">jnvoy → your app</div>
       </div>
     </div>
@@ -631,66 +634,109 @@
 <section id="features">
   <div class="wrap">
     <div class="shead">
-      <h2>Built for production, not a demo</h2>
-      <p>Everything a regulated environment expects. No configuration required.</p>
+      <h2>Built for production, not just demos</h2>
+      <p>Everything you need to deploy AI safely in a regulated environment. No configuration required. No vendor lock-in.</p>
     </div>
     <div class="clauses">
 
       <div class="clause">
         <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 3l7 3v5c0 4.5-3 7.8-7 9-4-1.2-7-4.5-7-9V6l7-3z"/></svg>
-        <h3>Presidio-grade detection</h3>
-        <p>Enterprise NLP PII detection across 20+ entity types, with UK-specific recognisers built in.</p>
+        <h3>Microsoft Presidio detection</h3>
+        <p>Enterprise-grade NLP-based PII detection. 20+ entity types. UK-specific recognisers for NHS numbers, NI numbers, UK postcodes, and sort codes.</p>
       </div>
 
       <div class="clause">
         <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M13 2L4 14h6l-1 8 9-12h-6l1-8z"/></svg>
         <h3>Semantic cache</h3>
-        <p>Similar queries return cached responses instantly, cutting LLM spend by 20 to 40 percent.</p>
+        <p>Similar queries return cached responses instantly. Saves 20 to 40 percent of LLM costs automatically without any configuration.</p>
       </div>
 
       <div class="clause">
         <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 010 18"/></svg>
         <h3>Intelligent routing</h3>
-        <p>Simple queries route to the cheapest capable model. Complex ones go to a stronger one automatically.</p>
+        <p>Assigns the cheapest capable model to each query automatically. Simple questions go to Haiku. Complex ones go to Sonnet.</p>
       </div>
 
       <div class="clause">
         <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="4" y="3" width="16" height="18" rx="1"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>
-        <h3>Persistent audit log</h3>
-        <p>Every call is written to PostgreSQL permanently. Raw PII is never stored, only type and count.</p>
+        <h3>Persistent audit logs</h3>
+        <p>Every API call permanently logged to PostgreSQL. Never stores raw PII. Queryable by date, provider, and PII type.</p>
       </div>
 
       <div class="clause">
         <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="4" y="4" width="16" height="16" rx="1"/><path d="M8 9h8M8 13h8M8 17h4"/></svg>
-        <h3>Compliance report</h3>
-        <p>One endpoint produces an FCA and EU AI Act ready PDF, proving zero sensitive data was sent out.</p>
+        <h3>Compliance report PDF</h3>
+        <p>One endpoint generates an FCA and GDPR-ready PDF proving zero sensitive data was transmitted. With your company name on it.</p>
       </div>
 
       <div class="clause">
         <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="7" width="7" height="5" rx="1"/><rect x="14" y="7" width="7" height="5" rx="1"/><path d="M10 9.5h4"/></svg>
-        <h3>Multi-tenant keys</h3>
-        <p>Each company gets complete isolation: separate traffic, audit logs, and compliance reports.</p>
+        <h3>Multi-tenant API keys</h3>
+        <p>Each company gets complete data isolation. Their traffic, audit logs, and compliance reports are entirely separate.</p>
       </div>
 
       <div class="clause">
         <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 12a8 8 0 0114-5.3M20 12a8 8 0 01-14 5.3"/><path d="M18 3v4h-4M6 21v-4h4"/></svg>
         <h3>Automatic failover</h3>
-        <p>Provider health is tracked continuously. If Claude goes down, traffic reroutes to GPT-4o or Gemini.</p>
+        <p>Outage detector tracks provider health. If Claude goes down, traffic automatically reroutes to GPT-4o or Gemini.</p>
       </div>
 
       <div class="clause">
         <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 5h16v10H9l-5 4V5z"/></svg>
         <h3>Slack connector</h3>
-        <p>Protects every message sent to an AI bot in a workspace, with a note on what it caught.</p>
+        <p>Protects every message sent to any AI bot in your Slack workspace. Posts a compliance note showing what was detected.</p>
       </div>
 
       <div class="clause">
         <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 8l8-5 8 5v8l-8 5-8-5V8z"/><path d="M4 8l8 5 8-5M12 13v8"/></svg>
-        <h3>One Docker command</h3>
-        <p>API, PostgreSQL, and Redis start together. Self-hostable on your own infrastructure.</p>
+        <h3>Docker stack</h3>
+        <p>One command starts everything. API plus PostgreSQL plus Redis. Self-hostable on your own infrastructure.</p>
       </div>
 
     </div>
+  </div>
+</section>
+
+<section id="pricing">
+  <div class="wrap">
+    <div class="shead">
+      <h2>Pricing</h2>
+      <p>Start free. Scale as traffic grows. Every tier includes full PII protection, injection detection, and audit logging.</p>
+    </div>
+    <div class="ledger" style="margin-bottom:48px;">
+      <div class="ledger-row head">
+        <div>Plan</div><div>Price</div><div>Included</div>
+      </div>
+      <div class="ledger-row">
+        <div class="type" data-k="Plan">Free</div>
+        <div class="example" data-k="Price">£0 / month</div>
+        <div class="why" data-k="Included">10,000 calls</div>
+      </div>
+      <div class="ledger-row">
+        <div class="type" data-k="Plan">Pro</div>
+        <div class="example" data-k="Price">£49 / month</div>
+        <div class="why" data-k="Included">100,000 calls</div>
+      </div>
+      <div class="ledger-row">
+        <div class="type" data-k="Plan">Business</div>
+        <div class="example" data-k="Price">£299 / month</div>
+        <div class="why" data-k="Included">1,000,000 calls</div>
+      </div>
+      <div class="ledger-row">
+        <div class="type" data-k="Plan">Enterprise</div>
+        <div class="example" data-k="Price">£999 / month</div>
+        <div class="why" data-k="Included">Unlimited calls</div>
+      </div>
+    </div>
+
+    <!-- Live Stripe checkout. Replace YOUR_PUBLISHABLE_KEY with your full
+         pk_test_... (or pk_live_...) key from the Stripe dashboard:
+         Developers → API keys. The pricing-table-id below is already
+         your real table. -->
+    <script async src="https://js.stripe.com/v3/pricing-table.js"></script>
+    <stripe-pricing-table pricing-table-id="prctbl_1UQ7dsH0OTHV50ihsQm9AFYu"
+      publishable-key="YOUR_PUBLISHABLE_KEY">
+    </stripe-pricing-table>
   </div>
 </section>
 
@@ -698,7 +744,7 @@
   <div class="wrap">
     <div class="shead">
       <h2>Change one URL. That's it.</h2>
-      <p>No SDK, no config, no architectural change. Point an existing call at Jnvoy and it is protected.</p>
+      <p>No SDK to install. No configuration to learn. No architectural changes. Point your existing LLM calls at Jnvoy and every request is automatically protected.</p>
     </div>
     <div class="providers">
       <span class="chip">Anthropic Claude</span>
@@ -728,7 +774,7 @@ response = client.messages.create(
       </div>
       <div class="code-panel clean">
         <div class="hd"><span>after.py</span><span>protected</span></div>
-        <pre><span class="c1"># through jnvoy — one line changed</span>
+        <pre><span class="c1"># through jnvoy, one line changed</span>
 <span class="c1">import</span> httpx
 
 response = httpx.post(
@@ -752,7 +798,7 @@ response = httpx.post(
     <div>
       <div class="shead" style="margin-bottom:0;">
         <h2>The document your auditor is asking for</h2>
-        <p>When the FCA or ICO asks how you ensure sensitive data never reaches an external model, this is the answer. One endpoint. One PDF.</p>
+        <p>When the FCA or ICO asks how you ensure sensitive data never reaches external AI models, Jnvoy generates the answer automatically. One endpoint. One PDF. Done.</p>
       </div>
       <div class="badges">
         <span class="badge">EMAIL_ADDRESS</span>
@@ -779,7 +825,7 @@ response = httpx.post(
         <div class="stamp">VERIFIED<br>CLEAN</div>
       </div>
       <div class="cert-rows">
-        <div class="cert-row"><span class="k">Audit period</span><span class="v">Sep 1 – Oct 1 2026</span></div>
+        <div class="cert-row"><span class="k">Audit period</span><span class="v">Sep 1 to Oct 1 2026</span></div>
         <div class="cert-row"><span class="k">Total API calls</span><span class="v">1,250</span></div>
         <div class="cert-row"><span class="k">PII instances redacted</span><span class="v">847</span></div>
         <div class="cert-row"><span class="k">Cache hit rate</span><span class="v">34.2%</span></div>
@@ -796,7 +842,7 @@ response = httpx.post(
   <div class="wrap tgrid">
     <div class="mark">unsolicited<br>feedback</div>
     <div>
-      <blockquote>"We built PII stripping internally and it took weeks. The problem is real — the larger enterprise partners always ask about it before signing."</blockquote>
+      <blockquote>"We built PII stripping internally and it took weeks. The problem is real. The larger enterprise partners always ask about it before signing."</blockquote>
       <div class="cite"><b>Neal Lathia</b>, Co-founder, Gradient Labs ($26M Series A)</div>
     </div>
   </div>
@@ -815,7 +861,7 @@ response = httpx.post(
 
 <footer>
   <div class="wrap fgrid">
-    <div class="left">jnvoy — built by Jeevan Nagaraj</div>
+    <div class="left">jnvoy, built by Jeevan Nagaraj</div>
     <div class="flinks">
       <a href="/docs">API docs</a>
       <a href="https://github.com/Jeevan2191999/jnvoy">GitHub</a>
