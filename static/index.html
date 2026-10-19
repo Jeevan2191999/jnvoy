@@ -2,971 +2,743 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Jnvoy — AI Trust Layer</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jnvoy — Your AI firewall for sensitive data</title>
+<meta name="description" content="Jnvoy sits between your application and any LLM. Sensitive data never reaches Claude, GPT-4o, or Gemini. Change one URL.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-  :root {
-    --bg: #0a0a0b;
-    --bg2: #111113;
-    --bg3: #18181b;
-    --border: #27272a;
-    --border2: #3f3f46;
-    --text: #fafafa;
-    --text2: #a1a1aa;
-    --text3: #71717a;
-    --accent: #c8860a;
-    --accent2: #f59e0b;
-    --green: #22c55e;
-    --red: #ef4444;
-    --blue: #3b82f6;
-    --font: 'Inter', -apple-system, sans-serif;
-    --mono: 'JetBrains Mono', 'Fira Code', monospace;
-  }
-
-  html { font-size: 16px; scroll-behavior: smooth; }
-
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: var(--font);
-    font-size: 1rem;
-    line-height: 1.6;
-    -webkit-font-smoothing: antialiased;
-    overflow-x: hidden;
-  }
-
-  /* NAV */
-  nav {
-    position: fixed;
-    top: 0; left: 0; right: 0;
-    z-index: 100;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 2rem;
-    height: 56px;
-    background: rgba(10, 10, 11, 0.85);
-    backdrop-filter: blur(12px);
-    border-bottom: 1px solid var(--border);
-  }
-
-  .nav-logo {
-    font-family: var(--mono);
-    font-size: 1rem;
-    font-weight: 500;
-    color: var(--text);
-    letter-spacing: -0.02em;
-    text-decoration: none;
-  }
-
-  .nav-logo span { color: var(--accent); }
-
-  .nav-links {
-    display: flex;
-    align-items: center;
-    gap: 2rem;
-    list-style: none;
-  }
-
-  .nav-links a {
-    color: var(--text2);
-    text-decoration: none;
-    font-size: 0.875rem;
-    transition: color 0.15s;
-  }
-
-  .nav-links a:hover { color: var(--text); }
-
-  .nav-cta {
-    background: var(--accent);
-    color: #000 !important;
-    padding: 0.375rem 0.875rem;
-    border-radius: 6px;
-    font-weight: 500;
-    font-size: 0.875rem !important;
-    transition: opacity 0.15s !important;
-  }
-
-  .nav-cta:hover { opacity: 0.85; }
-
-  /* HERO */
-  .hero {
-    min-height: 100vh;
-    padding: 120px 2rem 80px;
-    max-width: 1100px;
-    margin: 0 auto;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 4rem;
-    align-items: center;
-  }
-
-  .hero-left {}
-
-  .badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    background: rgba(200, 134, 10, 0.1);
-    border: 1px solid rgba(200, 134, 10, 0.3);
-    color: var(--accent2);
-    font-size: 0.75rem;
-    font-weight: 500;
-    padding: 0.25rem 0.75rem;
-    border-radius: 999px;
-    margin-bottom: 1.5rem;
-    font-family: var(--mono);
-  }
-
-  .badge-dot {
-    width: 6px; height: 6px;
-    background: var(--accent2);
-    border-radius: 50%;
-    animation: pulse 2s infinite;
-  }
-
-  @keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.3; }
-  }
-
-  h1 {
-    font-size: 3.25rem;
-    font-weight: 600;
-    line-height: 1.1;
-    letter-spacing: -0.04em;
-    margin-bottom: 1.5rem;
-    color: var(--text);
-  }
-
-  h1 em {
-    font-style: normal;
-    color: var(--accent);
-  }
-
-  .hero-desc {
-    font-size: 1.125rem;
-    color: var(--text2);
-    line-height: 1.7;
-    margin-bottom: 2.5rem;
-    max-width: 480px;
-  }
-
-  .hero-actions {
-    display: flex;
-    gap: 1rem;
-    align-items: center;
-    flex-wrap: wrap;
-  }
-
-  .btn-primary {
-    background: var(--accent);
-    color: #000;
-    padding: 0.625rem 1.25rem;
-    border-radius: 8px;
-    font-size: 0.9375rem;
-    font-weight: 500;
-    text-decoration: none;
-    transition: opacity 0.15s;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-
-  .btn-primary:hover { opacity: 0.85; }
-
-  .btn-secondary {
-    background: var(--bg3);
-    color: var(--text);
-    padding: 0.625rem 1.25rem;
-    border-radius: 8px;
-    font-size: 0.9375rem;
-    font-weight: 500;
-    text-decoration: none;
-    border: 1px solid var(--border);
-    transition: border-color 0.15s;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-
-  .btn-secondary:hover { border-color: var(--border2); }
-
-  .hero-stats {
-    display: flex;
-    gap: 2rem;
-    margin-top: 3rem;
-    padding-top: 2rem;
-    border-top: 1px solid var(--border);
-  }
-
-  .stat {}
-  .stat-num {
-    font-family: var(--mono);
-    font-size: 1.5rem;
-    font-weight: 500;
-    color: var(--text);
-  }
-  .stat-label {
-    font-size: 0.8125rem;
-    color: var(--text3);
-    margin-top: 0.125rem;
-  }
-
-  /* TERMINAL */
-  .terminal {
-    background: var(--bg2);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    overflow: hidden;
-    font-family: var(--mono);
-    font-size: 0.8125rem;
-    line-height: 1.7;
-  }
-
-  .terminal-bar {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.75rem 1rem;
-    border-bottom: 1px solid var(--border);
-    background: var(--bg3);
-  }
-
-  .dot { width: 10px; height: 10px; border-radius: 50%; }
-  .dot-red { background: #ff5f57; }
-  .dot-yellow { background: #ffbd2e; }
-  .dot-green { background: #28c941; }
-
-  .terminal-title {
-    font-size: 0.75rem;
-    color: var(--text3);
-    margin-left: 0.5rem;
-  }
-
-  .terminal-body { padding: 1.25rem 1.25rem; }
-
-  .line { display: flex; margin-bottom: 0.25rem; }
-  .prompt { color: var(--accent); margin-right: 0.5rem; user-select: none; }
-  .cmd { color: var(--text); }
-  .out { color: var(--text2); padding-left: 1.25rem; }
-  .out-green { color: var(--green); padding-left: 1.25rem; }
-  .out-key { color: var(--accent2); }
-  .out-val { color: #7dd3fc; }
-  .out-str { color: #86efac; }
-  .out-false { color: var(--green); }
-  .spacer { height: 0.5rem; }
-  .comment { color: var(--text3); padding-left: 1.25rem; font-style: italic; }
-
-  /* DIVIDER */
-  .divider {
-    max-width: 1100px;
-    margin: 0 auto;
-    border: none;
-    border-top: 1px solid var(--border);
-  }
-
-  /* SECTION */
-  section {
-    max-width: 1100px;
-    margin: 0 auto;
-    padding: 5rem 2rem;
-  }
-
-  .section-label {
-    font-family: var(--mono);
-    font-size: 0.75rem;
-    color: var(--accent);
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    margin-bottom: 1rem;
-  }
-
-  h2 {
-    font-size: 2.25rem;
-    font-weight: 600;
-    letter-spacing: -0.03em;
-    line-height: 1.2;
-    margin-bottom: 1rem;
-    color: var(--text);
-  }
-
-  .section-desc {
-    font-size: 1.0625rem;
-    color: var(--text2);
-    max-width: 540px;
-    line-height: 1.7;
-    margin-bottom: 3rem;
-  }
-
-  /* HOW IT WORKS */
-  .pipeline {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 0;
-    position: relative;
-  }
-
-  .pipeline::before {
-    content: '';
-    position: absolute;
-    top: 28px;
-    left: 10%;
-    right: 10%;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, var(--border), var(--accent), var(--border), transparent);
-  }
-
-  .pipe-step {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    position: relative;
-    padding-top: 0.25rem;
-  }
-
-  .pipe-icon {
-    width: 56px; height: 56px;
-    background: var(--bg2);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.375rem;
-    margin-bottom: 1rem;
-    position: relative;
-    z-index: 1;
-  }
-
-  .pipe-icon.active {
-    border-color: var(--accent);
-    background: rgba(200, 134, 10, 0.08);
-  }
-
-  .pipe-step h3 {
-    font-size: 0.8125rem;
-    font-weight: 500;
-    color: var(--text);
-    margin-bottom: 0.375rem;
-  }
-
-  .pipe-step p {
-    font-size: 0.75rem;
-    color: var(--text3);
-    line-height: 1.5;
-  }
-
-  /* FEATURES */
-  .features-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1px;
-    background: var(--border);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    overflow: hidden;
-  }
-
-  .feature {
-    background: var(--bg);
-    padding: 1.75rem;
-  }
-
-  .feature-icon {
-    font-size: 1.5rem;
-    margin-bottom: 1rem;
-  }
-
-  .feature h3 {
-    font-size: 0.9375rem;
-    font-weight: 500;
-    margin-bottom: 0.5rem;
-    color: var(--text);
-  }
-
-  .feature p {
-    font-size: 0.875rem;
-    color: var(--text3);
-    line-height: 1.6;
-  }
-
-  /* CODE BLOCK */
-  .code-block {
-    background: var(--bg2);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    overflow: hidden;
-    margin: 1.5rem 0;
-  }
-
-  .code-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0.625rem 1rem;
-    border-bottom: 1px solid var(--border);
-    background: var(--bg3);
-  }
-
-  .code-lang {
-    font-family: var(--mono);
-    font-size: 0.75rem;
-    color: var(--text3);
-  }
-
-  .code-copy {
-    font-size: 0.75rem;
-    color: var(--text3);
-    cursor: pointer;
-    background: none;
-    border: none;
-    font-family: var(--mono);
-    padding: 0.125rem 0.5rem;
-    border-radius: 4px;
-    transition: color 0.15s;
-  }
-
-  .code-copy:hover { color: var(--text); }
-
-  pre {
-    padding: 1.25rem;
-    overflow-x: auto;
-    font-family: var(--mono);
-    font-size: 0.8125rem;
-    line-height: 1.7;
-    color: var(--text2);
-  }
-
-  .k { color: #c084fc; }
-  .s { color: #86efac; }
-  .c { color: var(--text3); font-style: italic; }
-  .n { color: #7dd3fc; }
-
-  /* INTEGRATION */
-  .integration-layout {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 4rem;
-    align-items: start;
-  }
-
-  /* COMPLIANCE */
-  .compliance-card {
-    background: var(--bg2);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 1.75rem;
-  }
-
-  .compliance-header {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    margin-bottom: 1.5rem;
-    padding-bottom: 1.25rem;
-    border-bottom: 1px solid var(--border);
-  }
-
-  .compliance-badge {
-    background: rgba(34, 197, 94, 0.1);
-    border: 1px solid rgba(34, 197, 94, 0.3);
-    color: var(--green);
-    font-size: 0.6875rem;
-    font-family: var(--mono);
-    padding: 0.2rem 0.6rem;
-    border-radius: 4px;
-    font-weight: 500;
-  }
-
-  .compliance-title {
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: var(--text);
-  }
-
-  .compliance-ref {
-    font-family: var(--mono);
-    font-size: 0.75rem;
-    color: var(--text3);
-    margin-left: auto;
-  }
-
-  .metric-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.625rem 0;
-    border-bottom: 1px solid var(--border);
-    font-size: 0.8125rem;
-  }
-
-  .metric-row:last-child { border-bottom: none; }
-
-  .metric-label { color: var(--text2); }
-  .metric-value { font-family: var(--mono); color: var(--text); }
-  .metric-value.good { color: var(--green); }
-  .metric-value.zero { color: var(--green); font-weight: 500; }
-
-  .compliance-statement {
-    margin-top: 1.25rem;
-    padding: 0.875rem;
-    background: rgba(34, 197, 94, 0.05);
-    border: 1px solid rgba(34, 197, 94, 0.2);
-    border-radius: 8px;
-    font-size: 0.8125rem;
-    color: var(--green);
-    font-family: var(--mono);
-    line-height: 1.6;
-  }
-
-  /* PROVIDERS */
-  .providers {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.75rem;
-    margin-top: 2rem;
-  }
-
-  .provider-tag {
-    background: var(--bg2);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 0.375rem 0.75rem;
-    font-size: 0.8125rem;
-    color: var(--text2);
-    font-family: var(--mono);
-    display: flex;
-    align-items: center;
-    gap: 0.375rem;
-  }
-
-  .provider-dot {
-    width: 6px; height: 6px;
-    border-radius: 50%;
-    background: var(--green);
-  }
-
-  /* PII TYPES */
-  .pii-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 0.5rem;
-    margin-top: 2rem;
-  }
-
-  .pii-tag {
-    background: var(--bg2);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 0.5rem 0.75rem;
-    font-size: 0.75rem;
-    font-family: var(--mono);
-    color: var(--text3);
-  }
-
-  /* TESTIMONIAL */
-  .quote-section {
-    background: var(--bg2);
-    border: 1px solid var(--border);
-    border-left: 3px solid var(--accent);
-    border-radius: 0 12px 12px 0;
-    padding: 2rem 2.5rem;
-    margin: 0 2rem;
-  }
-
-  .quote-text {
-    font-size: 1.125rem;
-    color: var(--text);
-    line-height: 1.7;
-    margin-bottom: 1rem;
-    font-style: italic;
-  }
-
-  .quote-source {
-    font-size: 0.875rem;
-    color: var(--text3);
-    font-family: var(--mono);
-  }
-
-  /* CTA */
-  .cta-section {
-    text-align: center;
-    padding: 6rem 2rem;
-    background: linear-gradient(180deg, transparent, rgba(200, 134, 10, 0.03));
-    border-top: 1px solid var(--border);
-  }
-
-  .cta-section h2 {
-    font-size: 2.5rem;
-    max-width: 600px;
-    margin: 0 auto 1rem;
-  }
-
-  .cta-section p {
-    color: var(--text2);
-    font-size: 1.0625rem;
-    margin-bottom: 2.5rem;
-  }
-
-  .cta-actions {
-    display: flex;
-    gap: 1rem;
-    justify-content: center;
-    flex-wrap: wrap;
-  }
-
-  /* FOOTER */
-  footer {
-    border-top: 1px solid var(--border);
-    padding: 2rem;
-    max-width: 1100px;
-    margin: 0 auto;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  .footer-left {
-    font-family: var(--mono);
-    font-size: 0.875rem;
-    color: var(--text3);
-  }
-
-  .footer-left span { color: var(--accent); }
-
-  .footer-links {
-    display: flex;
-    gap: 1.5rem;
-    list-style: none;
-  }
-
-  .footer-links a {
-    font-size: 0.875rem;
-    color: var(--text3);
-    text-decoration: none;
-    transition: color 0.15s;
-  }
-
-  .footer-links a:hover { color: var(--text2); }
-
-  /* TYPING ANIMATION */
-  .typed::after {
-    content: '|';
-    color: var(--accent);
-    animation: blink 1s infinite;
-  }
-
-  @keyframes blink {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0; }
-  }
-
-  /* RESPONSIVE */
-  @media (max-width: 768px) {
-    .hero {
-      grid-template-columns: 1fr;
-      padding: 100px 1.25rem 60px;
-      gap: 2.5rem;
+  /* ============================================================
+     TOKENS
+     Metaphor: raw / exposed data is dark + stamp-red.
+     Redacted / protected data is paper-light + stamp-green.
+     That duality repeats everywhere a before/after appears.
+     ============================================================ */
+  :root{
+    --ink:        #12161B;
+    --ink-soft:   #42484F;
+    --ink-faint:  #71777E;
+    --paper:      #EDEEE9;
+    --paper-raised:#F8F8F4;
+    --line:       #D7D8D1;
+    --line-strong:#B9BAB2;
+    --red:        #8A2A16;
+    --red-dim:    #B8491F;
+    --red-wash:   #F4E7E2;
+    --green:      #1E6450;
+    --green-wash: #E3EEE9;
+    --redact:     #15171A;
+
+    --mono: 'Courier Prime', ui-monospace, 'SF Mono', Consolas, monospace;
+    --sans: 'Inter', -apple-system, 'Segoe UI', sans-serif;
+
+    --maxw: 1180px;
+    --radius-page: 3px;
+    --radius-ui: 4px;
+  }
+
+  *,*::before,*::after{ box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:var(--sans);
+    font-size:16px;
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  img,svg{ display:block; max-width:100%; }
+  a{ color:inherit; }
+  h1,h2,h3,p,figure{ margin:0; }
+  .wrap{ max-width:var(--maxw); margin:0 auto; padding:0 28px; }
+
+  :focus-visible{
+    outline:2px solid var(--green);
+    outline-offset:3px;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important; }
+  }
+
+  /* ---------- type helpers ---------- */
+  .label{
+    font-family:var(--sans);
+    font-size:0.8125rem;
+    font-weight:600;
+    color:var(--ink-faint);
+  }
+  .lede{
+    font-size:1.125rem;
+    color:var(--ink-soft);
+    max-width:46ch;
+    line-height:1.65;
+  }
+  .mono{ font-family:var(--mono); }
+
+  /* ============================================================
+     NAV
+     ============================================================ */
+  header.site{
+    position:sticky; top:0; z-index:40;
+    background:rgba(237,238,233,0.92);
+    backdrop-filter:blur(6px);
+    border-bottom:1px solid var(--line);
+  }
+  .nav{
+    display:flex; align-items:center; justify-content:space-between;
+    height:68px;
+  }
+  .wordmark{
+    font-family:var(--mono); font-weight:700; font-size:1.05rem;
+    letter-spacing:0.01em;
+    display:flex; align-items:center; gap:9px;
+    text-decoration:none; color:var(--ink);
+  }
+  .wordmark .dot{
+    width:8px; height:8px; border-radius:50%;
+    background:var(--green);
+    box-shadow:0 0 0 3px var(--green-wash);
+  }
+  .navlinks{ display:flex; align-items:center; gap:30px; }
+  .navlinks a{
+    text-decoration:none; font-size:0.9375rem; color:var(--ink-soft);
+    font-weight:500;
+  }
+  .navlinks a:hover{ color:var(--ink); }
+  .navlinks a.btn{ color:#fff; }
+  .navlinks a.btn:hover{ color:#fff; }
+  .btn{
+    display:inline-flex; align-items:center; gap:8px;
+    font-family:var(--sans); font-weight:600; font-size:0.9375rem;
+    padding:0.72em 1.35em;
+    border-radius:var(--radius-ui);
+    text-decoration:none;
+    border:1px solid transparent;
+    cursor:pointer;
+    transition:background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  }
+  .btn-primary{ background:var(--red); color:#fff; }
+  .btn-primary:hover{ background:var(--red-dim); }
+  .btn-ghost{ background:transparent; color:var(--ink); border-color:var(--line-strong); }
+  .btn-ghost:hover{ border-color:var(--ink); }
+  .btn-sm{ padding:0.5em 1em; font-size:0.85rem; }
+
+  @media (max-width:760px){
+    .navlinks a:not(.btn){ display:none; }
+  }
+
+  /* ============================================================
+     HERO
+     ============================================================ */
+  .hero{ padding:84px 0 96px; }
+  .hero-grid{
+    display:grid;
+    grid-template-columns:1.05fr 1fr;
+    gap:56px;
+    align-items:center;
+  }
+  @media (max-width:920px){
+    .hero-grid{ grid-template-columns:1fr; gap:48px; }
+  }
+  .hero h1{
+    font-family:var(--mono);
+    font-weight:700;
+    font-size:clamp(2.1rem, 4.6vw, 3.4rem);
+    line-height:1.08;
+    letter-spacing:-0.01em;
+    color:var(--ink);
+  }
+  .hero h1 .soft{ color:var(--ink-faint); }
+  .hero .lede{ margin-top:22px; }
+  .hero-ctas{ display:flex; gap:14px; margin-top:34px; flex-wrap:wrap; }
+  .hero-meta{
+    margin-top:26px;
+    display:flex; align-items:center; gap:9px;
+    font-family:var(--mono); font-size:0.8125rem; color:var(--ink-faint);
+  }
+  .hero-meta .dot{ width:7px;height:7px;border-radius:50%;background:var(--green); }
+
+  /* ---- hero document visual ---- */
+  .doc{
+    background:var(--ink);
+    color:var(--paper);
+    border-radius:var(--radius-page);
+    border:1px solid var(--ink);
+    box-shadow:8px 8px 0 var(--line-strong);
+    overflow:hidden;
+  }
+  .doc-bar{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:11px 16px;
+    border-bottom:1px solid rgba(237,238,233,0.14);
+    font-family:var(--mono); font-size:0.75rem; color:rgba(237,238,233,0.55);
+  }
+  .doc-bar .stamp-live{
+    display:inline-flex; align-items:center; gap:6px;
+    color:#9FBFB2;
+  }
+  .doc-bar .stamp-live .dot{
+    width:6px;height:6px;border-radius:50%;background:#4FAE8B;
+  }
+  .doc-body{ padding:22px 18px; font-family:var(--mono); font-size:0.84rem; line-height:1.9; }
+  .doc-body .path{ color:#D9A98C; }
+  .doc-body .raw{ color:rgba(237,238,233,0.9); }
+  .redact-bar{
+    display:inline-block;
+    background:var(--redact);
+    color:transparent;
+    border-radius:2px;
+    padding:0 3px;
+    user-select:none;
+  }
+  .doc-divider{
+    margin:16px 0; border-top:1px dashed rgba(237,238,233,0.2);
+  }
+  .doc-out{ color:#CFEFE0; }
+  .doc-out .token{
+    background:rgba(79,174,139,0.18);
+    color:#7FD1AE;
+    border-radius:2px;
+    padding:0 4px;
+  }
+  .doc-footer{
+    display:flex; gap:22px;
+    padding:14px 18px;
+    border-top:1px solid rgba(237,238,233,0.14);
+    font-family:var(--mono); font-size:0.72rem;
+    color:rgba(237,238,233,0.6);
+  }
+  .doc-footer b{ color:#7FD1AE; font-weight:600; }
+
+  /* redaction sweep animation, fires once on load */
+  .reveal-redact{
+    animation:sweep 0.7s ease forwards;
+    animation-delay:var(--d, 0.2s);
+    width:0;
+  }
+  @keyframes sweep{ to{ width:var(--w, 100%); } }
+
+  /* ============================================================
+     STAT STRIP
+     ============================================================ */
+  .stats{
+    border-top:1px solid var(--line);
+    border-bottom:1px solid var(--line);
+  }
+  .stats-row{
+    display:grid; grid-template-columns:repeat(3,1fr);
+  }
+  .stat{
+    padding:34px 28px;
+    border-left:1px solid var(--line);
+  }
+  .stat:first-child{ border-left:none; padding-left:0; }
+  @media (max-width:700px){
+    .stats-row{ grid-template-columns:1fr; }
+    .stat{ border-left:none; border-top:1px solid var(--line); padding-left:0; }
+    .stat:first-child{ border-top:none; }
+  }
+  .stat .n{
+    font-family:var(--mono); font-weight:700;
+    font-size:clamp(2rem,4vw,2.6rem);
+    color:var(--ink);
+  }
+  .stat .d{ margin-top:6px; color:var(--ink-soft); font-size:0.9375rem; }
+
+  /* ============================================================
+     SECTION HEADS
+     ============================================================ */
+  section{ padding:96px 0; }
+  .shead{ max-width:620px; margin-bottom:56px; }
+  .shead h2{
+    font-family:var(--mono); font-weight:700;
+    font-size:clamp(1.6rem,3vw,2.1rem);
+    line-height:1.2;
+  }
+  .shead p{ margin-top:14px; color:var(--ink-soft); font-size:1.0625rem; max-width:52ch; }
+
+  /* ============================================================
+     HOW IT WORKS — numbered pipeline (genuine sequence)
+     ============================================================ */
+  .pipeline{
+    display:grid;
+    grid-template-columns:repeat(5,1fr);
+    gap:0;
+    border-top:1px solid var(--line-strong);
+  }
+  @media (max-width:980px){
+    .pipeline{ grid-template-columns:1fr; }
+  }
+  .step{
+    padding:26px 20px 26px 0;
+    border-right:1px solid var(--line);
+    position:relative;
+  }
+  .step:last-child{ border-right:none; }
+  @media (max-width:980px){
+    .step{ border-right:none; border-bottom:1px solid var(--line); padding:22px 0; }
+    .step:last-child{ border-bottom:none; }
+  }
+  .step .num{
+    font-family:var(--mono); font-weight:700; font-size:1.6rem;
+    color:var(--line-strong);
+  }
+  .step h3{
+    margin-top:10px; font-size:1.0625rem; font-weight:600;
+  }
+  .step p{ margin-top:8px; font-size:0.9375rem; color:var(--ink-soft); }
+  .step .who{
+    margin-top:14px; font-family:var(--mono); font-size:0.75rem; color:var(--ink-faint);
+  }
+
+  /* ============================================================
+     WHAT IT CATCHES — ledger table
+     ============================================================ */
+  .ledger{ border-top:1px solid var(--line-strong); }
+  .ledger-row{
+    display:grid; grid-template-columns:1fr 1.4fr 1fr;
+    gap:18px;
+    padding:16px 0;
+    border-bottom:1px solid var(--line);
+    align-items:center;
+  }
+  .ledger-row.head{
+    font-family:var(--sans); font-weight:600; color:var(--ink-faint);
+    font-size:0.8125rem;
+    padding-bottom:12px;
+  }
+  @media (max-width:720px){
+    .ledger-row{ grid-template-columns:1fr; gap:4px; padding:16px 0; }
+    .ledger-row.head{ display:none; }
+    .ledger-row > div::before{
+      content:attr(data-k) ": ";
+      font-weight:600; color:var(--ink-faint);
     }
-    h1 { font-size: 2.25rem; }
-    .pipeline { grid-template-columns: 1fr; gap: 1rem; }
-    .pipeline::before { display: none; }
-    .features-grid { grid-template-columns: 1fr; }
-    .integration-layout { grid-template-columns: 1fr; gap: 2rem; }
-    .pii-grid { grid-template-columns: repeat(3, 1fr); }
-    nav { padding: 0 1.25rem; }
-    .nav-links { display: none; }
-    footer { flex-direction: column; gap: 1rem; text-align: center; }
   }
+  .ledger-row .type{ font-weight:600; }
+  .ledger-row .example{ font-family:var(--mono); font-size:0.875rem; color:var(--ink-soft); }
+  .ledger-row .example .redacted{
+    background:var(--redact); color:transparent; border-radius:2px; padding:0 4px;
+  }
+  .ledger-row .why{ font-size:0.875rem; color:var(--ink-faint); }
+
+  /* ============================================================
+     FEATURES — ledger clauses, not cards
+     ============================================================ */
+  .clauses{
+    display:grid; grid-template-columns:repeat(3,1fr); gap:0;
+    border-top:1px solid var(--line-strong);
+    border-left:1px solid var(--line-strong);
+  }
+  @media (max-width:920px){ .clauses{ grid-template-columns:repeat(2,1fr); } }
+  @media (max-width:620px){ .clauses{ grid-template-columns:1fr; } }
+  .clause{
+    padding:28px 26px;
+    border-right:1px solid var(--line-strong);
+    border-bottom:1px solid var(--line-strong);
+  }
+  .clause .icon{ width:28px; height:28px; color:var(--ink); }
+  .clause h3{ margin-top:16px; font-size:1.05rem; font-weight:600; }
+  .clause p{ margin-top:8px; font-size:0.9rem; color:var(--ink-soft); }
+
+  /* ============================================================
+     INTEGRATION — raw page (dark) vs protected page (paper)
+     ============================================================ */
+  .providers{
+    display:flex; flex-wrap:wrap; gap:10px 14px; margin-bottom:40px;
+  }
+  .chip{
+    font-family:var(--mono); font-size:0.8125rem;
+    border:1px solid var(--line-strong);
+    border-radius:var(--radius-ui);
+    padding:0.4em 0.85em;
+    color:var(--ink-soft);
+  }
+  .code-grid{
+    display:grid; grid-template-columns:1fr 1fr; gap:22px;
+  }
+  @media (max-width:860px){ .code-grid{ grid-template-columns:1fr; } }
+  .code-panel{
+    border-radius:var(--radius-page);
+    overflow:hidden;
+    border:1px solid var(--line-strong);
+  }
+  .code-panel .hd{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:11px 16px;
+    font-family:var(--mono); font-size:0.75rem;
+  }
+  .code-panel.raw{ background:var(--ink); color:var(--paper); }
+  .code-panel.raw .hd{ background:rgba(0,0,0,0.25); color:#E6A896; border-bottom:1px solid rgba(237,238,233,0.12); }
+  .code-panel.clean{ background:var(--paper-raised); color:var(--ink); }
+  .code-panel.clean .hd{ background:var(--green-wash); color:var(--green); border-bottom:1px solid var(--line); }
+  .code-panel pre{
+    margin:0; padding:18px 16px; font-family:var(--mono); font-size:0.8125rem; line-height:1.75;
+    overflow-x:auto;
+  }
+  .code-panel.raw pre .mark{ background:rgba(138,42,22,0.35); border-radius:2px; padding:0 2px; }
+  .code-panel.clean pre .mark{ background:var(--green-wash); color:var(--green); border-radius:2px; padding:0 2px; }
+  .code-panel .c1{ color:#8E97A1; }
+  .code-panel.raw .c1{ color:#8E97A1; }
+
+  /* ============================================================
+     COMPLIANCE — stamped certificate
+     ============================================================ */
+  .compliance-grid{
+    display:grid; grid-template-columns:1fr 1.15fr; gap:48px; align-items:start;
+  }
+  @media (max-width:920px){ .compliance-grid{ grid-template-columns:1fr; } }
+  .badges{ display:flex; flex-wrap:wrap; gap:8px; margin-top:22px; }
+  .badge{
+    font-family:var(--mono); font-size:0.75rem;
+    border:1px solid var(--line-strong);
+    padding:0.35em 0.7em;
+    border-radius:2px;
+    color:var(--ink-soft);
+  }
+  .cert{
+    background:var(--paper-raised);
+    border:1px solid var(--line-strong);
+    border-radius:var(--radius-page);
+    padding:30px 28px;
+    position:relative;
+  }
+  .cert-top{
+    display:flex; justify-content:space-between; align-items:flex-start;
+    border-bottom:1px solid var(--line);
+    padding-bottom:16px;
+  }
+  .cert-top h4{ font-family:var(--mono); font-size:1rem; font-weight:700; }
+  .cert-top .ref{ font-family:var(--mono); font-size:0.75rem; color:var(--ink-faint); margin-top:4px; }
+  .stamp{
+    width:76px; height:76px; border-radius:50%;
+    border:2.5px solid var(--green);
+    color:var(--green);
+    display:flex; align-items:center; justify-content:center;
+    text-align:center;
+    font-family:var(--mono); font-weight:700; font-size:0.6875rem;
+    line-height:1.15;
+    transform:rotate(-9deg);
+    flex-shrink:0;
+  }
+  .cert-rows{ padding-top:16px; display:grid; gap:12px; }
+  .cert-row{ display:flex; justify-content:space-between; font-size:0.9375rem; }
+  .cert-row .k{ color:var(--ink-faint); }
+  .cert-row .v{ font-family:var(--mono); font-weight:700; }
+  .cert-row .v.zero{ color:var(--green); }
+  .cert-quote{
+    margin-top:18px; padding-top:16px; border-top:1px dashed var(--line-strong);
+    font-size:0.9375rem; color:var(--ink-soft); font-style:italic;
+  }
+
+  /* ============================================================
+     TESTIMONIAL — margin note
+     ============================================================ */
+  .testimonial{
+    border-top:1px solid var(--line-strong);
+    border-bottom:1px solid var(--line-strong);
+    padding:64px 0;
+  }
+  .tgrid{ display:grid; grid-template-columns:120px 1fr; gap:28px; }
+  @media (max-width:700px){ .tgrid{ grid-template-columns:1fr; } }
+  .tgrid .mark{ font-family:var(--mono); font-size:0.8125rem; color:var(--ink-faint); }
+  blockquote{
+    margin:0; font-size:1.3rem; line-height:1.5; color:var(--ink);
+    font-family:var(--sans); font-weight:500;
+  }
+  .cite{ margin-top:18px; font-size:0.9375rem; color:var(--ink-soft); }
+  .cite b{ color:var(--ink); }
+
+  /* ============================================================
+     FINAL CTA
+     ============================================================ */
+  .closer{
+    background:var(--ink); color:var(--paper);
+    padding:86px 0;
+  }
+  .closer h2{
+    font-family:var(--mono); font-weight:700;
+    font-size:clamp(1.7rem,3.4vw,2.4rem);
+    max-width:16ch;
+  }
+  .closer p.lede{ color:rgba(237,238,233,0.68); margin-top:16px; }
+  .closer-ctas{ display:flex; gap:14px; margin-top:30px; flex-wrap:wrap; }
+  .closer .btn-ghost{ color:var(--paper); border-color:rgba(237,238,233,0.35); }
+  .closer .btn-ghost:hover{ border-color:var(--paper); }
+
+  /* ============================================================
+     FOOTER
+     ============================================================ */
+  footer{ padding:40px 0; }
+  .fgrid{
+    display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;
+  }
+  .fgrid .left{ font-family:var(--mono); font-size:0.8125rem; color:var(--ink-faint); }
+  .flinks{ display:flex; gap:22px; }
+  .flinks a{ text-decoration:none; font-size:0.875rem; color:var(--ink-soft); }
+  .flinks a:hover{ color:var(--ink); }
+
 </style>
 </head>
 <body>
 
-<!-- NAV -->
-<nav>
-  <a href="#" class="nav-logo">jn<span>voy</span></a>
-  <ul class="nav-links">
-    <li><a href="#how">How it works</a></li>
-    <li><a href="#features">Features</a></li>
-    <li><a href="#compliance">Compliance</a></li>
-    <li><a href="https://github.com/Jeevan2191999/jnvoy" target="_blank">GitHub</a></li>
-    <li><a href="https://jnvoy.onrender.com/docs" target="_blank" class="nav-cta">API Docs →</a></li>
-  </ul>
-</nav>
+<header class="site">
+  <div class="wrap nav">
+    <a href="#" class="wordmark"><span class="dot"></span>jnvoy</a>
+    <nav class="navlinks">
+      <a href="/docs">Docs</a>
+      <a href="https://github.com/Jeevan2191999/jnvoy">GitHub</a>
+      <a href="#pricing">Pricing</a>
+      <a class="btn btn-primary btn-sm" href="/docs">Try the API</a>
+    </nav>
+  </div>
+</header>
 
-<!-- HERO -->
-<div class="hero">
-  <div class="hero-left">
-    <div class="badge">
-      <div class="badge-dot"></div>
-      Live at jnvoy.onrender.com
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <h1>Your AI reads everything<br>you send it.<br><span class="soft">Jnvoy decides what it's allowed to see.</span></h1>
+      <p class="lede">A proxy that sits between your application and any LLM. Sensitive data is detected and replaced before it leaves your system. Claude, GPT-4o, and Gemini never see the raw values. Change one URL — nothing else.</p>
+      <div class="hero-ctas">
+        <a href="/docs" class="btn btn-primary">Try the live API</a>
+        <a href="https://github.com/Jeevan2191999/jnvoy" class="btn btn-ghost">View source on GitHub</a>
+      </div>
+      <div class="hero-meta"><span class="dot"></span>Live at jnvoy.onrender.com</div>
     </div>
 
-    <h1>Your AI is leaking<br><em>sensitive data.</em><br>Jnvoy stops it.</h1>
-
-    <p class="hero-desc">
-      A drop-in proxy that sits between your application and any LLM.
-      Sensitive data never reaches Claude, GPT-4o, or Gemini.
-      Change one URL. Zero other code changes.
-    </p>
-
-    <div class="hero-actions">
-      <a href="https://jnvoy.onrender.com/docs" target="_blank" class="btn-primary">
-        Try the API →
-      </a>
-      <a href="https://github.com/Jeevan2191999/jnvoy" target="_blank" class="btn-secondary">
-        ☆ Star on GitHub
-      </a>
-    </div>
-
-    <div class="hero-stats">
-      <div class="stat">
-        <div class="stat-num">20+</div>
-        <div class="stat-label">PII types detected</div>
+    <div class="doc">
+      <div class="doc-bar">
+        <span>POST /v1/proxy</span>
+        <span class="stamp-live"><span class="dot"></span>protected</span>
       </div>
-      <div class="stat">
-        <div class="stat-num">164</div>
-        <div class="stat-label">automated tests</div>
+      <div class="doc-body">
+        <div><span class="c1">&gt;</span> <span class="raw">"My NI is </span><span class="redact-bar reveal-redact" style="--w:92px; --d:0.3s">AB123456C</span><span class="raw">"</span></div>
+        <div><span class="raw">&nbsp;&nbsp;"and email is </span><span class="redact-bar reveal-redact" style="--w:118px; --d:0.55s">john@acme.com</span><span class="raw">"</span></div>
+        <div class="doc-divider"></div>
+        <div class="doc-out"><span class="c1">#</span> what the model receives</div>
+        <div class="doc-out">"My NI is <span class="token">[NI_NUMBER_1]</span> and email is <span class="token">[EMAIL_1]</span>"</div>
       </div>
-      <div class="stat">
-        <div class="stat-num">6</div>
-        <div class="stat-label">LLM providers</div>
+      <div class="doc-footer">
+        <span>instances redacted <b>2</b></span>
+        <span>sent to LLM <b>0 raw</b></span>
       </div>
     </div>
   </div>
+</section>
 
-  <div class="terminal">
-    <div class="terminal-bar">
-      <div class="dot dot-red"></div>
-      <div class="dot dot-yellow"></div>
-      <div class="dot dot-green"></div>
-      <span class="terminal-title">jnvoy — live demo</span>
-    </div>
-    <div class="terminal-body">
-      <div class="line">
-        <span class="prompt">$</span>
-        <span class="cmd">curl -X POST jnvoy.onrender.com/v1/proxy \</span>
-      </div>
-      <div class="line">
-        <span class="out">  -d '{"messages": [{"role": "user",</span>
-      </div>
-      <div class="line">
-        <span class="out">  "content": "My NI is AB123456C and</span>
-      </div>
-      <div class="line">
-        <span class="out">  email is john@acme.com. Help me."}]}'</span>
-      </div>
-      <div class="spacer"></div>
-      <div class="line">
-        <span class="out comment"># What Claude receives:</span>
-      </div>
-      <div class="line">
-        <span class="out">"My NI is <span style="color:#f87171;background:rgba(239,68,68,0.1);padding:1px 4px;border-radius:3px">[NI_NUMBER_1]</span> and</span>
-      </div>
-      <div class="line">
-        <span class="out"> email is <span style="color:#f87171;background:rgba(239,68,68,0.1);padding:1px 4px;border-radius:3px">[EMAIL_1]</span>. Help me."</span>
-      </div>
-      <div class="spacer"></div>
-      <div class="line">
-        <span class="out comment"># Response returned to you:</span>
-      </div>
-      <div class="line">
-        <span class="out"><span class="out-key">"pii_summary"</span>: {</span>
-      </div>
-      <div class="line">
-        <span class="out">  <span class="out-key">"total_instances"</span>: <span class="out-val">2</span>,</span>
-      </div>
-      <div class="line">
-        <span class="out">  <span class="out-key">"redacted"</span>: <span class="out-false">true</span>,</span>
-      </div>
-      <div class="line">
-        <span class="out">  <span class="out-key">"transmitted_to_llm"</span>: <span style="color:#22c55e">false</span></span>
-      </div>
-      <div class="line">
-        <span class="out">}</span>
-      </div>
-    </div>
+<div class="stats">
+  <div class="wrap stats-row">
+    <div class="stat"><div class="n">20+</div><div class="d">PII types detected</div></div>
+    <div class="stat"><div class="n">180+</div><div class="d">automated tests</div></div>
+    <div class="stat"><div class="n">6</div><div class="d">LLM providers supported</div></div>
   </div>
 </div>
 
-<hr class="divider">
-
-<!-- HOW IT WORKS -->
 <section id="how">
-  <div class="section-label">// how it works</div>
-  <h2>One proxy. Every LLM. Always private.</h2>
-  <p class="section-desc">
-    Jnvoy intercepts every LLM call before it leaves your system.
-    Sensitive data is detected, replaced with tokens, and restored in the response.
-    Nothing sensitive ever travels.
-  </p>
-
-  <div class="pipeline">
-    <div class="pipe-step">
-      <div class="pipe-icon">📨</div>
-      <h3>Your app sends a request</h3>
-      <p>Normal LLM call with real user data</p>
+  <div class="wrap">
+    <div class="shead">
+      <h2>One proxy. Every LLM. Always private.</h2>
+      <p>Jnvoy intercepts every call before it leaves your system, scrubs it, and restores the original values once the model has answered. Nothing sensitive travels.</p>
     </div>
-    <div class="pipe-step">
-      <div class="pipe-icon active">🔍</div>
-      <h3>Jnvoy scans for PII</h3>
-      <p>Presidio detects 20+ sensitive entity types locally</p>
-    </div>
-    <div class="pipe-step">
-      <div class="pipe-icon active">🔒</div>
-      <h3>Sensitive data redacted</h3>
-      <p>Replaced with reversible tokens before transmission</p>
-    </div>
-    <div class="pipe-step">
-      <div class="pipe-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/><line x1="12" y1="15" x2="12" y2="17"/></svg></div>
-      <h3>LLM sees clean data</h3>
-      <p>Claude or GPT-4o never sees raw sensitive data</p>
-    </div>
-    <div class="pipe-step">
-      <div class="pipe-icon">✅</div>
-      <h3>Response restored</h3>
-      <p>Original values restored. Audit log written. Done.</p>
-    </div>
-  </div>
-</section>
-
-<hr class="divider">
-
-<!-- FEATURES -->
-<section id="features">
-  <div class="section-label">// features</div>
-  <h2>Built for production, not just demos.</h2>
-  <p class="section-desc">
-    Everything you need to deploy AI safely in a regulated environment.
-    No configuration required. No vendor lock-in.
-  </p>
-
-  <div class="features-grid">
-    <div class="feature">
-      <div class="feature-icon">🛡️</div>
-      <h3>Microsoft Presidio detection</h3>
-      <p>Enterprise-grade NLP-based PII detection. 20+ entity types. UK-specific recognisers for NHS numbers, NI numbers, UK postcodes, and sort codes.</p>
-    </div>
-    <div class="feature">
-      <div class="feature-icon">🔐</div>
-      <h3>MCP proxy security</h3>
-      <p>Scans MCP tool calls in both directions. Detects tool poisoning, secret leakage, and PII in tool responses before they enter the LLM context.</p>
-    </div>
-    <div class="feature">
-      <div class="feature-icon">🛡️</div>
-      <h3>Prompt injection detection</h3>
-      <p>Blocks jailbreaks, instruction overrides, system prompt extraction, and data exfiltration attempts before they reach the LLM. 7 attack types, 30+ patterns.</p>
-    </div>
-    <div class="feature">
-      <div class="feature-icon">⚡</div>
-      <h3>Semantic cache</h3>
-      <p>Similar queries return cached responses instantly. Saves 20–40% of LLM costs automatically without any configuration.</p>
-    </div>
-    <div class="feature">
-      <div class="feature-icon">🗺️</div>
-      <h3>Intelligent routing</h3>
-      <p>Assigns the cheapest capable model to each query automatically. Simple questions go to Haiku. Complex ones go to Sonnet.</p>
-    </div>
-    <div class="feature">
-      <div class="feature-icon">📊</div>
-      <h3>Persistent audit logs</h3>
-      <p>Every API call permanently logged to PostgreSQL. Never stores raw PII. Queryable by date, provider, and PII type.</p>
-    </div>
-    <div class="feature">
-      <div class="feature-icon">📄</div>
-      <h3>Compliance report PDF</h3>
-      <p>One endpoint generates an FCA and GDPR-ready PDF proving zero sensitive data was transmitted. With your company name on it.</p>
-    </div>
-    <div class="feature">
-      <div class="feature-icon">🔑</div>
-      <h3>Multi-tenant API keys</h3>
-      <p>Each company gets complete data isolation. Their traffic, audit logs, and compliance reports are entirely separate.</p>
-    </div>
-    <div class="feature">
-      <div class="feature-icon">🔄</div>
-      <h3>Automatic failover</h3>
-      <p>Outage detector tracks provider health. If Claude goes down, traffic automatically reroutes to GPT-4o or Gemini.</p>
-    </div>
-    <div class="feature">
-      <div class="feature-icon">💬</div>
-      <h3>Slack connector</h3>
-      <p>Protects every message sent to any AI bot in your Slack workspace. Posts a compliance note showing what was detected.</p>
-    </div>
-    <div class="feature">
-      <div class="feature-icon">🐳</div>
-      <h3>Docker stack</h3>
-      <p>One command starts everything. API plus PostgreSQL plus Redis. Self-hostable on your own infrastructure.</p>
-    </div>
-  </div>
-</section>
-
-<hr class="divider">
-
-<!-- INTEGRATION -->
-<section id="integration">
-  <div class="section-label">// integration</div>
-  <div class="integration-layout">
-    <div>
-      <h2>Change one URL.<br>That is it.</h2>
-      <p class="section-desc">
-        No SDK to install. No configuration to learn. No architectural changes.
-        Point your existing LLM calls at Jnvoy and every request is automatically protected.
-      </p>
-
-      <div class="providers">
-        <div class="provider-tag"><div class="provider-dot"></div>Anthropic Claude</div>
-        <div class="provider-tag"><div class="provider-dot"></div>OpenAI GPT-4o</div>
-        <div class="provider-tag"><div class="provider-dot"></div>Google Gemini</div>
-        <div class="provider-tag"><div class="provider-dot"></div>Mistral</div>
-        <div class="provider-tag"><div class="provider-dot"></div>Ollama (local)</div>
-        <div class="provider-tag"><div class="provider-dot"></div>Azure OpenAI</div>
+    <div class="pipeline">
+      <div class="step">
+        <div class="num">01</div>
+        <h3>Request sent</h3>
+        <p>Your app calls Jnvoy exactly as it would call the LLM, with real user data.</p>
+        <div class="who">your application</div>
+      </div>
+      <div class="step">
+        <div class="num">02</div>
+        <h3>PII scanned</h3>
+        <p>Presidio detects 20+ sensitive entity types locally, before anything is sent out.</p>
+        <div class="who">jnvoy, in process</div>
+      </div>
+      <div class="step">
+        <div class="num">03</div>
+        <h3>Values redacted</h3>
+        <p>Each match is swapped for a reversible token. The structure of the message stays intact.</p>
+        <div class="who">jnvoy, in process</div>
+      </div>
+      <div class="step">
+        <div class="num">04</div>
+        <h3>Model responds</h3>
+        <p>Claude or GPT-4o reasons over the clean text. It never sees a raw value.</p>
+        <div class="who">claude / gpt-4o</div>
+      </div>
+      <div class="step">
+        <div class="num">05</div>
+        <h3>Response restored</h3>
+        <p>Tokens are swapped back. The audit entry is written. You get a normal response.</p>
+        <div class="who">jnvoy → your app</div>
       </div>
     </div>
+  </div>
+</section>
 
-    <div>
-      <div class="code-block">
-        <div class="code-header">
-          <span class="code-lang">before.py</span>
-        </div>
-        <pre><span class="c"># Before Jnvoy</span>
-<span class="k">import</span> anthropic
+<section id="catches">
+  <div class="wrap">
+    <div class="shead">
+      <h2>What it catches</h2>
+      <p>UK-specific recognisers sit alongside the standard set, built in rather than bolted on.</p>
+    </div>
+    <div class="ledger">
+      <div class="ledger-row head">
+        <div>Type</div><div>Example</div><div>Why it's caught</div>
+      </div>
+      <div class="ledger-row">
+        <div class="type" data-k="Type">National Insurance number</div>
+        <div class="example" data-k="Example">AB <span class="redacted">123456</span> C</div>
+        <div class="why" data-k="Why">UK government identifier</div>
+      </div>
+      <div class="ledger-row">
+        <div class="type" data-k="Type">NHS number</div>
+        <div class="example" data-k="Example"><span class="redacted">943 476 5919</span></div>
+        <div class="why" data-k="Why">special category health data</div>
+      </div>
+      <div class="ledger-row">
+        <div class="type" data-k="Type">UK postcode</div>
+        <div class="example" data-k="Example"><span class="redacted">SW1A 2AA</span></div>
+        <div class="why" data-k="Why">precise location data</div>
+      </div>
+      <div class="ledger-row">
+        <div class="type" data-k="Type">Sort code and account</div>
+        <div class="example" data-k="Example">20-00-00 / <span class="redacted">12345678</span></div>
+        <div class="why" data-k="Why">financial identifiers</div>
+      </div>
+      <div class="ledger-row">
+        <div class="type" data-k="Type">Email and phone</div>
+        <div class="example" data-k="Example"><span class="redacted">john@acme.com</span></div>
+        <div class="why" data-k="Why">direct contact data</div>
+      </div>
+      <div class="ledger-row">
+        <div class="type" data-k="Type">Card and passport numbers</div>
+        <div class="example" data-k="Example"><span class="redacted">4532 1234 5678 9012</span></div>
+        <div class="why" data-k="Why">payment and travel identifiers</div>
+      </div>
+      <div class="ledger-row">
+        <div class="type" data-k="Type">API keys and secrets</div>
+        <div class="example" data-k="Example"><span class="redacted">sk-ant-***</span></div>
+        <div class="why" data-k="Why">credentials, not personal data</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="features">
+  <div class="wrap">
+    <div class="shead">
+      <h2>Built for production, not a demo</h2>
+      <p>Everything a regulated environment expects. No configuration required.</p>
+    </div>
+    <div class="clauses">
+
+      <div class="clause">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 3l7 3v5c0 4.5-3 7.8-7 9-4-1.2-7-4.5-7-9V6l7-3z"/></svg>
+        <h3>Presidio-grade detection</h3>
+        <p>Enterprise NLP PII detection across 20+ entity types, with UK-specific recognisers built in.</p>
+      </div>
+
+      <div class="clause">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M13 2L4 14h6l-1 8 9-12h-6l1-8z"/></svg>
+        <h3>Semantic cache</h3>
+        <p>Similar queries return cached responses instantly, cutting LLM spend by 20 to 40 percent.</p>
+      </div>
+
+      <div class="clause">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 010 18"/></svg>
+        <h3>Intelligent routing</h3>
+        <p>Simple queries route to the cheapest capable model. Complex ones go to a stronger one automatically.</p>
+      </div>
+
+      <div class="clause">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="4" y="3" width="16" height="18" rx="1"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>
+        <h3>Persistent audit log</h3>
+        <p>Every call is written to PostgreSQL permanently. Raw PII is never stored, only type and count.</p>
+      </div>
+
+      <div class="clause">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="4" y="4" width="16" height="16" rx="1"/><path d="M8 9h8M8 13h8M8 17h4"/></svg>
+        <h3>Compliance report</h3>
+        <p>One endpoint produces an FCA and EU AI Act ready PDF, proving zero sensitive data was sent out.</p>
+      </div>
+
+      <div class="clause">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="7" width="7" height="5" rx="1"/><rect x="14" y="7" width="7" height="5" rx="1"/><path d="M10 9.5h4"/></svg>
+        <h3>Multi-tenant keys</h3>
+        <p>Each company gets complete isolation: separate traffic, audit logs, and compliance reports.</p>
+      </div>
+
+      <div class="clause">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 12a8 8 0 0114-5.3M20 12a8 8 0 01-14 5.3"/><path d="M18 3v4h-4M6 21v-4h4"/></svg>
+        <h3>Automatic failover</h3>
+        <p>Provider health is tracked continuously. If Claude goes down, traffic reroutes to GPT-4o or Gemini.</p>
+      </div>
+
+      <div class="clause">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 5h16v10H9l-5 4V5z"/></svg>
+        <h3>Slack connector</h3>
+        <p>Protects every message sent to an AI bot in a workspace, with a note on what it caught.</p>
+      </div>
+
+      <div class="clause">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 8l8-5 8 5v8l-8 5-8-5V8z"/><path d="M4 8l8 5 8-5M12 13v8"/></svg>
+        <h3>One Docker command</h3>
+        <p>API, PostgreSQL, and Redis start together. Self-hostable on your own infrastructure.</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<section id="integration">
+  <div class="wrap">
+    <div class="shead">
+      <h2>Change one URL. That's it.</h2>
+      <p>No SDK, no config, no architectural change. Point an existing call at Jnvoy and it is protected.</p>
+    </div>
+    <div class="providers">
+      <span class="chip">Anthropic Claude</span>
+      <span class="chip">OpenAI GPT-4o</span>
+      <span class="chip">Google Gemini</span>
+      <span class="chip">Mistral</span>
+      <span class="chip">Ollama (local)</span>
+      <span class="chip">Azure OpenAI</span>
+    </div>
+    <div class="code-grid">
+      <div class="code-panel raw">
+        <div class="hd"><span>before.py</span><span>exposed</span></div>
+        <pre><span class="c1"># direct to Anthropic</span>
+<span class="c1">import</span> anthropic
 
 client = anthropic.Anthropic(
-  <span class="n">api_key</span>=<span class="s">"sk-ant-..."</span>
+  api_key=<span class="mark">"sk-ant-..."</span>
 )
 
 response = client.messages.create(
-  <span class="n">model</span>=<span class="s">"claude-haiku-4-5"</span>,
-  <span class="n">messages</span>=[{
-    <span class="s">"role"</span>: <span class="s">"user"</span>,
-    <span class="s">"content"</span>: user_message <span class="c"># ⚠️ raw PII</span>
+  model=<span class="mark">"claude-haiku-4-5"</span>,
+  messages=[{
+    "role": "user",
+    "content": user_message  <span class="c1"># raw PII</span>
   }]
 )</pre>
       </div>
-
-      <div class="code-block">
-        <div class="code-header">
-          <span class="code-lang">after.py</span>
-          <span style="font-size:0.75rem;color:#22c55e;font-family:var(--mono)">✓ protected</span>
-        </div>
-        <pre><span class="c"># After Jnvoy — one line changed</span>
-<span class="k">import</span> httpx
+      <div class="code-panel clean">
+        <div class="hd"><span>after.py</span><span>protected</span></div>
+        <pre><span class="c1"># through jnvoy — one line changed</span>
+<span class="c1">import</span> httpx
 
 response = httpx.post(
-  <span class="s">"https://jnvoy.onrender.com/v1/proxy"</span>,
-  <span class="n">json</span>={
-    <span class="s">"model"</span>: <span class="s">"claude-haiku-4-5"</span>,
-    <span class="s">"provider"</span>: <span class="s">"anthropic"</span>,
-    <span class="s">"messages"</span>: [{
-      <span class="s">"role"</span>: <span class="s">"user"</span>,
-      <span class="s">"content"</span>: user_message <span class="c"># ✓ PII redacted</span>
+  <span class="mark">"https://jnvoy.onrender.com/v1/proxy"</span>,
+  json={
+    "model": "claude-haiku-4-5",
+    "provider": "anthropic",
+    "messages": [{
+      "role": "user",
+      "content": user_message  <span class="mark"># PII redacted</span>
     }]
   }
 )</pre>
@@ -975,128 +747,81 @@ response = httpx.post(
   </div>
 </section>
 
-<hr class="divider">
-
-<!-- COMPLIANCE -->
 <section id="compliance">
-  <div class="section-label">// compliance</div>
-  <div class="integration-layout">
+  <div class="wrap compliance-grid">
     <div>
-      <h2>The document your auditor is asking for.</h2>
-      <p class="section-desc">
-        When the FCA or ICO asks how you ensure sensitive data never reaches
-        external AI models, Jnvoy generates the answer automatically.
-        One endpoint. One PDF. Done.
-      </p>
-
-      <div class="pii-grid">
-        <div class="pii-tag">EMAIL_ADDRESS</div>
-        <div class="pii-tag">PHONE_NUMBER</div>
-        <div class="pii-tag">PERSON</div>
-        <div class="pii-tag">NI_NUMBER</div>
-        <div class="pii-tag">UK_NHS</div>
-        <div class="pii-tag">UK_POSTCODE</div>
-        <div class="pii-tag">CREDIT_CARD</div>
-        <div class="pii-tag">IBAN_CODE</div>
-        <div class="pii-tag">IP_ADDRESS</div>
-        <div class="pii-tag">PASSPORT</div>
-        <div class="pii-tag">SORT_CODE</div>
-        <div class="pii-tag">API_KEY</div>
+      <div class="shead" style="margin-bottom:0;">
+        <h2>The document your auditor is asking for</h2>
+        <p>When the FCA or ICO asks how you ensure sensitive data never reaches an external model, this is the answer. One endpoint. One PDF.</p>
+      </div>
+      <div class="badges">
+        <span class="badge">EMAIL_ADDRESS</span>
+        <span class="badge">PHONE_NUMBER</span>
+        <span class="badge">PERSON</span>
+        <span class="badge">NI_NUMBER</span>
+        <span class="badge">UK_NHS</span>
+        <span class="badge">UK_POSTCODE</span>
+        <span class="badge">CREDIT_CARD</span>
+        <span class="badge">IBAN_CODE</span>
+        <span class="badge">IP_ADDRESS</span>
+        <span class="badge">PASSPORT</span>
+        <span class="badge">SORT_CODE</span>
+        <span class="badge">API_KEY</span>
       </div>
     </div>
 
-    <div class="compliance-card">
-      <div class="compliance-header">
-        <div class="compliance-badge">CONFIRMED</div>
-        <div class="compliance-title">Compliance Audit Report</div>
-        <div class="compliance-ref">JNVOY-E7377E46</div>
+    <div class="cert">
+      <div class="cert-top">
+        <div>
+          <h4>Compliance audit report</h4>
+          <div class="ref">JNVOY-E7377E46 · Acme Financial Ltd</div>
+        </div>
+        <div class="stamp">VERIFIED<br>CLEAN</div>
       </div>
-
-      <div class="metric-row">
-        <span class="metric-label">Company</span>
-        <span class="metric-value">Acme Financial Ltd</span>
+      <div class="cert-rows">
+        <div class="cert-row"><span class="k">Audit period</span><span class="v">Sep 1 – Oct 1 2026</span></div>
+        <div class="cert-row"><span class="k">Total API calls</span><span class="v">1,250</span></div>
+        <div class="cert-row"><span class="k">PII instances redacted</span><span class="v">847</span></div>
+        <div class="cert-row"><span class="k">Cache hit rate</span><span class="v">34.2%</span></div>
+        <div class="cert-row"><span class="k">Sensitive data transmitted</span><span class="v zero">ZERO</span></div>
       </div>
-      <div class="metric-row">
-        <span class="metric-label">Audit period</span>
-        <span class="metric-value">Sep 1 – Oct 1 2026</span>
-      </div>
-      <div class="metric-row">
-        <span class="metric-label">Total API calls</span>
-        <span class="metric-value">1,250</span>
-      </div>
-      <div class="metric-row">
-        <span class="metric-label">PII instances redacted</span>
-        <span class="metric-value good">847</span>
-      </div>
-      <div class="metric-row">
-        <span class="metric-label">Cache hit rate</span>
-        <span class="metric-value good">34.2%</span>
-      </div>
-      <div class="metric-row">
-        <span class="metric-label">Sensitive data transmitted</span>
-        <span class="metric-value zero">ZERO</span>
-      </div>
-
-      <div class="compliance-statement">
+      <div class="cert-quote">
         "Zero sensitive data was transmitted to any LLM API during the audit period."
-        <br><br>
-        Frameworks: UK GDPR · FCA AI Governance · EU AI Act
       </div>
     </div>
   </div>
 </section>
 
-<hr class="divider">
-
-<!-- QUOTE -->
-<div class="quote-section">
-  <p class="quote-text">
-    "We built PII stripping internally and it took weeks. The problem is real.
-    The larger enterprise partners always ask about it before signing."
-  </p>
-  <p class="quote-source">— Co-founder, Series A fintech AI company · unsolicited feedback</p>
-</div>
-
-
-<hr class="divider">
-
-<section id="pricing" style="max-width:1160px;margin:0 auto;padding:5rem 1.5rem;">
-  <div style="text-align:center;margin-bottom:3rem;">
-    <div style="font-family:var(--mono);font-size:0.75rem;color:var(--accent);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:1rem;">// pricing</div>
-    <h2 style="font-size:2.25rem;font-weight:600;letter-spacing:-0.03em;color:var(--text);margin-bottom:1rem;">Simple, transparent pricing</h2>
-    <p style="font-size:1.0625rem;color:var(--text2);max-width:480px;margin:0 auto;">Start free. Upgrade when you need more calls or compliance features. Cancel any time.</p>
-  </div>
-  <script async src="https://js.stripe.com/v3/pricing-table.js"></script>
-  <stripe-pricing-table pricing-table-id="prctbl_1UQ7dsH0OTHV50ihsQm9AFYu"
-  publishable-key="pk_test_51UQ7L3H0OTHV50ihzINIPjjMPQFjIwlxFDiv4rSmuNfI2xO1Dh0ikpT9E2lAXmQ5P1Yi21y4rev2Ly1QS9hXWFQq00zpTS3jwb">
-  </stripe-pricing-table>
-  <p style="text-align:center;margin-top:2rem;font-size:0.875rem;color:var(--text3);font-family:var(--mono);">
-    Need a custom plan? <a href="mailto:j.nagaraj2109@gmail.com" style="color:var(--accent);text-decoration:none;">Contact us</a>
-  </p>
-</section>
-
-<!-- CTA -->
-<div class="cta-section">
-  <h2>Your AI is live.<br>Is your data protected?</h2>
-  <p>Open source. Self-hostable. Works with every LLM.</p>
-  <div class="cta-actions">
-    <a href="https://jnvoy.onrender.com/docs" target="_blank" class="btn-primary">
-      Try the live API →
-    </a>
-    <a href="https://github.com/Jeevan2191999/jnvoy" target="_blank" class="btn-secondary">
-      View source on GitHub
-    </a>
+<div class="testimonial">
+  <div class="wrap tgrid">
+    <div class="mark">unsolicited<br>feedback</div>
+    <div>
+      <blockquote>"We built PII stripping internally and it took weeks. The problem is real — the larger enterprise partners always ask about it before signing."</blockquote>
+      <div class="cite"><b>Neal Lathia</b>, Co-founder, Gradient Labs ($26M Series A)</div>
+    </div>
   </div>
 </div>
 
-<!-- FOOTER -->
+<div class="closer">
+  <div class="wrap">
+    <h2>Your AI is live. Is your data protected?</h2>
+    <p class="lede">Open source. Self-hostable. Works with every major LLM.</p>
+    <div class="closer-ctas">
+      <a href="/docs" class="btn btn-primary">Try the live API</a>
+      <a href="https://github.com/Jeevan2191999/jnvoy" class="btn btn-ghost">View source on GitHub</a>
+    </div>
+  </div>
+</div>
+
 <footer>
-  <div class="footer-left">jn<span>voy</span> · built by Jeevan Nagaraj</div>
-  <ul class="footer-links">
-    <li><a href="https://jnvoy.onrender.com/docs" target="_blank">API Docs</a></li>
-    <li><a href="https://github.com/Jeevan2191999/jnvoy" target="_blank">GitHub</a></li>
-    <li><a href="https://jnvoy.onrender.com/v1/report/compliance" target="_blank">Sample Report</a></li>
-  </ul>
+  <div class="wrap fgrid">
+    <div class="left">jnvoy — built by Jeevan Nagaraj</div>
+    <div class="flinks">
+      <a href="/docs">API docs</a>
+      <a href="https://github.com/Jeevan2191999/jnvoy">GitHub</a>
+      <a href="/v1/report/compliance">Sample report</a>
+    </div>
+  </div>
 </footer>
 
 </body>
