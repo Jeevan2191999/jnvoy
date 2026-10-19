@@ -6,3 +6,6 @@ __pycache__/
 *.egg-info/
 .DS_Store
 .env
+compliance_report*.pdf
+eu_ai_act_report*.pdf
+tail
