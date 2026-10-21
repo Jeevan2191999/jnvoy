@@ -220,7 +220,32 @@ async def call_openai(messages: list[dict], model: str, max_tokens: int, tempera
 
 # ── Core Proxy Pipeline ───────────────────────────────────────────────────────
 
-async def run_proxy_pipeline(request: ProxyRequest) -> dict:
+def _cache_key(tenant: str, request, redacted_messages: list) -> str:
+    """
+    Cache key = exactly what the LLM would be asked, plus who is asking.
+
+    Includes the caller (tenant), provider, requested model, max_tokens, temperature,
+    the routing flag, and every redacted message with its role, in order. Two requests
+    share an entry only if all of that is identical. The key is a hash of redacted text,
+    so no original PII is ever stored in it.
+    """
+    import json
+
+    payload = {
+        "v": 1,
+        "tenant": tenant,
+        "provider": (request.provider or "anthropic").lower(),
+        "model": request.model,
+        "max_tokens": request.max_tokens,
+        "temperature": getattr(request, "temperature", None),
+        "routing": bool(request.use_routing),
+        "messages": [[m["role"], m["content"]] for m in redacted_messages],
+    }
+    blob = json.dumps(payload, sort_keys=True, ensure_ascii=False, separators=(",", ":"))
+    return hashlib.sha256(blob.encode("utf-8")).hexdigest()
+
+
+async def run_proxy_pipeline(request: ProxyRequest, tenant: str = "anonymous") -> dict:
     """
     Full Jnvoy pipeline:
     1. Scan all messages for PII and redact
@@ -253,11 +278,12 @@ async def run_proxy_pipeline(request: ProxyRequest) -> dict:
     combined_token_map = {}
     combined_pii_summary = {}
 
-    # Messages are reviewed concurrently. With the judge off this is the same
-    # primary detection as before, in the same order.
+    # The whole conversation is redacted together, so tokens are unique across
+    # messages ([EMAIL_ADDRESS_1] is always the same person) and the judge runs
+    # on all messages concurrently.
     try:
-        results = await asyncio.gather(
-            *(detector.detect_async(msg.content) for msg in request.messages)
+        results = await detector.detect_conversation_async(
+            [msg.content for msg in request.messages]
         )
     except JudgeError:
         raise HTTPException(
@@ -277,18 +303,14 @@ async def run_proxy_pipeline(request: ProxyRequest) -> dict:
     # Step 2: Build cache key from last user message
     user_messages = [m for m in request.messages if m.role == "user"]
     cache_query = user_messages[-1].content if user_messages else ""
-    # Reuse the result computed above: the judge is not called twice, and the cache key
-    # is exactly the text that is sent to the LLM (no leftover PII stored in the cache).
-    last_user_index = max(
-        (i for i, m in enumerate(request.messages) if m.role == "user"), default=None
-    )
-    redacted_query = results[last_user_index].redacted_text if last_user_index is not None else ""
+    # Exact-match key over everything the LLM receives, scoped to the caller.
+    cache_key = _cache_key(tenant, request, redacted_messages) if redacted_messages else ""
 
     # Step 3: Check semantic cache
     cache_hit = False
     cached_entry = None
-    if request.use_cache and redacted_query:
-        cached_entry = semantic_cache.get(redacted_query)
+    if request.use_cache and cache_key:
+        cached_entry = semantic_cache.get(cache_key, exact_only=True)
         if cached_entry:
             cache_hit = True
 
@@ -330,9 +352,9 @@ async def run_proxy_pipeline(request: ProxyRequest) -> dict:
             len(llm_response_raw.split()) * 2
         )
 
-        if request.use_cache and redacted_query:
+        if request.use_cache and cache_key:
             semantic_cache.set(
-                query=redacted_query,
+                query=cache_key,
                 response=llm_response_raw,
                 model=routed_model,
                 provider=request.provider or "anthropic",
@@ -383,7 +405,8 @@ async def proxy_request(
     Audit logs written to PostgreSQL permanently.
     """
     audit_id = str(uuid.uuid4())
-    result = await run_proxy_pipeline(request)
+    tenant = hashlib.sha256((x_api_key or "anonymous").encode()).hexdigest()
+    result = await run_proxy_pipeline(request, tenant=tenant)
 
     asyncio.create_task(_write_audit(
         audit_id=audit_id,

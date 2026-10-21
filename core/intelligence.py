@@ -207,7 +207,7 @@ class SemanticCache:
     def _is_expired(self, entry: CacheEntry) -> bool:
         return time.time() - entry.created_at > self.ttl_seconds
 
-    def get(self, query: str) -> Optional[CacheEntry]:
+    def get(self, query: str, exact_only: bool = False) -> Optional[CacheEntry]:
         """
         Look up a query in the cache.
         Checks exact match first, then semantic similarity.
@@ -221,9 +221,14 @@ class SemanticCache:
             if not self._is_expired(entry):
                 entry.hits += 1
                 self._stats["hits"] += 1
+                self._stats["total_cost_saved_usd"] += entry.cost_saved_usd
                 return entry
             else:
                 del self._cache[query_hash]
+
+        if exact_only:
+            self._stats["misses"] += 1
+            return None
 
         # Semantic similarity match
         for entry in list(self._cache.values()):

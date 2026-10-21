@@ -1,30 +1,42 @@
 """
-JudgedPIIDetector: PIIDetectorV2 plus an optional LLM-judge second pass.
+JudgedPIIDetector: PIIDetectorV2 plus an optional LLM-judge second pass, and
+conversation-level tokenisation.
 
 Nothing in detector_v2.py changes. The existing sync API (detect, restore,
 scan_for_report) behaves exactly as before. This subclass adds:
 
-    await detector.detect_async(text)       -> JudgedDetectionResult
-    await detector.ascan_for_report(text)   -> dict (same keys as scan_for_report, plus "judge")
+    await detector.detect_async(text)                  -> JudgedDetectionResult
+    await detector.detect_conversation_async(texts)    -> list[JudgedDetectionResult]
+    await detector.ascan_for_report(text)              -> dict (same keys as scan_for_report, plus "judge")
 
-How it works
-------------
+How the judge pass works
+------------------------
 1. Run the normal primary detection (sync, unchanged).
 2. Show the judge the primary-redacted text and ask what is still exposed.
 3. Locate each finding in the ORIGINAL text, ignoring any occurrence that overlaps
    something already redacted. Findings that are not literally present are dropped.
 4. Rebuild the redacted text from the original using the union of primary and judge spans.
 
+Why detect_conversation_async exists
+------------------------------------
+detect() numbers tokens from 1 on every call. Redacting a conversation message by
+message therefore gives every message its own [EMAIL_ADDRESS_1], and merging their
+token maps silently overwrites earlier people with later ones. The conversation
+method redacts all messages, then assigns tokens that are unique across the whole
+conversation. The same (type, value) pair always gets the same token, numbering
+follows reading order, and every redacted text is rebuilt from the original spans.
+
 Concurrency note: the base class keeps a per-instance token counter that detect()
-resets on every call. Because we await between steps 1 and 4, we must not touch
-that counter afterwards. Judge tokens are numbered from the result's own
+resets on every call. Because we await between detection and merging, we must not
+touch that counter afterwards. Judge tokens are numbered from the result's own
 token_map instead, so concurrent requests cannot collide.
 """
 
+import asyncio
 import logging
 import re
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import Optional
 
 from core.detector_v2 import DetectionResult, PIIDetectorV2, PIIMatch
@@ -63,28 +75,22 @@ class JudgedPIIDetector(PIIDetectorV2):
 
     async def detect_async(self, text: str) -> JudgedDetectionResult:
         base = self.detect(text)  # sync: the shared token counter is never held across an await
-        if self.judge is None or not text or not text.strip():
-            return self._wrap(base)
+        return await self._apply_judge(base)
 
-        started = time.perf_counter()
-        try:
-            findings = await self.judge.review(base.redacted_text)
-        except Exception as exc:  # a judge bug must never take the proxy down
-            err = exc if isinstance(exc, JudgeError) else JudgeError(f"judge crashed: {type(exc).__name__}")
-            if self.judge.fail_closed:
-                raise err from None
-            log.warning("judge unavailable, using primary detection only: %s", err)
-            return self._wrap(
-                base,
-                judge_error=str(err),
-                judge_ms=round((time.perf_counter() - started) * 1000, 2),
-            )
-
-        result = self._merge(base, findings)
-        result.judge_ran = True
-        result.judge_ms = round((time.perf_counter() - started) * 1000, 2)
-        result.detection_time_ms = round(base.detection_time_ms + result.judge_ms, 2)
-        return result
+    async def detect_conversation_async(self, texts: list) -> list:
+        """
+        Redact every message of a conversation with tokens that are unique across the
+        whole conversation. Returns one result per message, in order. Each result's
+        token_map holds the tokens used in that message; merge them with dict.update.
+        """
+        bases = [self.detect(t) for t in texts]  # sync and in order
+        settled = await asyncio.gather(
+            *(self._apply_judge(b) for b in bases), return_exceptions=True
+        )
+        for item in settled:
+            if isinstance(item, BaseException):
+                raise item  # fail-closed JudgeError, or a cancellation
+        return self._unify(list(settled))
 
     async def ascan_for_report(self, text: str) -> dict:
         result = await self.detect_async(text)
@@ -109,6 +115,31 @@ class JudgedPIIDetector(PIIDetectorV2):
             await self.judge.aclose()
 
     # ── internals ─────────────────────────────────────────────────────────────
+
+    async def _apply_judge(self, base: DetectionResult) -> JudgedDetectionResult:
+        text = base.original_text
+        if self.judge is None or not text or not text.strip():
+            return self._wrap(base)
+
+        started = time.perf_counter()
+        try:
+            findings = await self.judge.review(base.redacted_text)
+        except Exception as exc:  # a judge bug must never take the proxy down
+            err = exc if isinstance(exc, JudgeError) else JudgeError(f"judge crashed: {type(exc).__name__}")
+            if self.judge.fail_closed:
+                raise err from None
+            log.warning("judge unavailable, using primary detection only: %s", err)
+            return self._wrap(
+                base,
+                judge_error=str(err),
+                judge_ms=round((time.perf_counter() - started) * 1000, 2),
+            )
+
+        result = self._merge(base, findings)
+        result.judge_ran = True
+        result.judge_ms = round((time.perf_counter() - started) * 1000, 2)
+        result.detection_time_ms = round(base.detection_time_ms + result.judge_ms, 2)
+        return result
 
     @staticmethod
     def _wrap(base: DetectionResult, **extra) -> JudgedDetectionResult:
@@ -184,3 +215,41 @@ class JudgedPIIDetector(PIIDetectorV2):
             detection_time_ms=base.detection_time_ms,
             judge_added=len(new_matches),
         )
+
+    @staticmethod
+    def _unify(results: list) -> list:
+        """
+        Re-token a whole conversation so tokens are unique across messages.
+        The same (type, value) pair always maps to the same token. Numbering follows
+        reading order. Each redacted text is rebuilt from the original spans, so the
+        text is never searched or pattern-replaced.
+        """
+        registry = {}   # (pii_type, value) -> token
+        counters = {}   # pii_type -> last index used
+        unified = []
+        for res in results:
+            token_map = {}
+            renamed = []
+            for m in sorted(res.matches, key=lambda x: x.start):
+                key = (m.pii_type, m.original_value)
+                token = registry.get(key)
+                if token is None:
+                    counters[m.pii_type] = counters.get(m.pii_type, 0) + 1
+                    token = f"[{m.pii_type}_{counters[m.pii_type]}]"
+                    registry[key] = token
+                token_map[token] = m.original_value
+                renamed.append(replace(m, token=token))
+
+            redacted = res.original_text
+            for m in sorted(renamed, key=lambda x: x.start, reverse=True):
+                redacted = redacted[: m.start] + m.token + redacted[m.end :]
+
+            unified.append(
+                replace(
+                    res,
+                    redacted_text=redacted,
+                    matches=sorted(renamed, key=lambda x: x.start, reverse=True),
+                    token_map=token_map,
+                )
+            )
+        return unified
