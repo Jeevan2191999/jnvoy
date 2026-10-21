@@ -40,6 +40,8 @@ import sys
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from core.detector_v2 import PIIDetectorV2
+from core.judged_detector import JudgedPIIDetector
+from core.pii_judge import JudgeError
 from core.intelligence import semantic_cache, intelligent_router, outage_detector
 from core.injection import InjectionDetector
 from core.mcp_security import MCPSecurityScanner
@@ -64,7 +66,7 @@ app.add_middleware(
 )
 
 # Single detector instance loaded once at startup
-detector = PIIDetectorV2(confidence_threshold=0.6)
+detector = JudgedPIIDetector(confidence_threshold=0.6)
 
 # Injection detector — scans every request before it reaches the LLM
 injection_detector = InjectionDetector(action="block", confidence_threshold=0.6)
@@ -251,8 +253,22 @@ async def run_proxy_pipeline(request: ProxyRequest) -> dict:
     combined_token_map = {}
     combined_pii_summary = {}
 
-    for msg in request.messages:
-        result = detector.detect(msg.content)
+    # Messages are reviewed concurrently. With the judge off this is the same
+    # primary detection as before, in the same order.
+    try:
+        results = await asyncio.gather(
+            *(detector.detect_async(msg.content) for msg in request.messages)
+        )
+    except JudgeError:
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "error": "pii_judge_unavailable",
+                "message": "Request blocked: the PII review step failed and JNVOY_JUDGE_FAIL_MODE is closed.",
+            },
+        )
+
+    for msg, result in zip(request.messages, results):
         redacted_messages.append({"role": msg.role, "content": result.redacted_text})
         combined_token_map.update(result.token_map)
         for pii_type, count in result.summary.items():
@@ -261,7 +277,12 @@ async def run_proxy_pipeline(request: ProxyRequest) -> dict:
     # Step 2: Build cache key from last user message
     user_messages = [m for m in request.messages if m.role == "user"]
     cache_query = user_messages[-1].content if user_messages else ""
-    redacted_query = detector.detect(cache_query).redacted_text
+    # Reuse the result computed above: the judge is not called twice, and the cache key
+    # is exactly the text that is sent to the LLM (no leftover PII stored in the cache).
+    last_user_index = max(
+        (i for i, m in enumerate(request.messages) if m.role == "user"), default=None
+    )
+    redacted_query = results[last_user_index].redacted_text if last_user_index is not None else ""
 
     # Step 3: Check semantic cache
     cache_hit = False
@@ -399,7 +420,10 @@ async def proxy_request(
 @app.get("/v1/scan")
 async def scan_text(text: str):
     """Scan text for PII without forwarding to LLM."""
-    return detector.scan_for_report(text)
+    try:
+        return await detector.ascan_for_report(text)
+    except JudgeError:
+        raise HTTPException(status_code=503, detail={"error": "pii_judge_unavailable"})
 
 
 @app.get("/v1/scan/injection")
