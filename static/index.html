@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Jnvoy: your AI firewall for sensitive data</title>
-<meta name="description" content="Jnvoy sits between your application and any LLM. Sensitive data never reaches Claude, GPT-4o, or Gemini. Change one URL.">
+<meta name="description" content="Jnvoy sits between your application and any LLM. Sensitive data never reaches Claude or GPT-4o. Change one URL.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -554,12 +554,12 @@
   <div class="wrap hero-grid">
     <div>
       <h1>Your AI reads everything<br>you send it.<br><span class="soft">Jnvoy decides what it's allowed to see.</span></h1>
-      <p class="lede">A proxy that sits between your application and any LLM. Sensitive data is detected and replaced before it leaves your system. Claude, GPT-4o, and Gemini never see the raw values. Change one URL. Nothing else.</p>
+      <p class="lede">A proxy that sits between your application and any LLM. Sensitive data is detected and replaced before it leaves your system. Claude and GPT-4o never see the raw values. Change one URL and add your key.</p>
       <div class="hero-ctas">
         <a href="/docs" class="btn btn-primary">Try the live API</a>
         <a href="https://github.com/Jeevan2191999/jnvoy" class="btn btn-ghost">View source on GitHub</a>
       </div>
-      <div class="hero-meta"><span class="dot"></span>Live at jnvoy.onrender.com</div>
+      <div class="hero-meta"><span class="dot"></span>Live at www.jnvoy.com</div>
     </div>
 
     <div class="doc">
@@ -572,7 +572,7 @@
         <div><span class="raw">&nbsp;&nbsp;"and email is </span><span class="redact-bar reveal-redact" style="--w:118px; --d:0.55s">john@acme.com</span><span class="raw">"</span></div>
         <div class="doc-divider"></div>
         <div class="doc-out"><span class="c1">#</span> what the model receives</div>
-        <div class="doc-out">"My NI is <span class="token">[NI_NUMBER_1]</span> and email is <span class="token">[EMAIL_1]</span>"</div>
+        <div class="doc-out">"My NI is <span class="token">[NI_NUMBER_1]</span> and email is <span class="token">[EMAIL_ADDRESS_1]</span>"</div>
       </div>
       <div class="doc-footer">
         <span>instances redacted <b>2</b></span>
@@ -585,8 +585,8 @@
 <div class="stats">
   <div class="wrap stats-row">
     <div class="stat"><div class="n">20+</div><div class="d">PII types detected</div></div>
-    <div class="stat"><div class="n">180+</div><div class="d">automated tests</div></div>
-    <div class="stat"><div class="n">6</div><div class="d">LLM providers supported</div></div>
+    <div class="stat"><div class="n">290+</div><div class="d">automated tests</div></div>
+    <div class="stat"><div class="n">2</div><div class="d">LLM providers supported</div></div>
   </div>
 </div>
 
@@ -684,7 +684,7 @@
   <div class="wrap">
     <div class="shead">
       <h2>Built for production, not just demos</h2>
-      <p>Everything you need to deploy AI safely in a regulated environment. No configuration required. No vendor lock-in.</p>
+      <p>Everything you need to deploy AI safely in a regulated environment. Sensible defaults, and every setting is an environment variable. No vendor lock-in.</p>
     </div>
     <div class="clauses">
 
@@ -696,8 +696,8 @@
 
       <div class="clause">
         <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M13 2L4 14h6l-1 8 9-12h-6l1-8z"/></svg>
-        <h3>Semantic cache</h3>
-        <p>Similar queries return cached responses instantly. Saves 20 to 40 percent of LLM costs automatically without any configuration.</p>
+        <h3>Exact-match cache</h3>
+        <p>Identical requests from the same API key return the stored answer instantly, with no model call. Matches are exact and scoped to each key, so a changed word or system prompt never returns someone else's answer.</p>
       </div>
 
       <div class="clause">
@@ -715,19 +715,19 @@
       <div class="clause">
         <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="4" y="4" width="16" height="16" rx="1"/><path d="M8 9h8M8 13h8M8 17h4"/></svg>
         <h3>Compliance report PDF</h3>
-        <p>One endpoint generates an FCA and GDPR-ready PDF proving zero sensitive data was transmitted. With your company name on it.</p>
+        <p>One endpoint generates a PDF for your compliance team: what was detected and redacted, by type and period, with your company name on it.</p>
       </div>
 
       <div class="clause">
         <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="7" width="7" height="5" rx="1"/><rect x="14" y="7" width="7" height="5" rx="1"/><path d="M10 9.5h4"/></svg>
-        <h3>Multi-tenant API keys</h3>
-        <p>Each company gets complete data isolation. Their traffic, audit logs, and compliance reports are entirely separate.</p>
+        <h3>API keys and rate limits</h3>
+        <p>Every request needs a key. Client keys call the proxy. Separate admin keys unlock the audit log, reports and cache controls. Per-key rate limits stop runaway usage.</p>
       </div>
 
       <div class="clause">
         <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 12a8 8 0 0114-5.3M20 12a8 8 0 01-14 5.3"/><path d="M18 3v4h-4M6 21v-4h4"/></svg>
-        <h3>Automatic failover</h3>
-        <p>Outage detector tracks provider health. If Claude goes down, traffic automatically reroutes to GPT-4o or Gemini.</p>
+        <h3>Provider health monitoring</h3>
+        <p>An outage detector tracks each provider's successes and failures and shows them on a health endpoint, so you see a provider degrade before your users do.</p>
       </div>
 
       <div class="clause">
@@ -740,6 +740,24 @@
         <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 8l8-5 8 5v8l-8 5-8-5V8z"/><path d="M4 8l8 5 8-5M12 13v8"/></svg>
         <h3>Docker stack</h3>
         <p>One command starts everything. API plus PostgreSQL plus Redis. Self-hostable on your own infrastructure.</p>
+      </div>
+
+      <div class="clause">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.9 3.1-7 7-7s7 3.1 7 7"/></svg>
+        <h3>Redacts people, not vocabulary</h3>
+        <p>Names, contact details, financial and government identifiers, and credentials are redacted. Company names, places and dates stay readable so answers stay useful. One setting widens the scope when you need it.</p>
+      </div>
+
+      <div class="clause">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="6"/><path d="M16 16l5 5M9 11h4"/></svg>
+        <h3>Optional second-pass review</h3>
+        <p>A small language model can re-read text that has already been redacted and flag identifiers the rules missed, such as internal codes. Off by default. Runs locally with Ollama, or through Anthropic, in which case that redacted text goes to Anthropic.</p>
+      </div>
+
+      <div class="clause">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 3l9 16H3L12 3z"/><path d="M12 10v4M12 17v.5"/></svg>
+        <h3>Prompt injection blocking</h3>
+        <p>Every request is scanned for injection attempts before anything else happens. Blocked requests never reach the model.</p>
       </div>
 
     </div>
@@ -775,7 +793,7 @@
         <div class="cap">From 100,000 calls /month</div>
         <ul>
           <li>Everything in Free</li>
-          <li>Semantic cache & intelligent routing</li>
+          <li>Response cache & intelligent routing</li>
           <li>Compliance report PDF</li>
           <li>90-day audit log retention</li>
           <li>Email support</li>
@@ -790,8 +808,8 @@
         <div class="cap">From 1,000,000 calls /month</div>
         <ul>
           <li>Everything in Pro</li>
-          <li>Multi-tenant API keys</li>
-          <li>Automatic provider failover</li>
+          <li>Multiple API keys with per-key rate limits</li>
+          <li>Provider health monitoring</li>
           <li>1-year audit log retention</li>
           <li>Priority support</li>
         </ul>
@@ -819,7 +837,7 @@
          scheduling link (Calendly, etc.) once you have one. -->
 
     <div class="price-foot">
-      <p><b>Prefer to self-host?</b> Jnvoy is source-available under BSL 1.1 — run it on your own infrastructure, in production, for free, forever.</p>
+      <p><b>Prefer to self-host?</b> Jnvoy is source-available under BSL 1.1. Run it on your own infrastructure, in production, for free, forever.</p>
       <a href="https://github.com/Jeevan2191999/jnvoy" class="btn btn-ghost btn-sm">View source on GitHub</a>
     </div>
   </div>
@@ -828,16 +846,12 @@
 <section id="integration">
   <div class="wrap">
     <div class="shead">
-      <h2>Change one URL. That's it.</h2>
-      <p>No SDK to install. No configuration to learn. No architectural changes. Point your existing LLM calls at Jnvoy and every request is automatically protected.</p>
+      <h2>Change one URL. Add one header.</h2>
+      <p>No SDK to install. No configuration to learn. No architectural changes. Point your existing LLM calls at Jnvoy with your Jnvoy key and every request is automatically protected.</p>
     </div>
     <div class="providers">
       <span class="chip">Anthropic Claude</span>
       <span class="chip">OpenAI GPT-4o</span>
-      <span class="chip">Google Gemini</span>
-      <span class="chip">Mistral</span>
-      <span class="chip">Ollama (local)</span>
-      <span class="chip">Azure OpenAI</span>
     </div>
     <div class="code-grid">
       <div class="code-panel raw">
@@ -859,11 +873,12 @@ response = client.messages.create(
       </div>
       <div class="code-panel clean">
         <div class="hd"><span>after.py</span><span>protected</span></div>
-        <pre><span class="c1"># through jnvoy, one line changed</span>
+        <pre><span class="c1"># through jnvoy: new URL, plus your jnvoy key</span>
 <span class="c1">import</span> httpx
 
 response = httpx.post(
-  <span class="mark">"https://jnvoy.onrender.com/v1/proxy"</span>,
+  <span class="mark">"https://www.jnvoy.com/v1/proxy"</span>,
+  headers={"x-api-key": JNVOY_API_KEY},
   json={
     "model": "claude-haiku-4-5",
     "provider": "anthropic",
