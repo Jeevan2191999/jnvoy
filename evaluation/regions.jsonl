@@ -1,0 +1,32 @@
+{"id": "R001", "text": "My Aadhaar number is 7260 1815 9082.", "sensitive": [{"value": "7260 1815 9082", "type": "IN_AADHAAR"}], "keep": []}
+{"id": "R002", "text": "Her PAN is ABCPE1234F on file.", "sensitive": [{"value": "ABCPE1234F", "type": "IN_PAN"}], "keep": []}
+{"id": "R003", "text": "Please quote TFN 123 456 782 on the form.", "sensitive": [{"value": "123 456 782", "type": "AU_TFN"}], "keep": []}
+{"id": "R004", "text": "Medicare card 6952 89074 9 expires soon.", "sensitive": [{"value": "6952 89074 9", "type": "AU_MEDICARE"}], "keep": []}
+{"id": "R005", "text": "Employee SIN 046 454 286 for payroll.", "sensitive": [{"value": "046 454 286", "type": "CA_SIN"}], "keep": []}
+{"id": "R006", "text": "NRIC S1234567D was verified.", "sensitive": [{"value": "S1234567D", "type": "SG_NRIC_FIN"}], "keep": []}
+{"id": "R007", "text": "South African ID number 8001015009087.", "sensitive": [{"value": "8001015009087", "type": "ZA_ID_NUMBER"}], "keep": []}
+{"id": "R008", "text": "Resident registration number 800101-1234560.", "sensitive": [{"value": "800101-1234560", "type": "KR_RRN"}], "keep": []}
+{"id": "R009", "text": "Thai national ID 1101700202232 was checked.", "sensitive": [{"value": "1101700202232", "type": "TH_TNIN"}], "keep": []}
+{"id": "R010", "text": "TC kimlik no 10000000146 girildi.", "sensitive": [{"value": "10000000146", "type": "TR_NATIONAL_ID"}], "keep": []}
+{"id": "R011", "text": "Su DNI es 12345678Z, gracias.", "sensitive": [{"value": "12345678Z", "type": "ES_NIF"}], "keep": []}
+{"id": "R012", "text": "Foreign resident NIE X1234567L.", "sensitive": [{"value": "X1234567L", "type": "ES_NIE"}], "keep": []}
+{"id": "R013", "text": "Il codice fiscale è RSSMRA85T10A562S.", "sensitive": [{"value": "RSSMRA85T10A562S", "type": "IT_FISCAL_CODE"}], "keep": []}
+{"id": "R014", "text": "Numer PESEL 44051401359 w systemie.", "sensitive": [{"value": "44051401359", "type": "PL_PESEL"}], "keep": []}
+{"id": "R015", "text": "Personnummer 811218-9876 registrerat.", "sensitive": [{"value": "811218-9876", "type": "SE_PERSONNUMMER"}], "keep": []}
+{"id": "R016", "text": "Henkilötunnus 131052-308T annettu.", "sensitive": [{"value": "131052-308T", "type": "FI_PERSONAL_IDENTITY_CODE"}], "keep": []}
+{"id": "R017", "text": "Steuer-ID 86095742719 für das Finanzamt.", "sensitive": [{"value": "86095742719", "type": "DE_TAX_ID"}], "keep": []}
+{"id": "R018", "text": "Rentenversicherungsnummer 15070649C103 gespeichert.", "sensitive": [{"value": "15070649C103", "type": "DE_SOCIAL_SECURITY"}], "keep": []}
+{"id": "R019", "text": "Numéro de sécurité sociale 2 69 05 49 588 157 80.", "sensitive": [{"value": "2 69 05 49 588 157 80", "type": "FR_NIR"}], "keep": []}
+{"id": "R020", "text": "Het BSN is 111222333 volgens het dossier.", "sensitive": [{"value": "111222333", "type": "NL_BSN"}], "keep": []}
+{"id": "R021", "text": "CPF do cliente: 111.444.777-35.", "sensitive": [{"value": "111.444.777-35", "type": "BR_CPF"}], "keep": []}
+{"id": "R022", "text": "Resident ID 11010519491231002X on the contract.", "sensitive": [{"value": "11010519491231002X", "type": "CN_RESIDENT_ID"}], "keep": []}
+{"id": "R023", "text": "Emirates ID 784-1985-1234567-3 attached.", "sensitive": [{"value": "784-1985-1234567-3", "type": "AE_EMIRATES_ID"}], "keep": []}
+{"id": "R024", "text": "Ship to Austin, TX 78701 please.", "sensitive": [{"value": "78701", "type": "US_ZIP_CODE"}], "keep": []}
+{"id": "R101", "text": "The job took 11144477735 ms.", "sensitive": [], "keep": ["11144477735"]}
+{"id": "R102", "text": "Order 111222333 shipped yesterday.", "sensitive": [], "keep": ["111222333"]}
+{"id": "R103", "text": "Record 8001015009087 was archived.", "sensitive": [], "keep": ["8001015009087"]}
+{"id": "R104", "text": "Row 10000000146 in the export.", "sensitive": [], "keep": ["10000000146"]}
+{"id": "R105", "text": "Batch 44051401359 completed.", "sensitive": [], "keep": ["44051401359"]}
+{"id": "R106", "text": "Item 86095742719 restocked.", "sensitive": [], "keep": ["86095742719"]}
+{"id": "R107", "text": "Invoice 046454286 is paid.", "sensitive": [], "keep": ["046454286"]}
+{"id": "R108", "text": "Ref 726018159082 closed.", "sensitive": [], "keep": ["726018159082"]}

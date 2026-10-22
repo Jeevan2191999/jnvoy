@@ -105,11 +105,14 @@ def test_person_is_still_redacted_by_default(det):
 # ── JNVOY_REDACT_EXTRA ───────────────────────────────────────────────────────
 
 def test_resolve_default_without_env():
-    assert resolve_entities(env={}) == DEFAULT_ENTITIES
+    # The core list plus every region pack (JNVOY_REGIONS defaults to all).
+    from core.regions import ALL_REGION_ENTITIES
+    assert resolve_entities(env={}) == DEFAULT_ENTITIES + ALL_REGION_ENTITIES
+    assert resolve_entities(env={"JNVOY_REGIONS": "none"}) == DEFAULT_ENTITIES
 
 
 def test_resolve_adds_extras_after_defaults():
-    got = resolve_entities(env={"JNVOY_REDACT_EXTRA": "organization, location"})
+    got = resolve_entities(env={"JNVOY_REGIONS": "none", "JNVOY_REDACT_EXTRA": "organization, location"})
     assert got == DEFAULT_ENTITIES + ["ORGANIZATION", "LOCATION"]
 
 
@@ -130,7 +133,8 @@ def test_resolve_explicit_list_wins_over_env():
 
 def test_env_var_is_read_by_the_constructor(monkeypatch):
     monkeypatch.setenv("JNVOY_REDACT_EXTRA", "LOCATION")
-    assert PIIDetectorV2().entities == DEFAULT_ENTITIES + ["LOCATION"]
+    from core.regions import ALL_REGION_ENTITIES
+    assert PIIDetectorV2().entities == DEFAULT_ENTITIES + ALL_REGION_ENTITIES + ["LOCATION"]
     monkeypatch.setenv("JNVOY_REDACT_EXTRA", "all")
     assert PIIDetectorV2().entities is None
 

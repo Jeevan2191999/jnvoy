@@ -213,6 +213,7 @@
     color:rgba(237,238,233,0.6);
   }
   .doc-footer b{ color:#7FD1AE; font-weight:600; }
+  .doc-footer .hero-region{ margin-left:auto; }
 
   /* redaction sweep animation, fires once on load */
   .reveal-redact{
@@ -326,6 +327,11 @@
     background:var(--redact); color:transparent; border-radius:2px; padding:0 4px;
   }
   .ledger-row .why{ font-size:0.875rem; color:var(--ink-faint); }
+  .cov-note{ margin-top:20px; max-width:760px; font-size:0.875rem; color:var(--ink-faint); line-height:1.6; }
+  .cov-note code{ font-family:var(--mono); font-size:0.82rem; color:var(--ink-soft); }
+  .cov-note a{ color:var(--green); text-decoration:underline; text-underline-offset:2px; }
+  #coverage .ledger-row{ grid-template-columns:0.8fr 2fr 0.9fr; }
+  @media (max-width:720px){ #coverage .ledger-row{ grid-template-columns:1fr; } }
 
   /* ============================================================
      FEATURES: ledger clauses, not cards
@@ -577,6 +583,7 @@
     <a href="#" class="wordmark"><span class="dot"></span>jnvoy</a>
     <nav class="navlinks">
       <a href="#how">How it works</a>
+      <a href="#coverage">Coverage</a>
       <a href="#features">Features</a>
       <a href="#pricing">Pricing</a>
       <a href="/docs">Docs</a>
@@ -603,7 +610,7 @@
         <span>POST /v1/proxy</span>
         <span class="stamp-live"><span class="dot"></span>protected</span>
       </div>
-      <div class="doc-body">
+      <div class="doc-body" id="hero-demo">
         <div><span class="c1">&gt;</span> <span class="raw">"My NI is </span><span class="redact-bar reveal-redact" style="--w:92px; --d:0.3s">AB123456C</span><span class="raw">"</span></div>
         <div><span class="raw">&nbsp;&nbsp;"and email is </span><span class="redact-bar reveal-redact" style="--w:118px; --d:0.55s">john@acme.com</span><span class="raw">"</span></div>
         <div class="doc-divider"></div>
@@ -613,6 +620,7 @@
       <div class="doc-footer">
         <span>instances redacted <b>2</b></span>
         <span>sent to LLM <b>0 raw</b></span>
+        <span class="hero-region">example: <b id="hero-region">United Kingdom</b></span>
       </div>
     </div>
   </div>
@@ -620,8 +628,8 @@
 
 <div class="stats">
   <div class="wrap stats-row">
-    <div class="stat"><div class="n">20+</div><div class="d">PII types detected</div></div>
-    <div class="stat"><div class="n">290+</div><div class="d">automated tests</div></div>
+    <div class="stat"><div class="n">50</div><div class="d">identifier types, 21 countries</div></div>
+    <div class="stat"><div class="n">400+</div><div class="d">automated tests</div></div>
     <div class="stat"><div class="n">2</div><div class="d">LLM providers supported</div></div>
   </div>
 </div>
@@ -671,7 +679,7 @@
   <div class="wrap">
     <div class="shead">
       <h2>What it catches</h2>
-      <p>UK-specific recognisers sit alongside the standard set, built in rather than bolted on.</p>
+      <p>The standard set, plus national identifiers for 21 countries, the UK included. Each one is checked against its own check digit, so ordinary numbers are left alone.</p>
     </div>
     <div class="ledger">
       <div class="ledger-row head">
@@ -716,6 +724,91 @@
   </div>
 </section>
 
+<section id="coverage">
+  <div class="wrap">
+    <div class="shead">
+      <h2>Coverage by region</h2>
+      <p>Your users, staff and customers are not all in one country. Jnvoy recognises the national identifiers listed here, and you can switch regions on or off with one setting.</p>
+    </div>
+    <div class="ledger">
+      <div class="ledger-row head">
+        <div>Region</div><div>Identifiers detected</div><div>Checked by</div>
+      </div>
+      <div class="ledger-row">
+        <div class="type" data-k="Region">Everywhere</div>
+        <div class="example" data-k="Identifiers">Names, email addresses, phone numbers (10 regions), payment cards, IBANs, IP and MAC addresses, crypto wallets, API keys, passwords and connection strings</div>
+        <div class="why" data-k="Checked by">Language model, format rules and check digits</div>
+      </div>
+      <div class="ledger-row">
+        <div class="type" data-k="Region">United Kingdom</div>
+        <div class="example" data-k="Identifiers">National Insurance number, NHS number, postcode, sort code and account number, passport number</div>
+        <div class="why" data-k="Checked by">Check digits and format</div>
+      </div>
+      <div class="ledger-row">
+        <div class="type" data-k="Region">United States</div>
+        <div class="example" data-k="Identifiers">Social Security number, ITIN, passport, driver&rsquo;s licence, bank account number, ZIP code</div>
+        <div class="why" data-k="Checked by">Format and context</div>
+      </div>
+      <div class="ledger-row">
+        <div class="type" data-k="Region">European Union</div>
+        <div class="example" data-k="Identifiers">Germany tax ID and pension number, Spain NIF and NIE, Italy codice fiscale, Poland PESEL, Sweden personnummer, Finland henkil&ouml;tunnus, France NIR, Netherlands BSN</div>
+        <div class="why" data-k="Checked by">Check digits</div>
+      </div>
+      <div class="ledger-row">
+        <div class="type" data-k="Region">India</div>
+        <div class="example" data-k="Identifiers">Aadhaar number, PAN</div>
+        <div class="why" data-k="Checked by">Check digit (Aadhaar), format (PAN)</div>
+      </div>
+      <div class="ledger-row">
+        <div class="type" data-k="Region">Australia</div>
+        <div class="example" data-k="Identifiers">Tax file number, Medicare number</div>
+        <div class="why" data-k="Checked by">Check digits</div>
+      </div>
+      <div class="ledger-row">
+        <div class="type" data-k="Region">Canada</div>
+        <div class="example" data-k="Identifiers">Social Insurance Number</div>
+        <div class="why" data-k="Checked by">Check digit</div>
+      </div>
+      <div class="ledger-row">
+        <div class="type" data-k="Region">Singapore</div>
+        <div class="example" data-k="Identifiers">NRIC and FIN</div>
+        <div class="why" data-k="Checked by">Check letter</div>
+      </div>
+      <div class="ledger-row">
+        <div class="type" data-k="Region">China</div>
+        <div class="example" data-k="Identifiers">Resident identity card number</div>
+        <div class="why" data-k="Checked by">Check digit and birth date</div>
+      </div>
+      <div class="ledger-row">
+        <div class="type" data-k="Region">South Korea</div>
+        <div class="example" data-k="Identifiers">Resident registration number</div>
+        <div class="why" data-k="Checked by">Check digit</div>
+      </div>
+      <div class="ledger-row">
+        <div class="type" data-k="Region">Thailand and Turkey</div>
+        <div class="example" data-k="Identifiers">National ID numbers</div>
+        <div class="why" data-k="Checked by">Check digits</div>
+      </div>
+      <div class="ledger-row">
+        <div class="type" data-k="Region">Brazil</div>
+        <div class="example" data-k="Identifiers">CPF</div>
+        <div class="why" data-k="Checked by">Check digits</div>
+      </div>
+      <div class="ledger-row">
+        <div class="type" data-k="Region">United Arab Emirates</div>
+        <div class="example" data-k="Identifiers">Emirates ID</div>
+        <div class="why" data-k="Checked by">Check digit</div>
+      </div>
+      <div class="ledger-row">
+        <div class="type" data-k="Region">South Africa</div>
+        <div class="example" data-k="Identifiers">ID number</div>
+        <div class="why" data-k="Checked by">Check digit</div>
+      </div>
+    </div>
+    <p class="cov-note">All regions are on by default. Restrict them with <code>JNVOY_REGIONS</code>, for example <code>in,au,sg</code> or <code>eu</code>. Each identifier is tested against published sample numbers; we have not yet measured accuracy on real customer data. Names are detected best in English and street addresses in UK and US formats. If your country is missing, <a href="mailto:j.nagaraj2109@gmail.com?subject=Jnvoy%20region%20request&amp;body=Country%3A%0AIdentifier%20%28for%20example%20national%20ID%2C%20tax%20number%29%3A%0A">tell us the identifier</a> and we will add it.</p>
+  </div>
+</section>
+
 <section id="features">
   <div class="wrap">
     <div class="shead">
@@ -727,7 +820,7 @@
       <div class="clause">
         <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 3l7 3v5c0 4.5-3 7.8-7 9-4-1.2-7-4.5-7-9V6l7-3z"/></svg>
         <h3>Microsoft Presidio detection</h3>
-        <p>Enterprise-grade NLP-based PII detection. 20+ entity types. UK-specific recognisers for NHS numbers, NI numbers, UK postcodes, and sort codes.</p>
+        <p>NLP-based PII detection with 50 identifier types. National identifiers for 21 countries, from Aadhaar and CPF to NHS and Social Security numbers, each checked against its own check digit.</p>
       </div>
 
       <div class="clause">
@@ -842,7 +935,7 @@
           <li>Provider health monitoring</li>
           <li>Email support</li>
         </ul>
-        <a href="mailto:j.nagaraj2109@gmail.com?subject=Jnvoy%20Production%20demo&body=Hi%20Jeevan%2C%0A%0AI%27d%20like%20to%20book%20a%20demo%20of%20Jnvoy%20Production.%0A%0ATimes%20that%20suit%20me%20%28with%20time%20zone%29%3A%0A%0A1.%20Expected%20calls%20per%20month%3A%0A2.%20Model%20providers%20we%20use%20%28for%20example%20Anthropic%2C%20OpenAI%29%3A%0A3.%20Kinds%20of%20data%20we%20need%20to%20protect%20%28for%20example%20names%2C%20NHS%20numbers%2C%20account%20numbers%29%3A%0A4.%20Hosted%20by%20you%2C%20or%20self-hosted%3A%0A%0AThanks%2C%0A" class="btn btn-primary">Book a demo</a>
+        <a href="mailto:j.nagaraj2109@gmail.com?subject=Jnvoy%20Production%20demo&body=Hi%20Jeevan%2C%0A%0AI%27d%20like%20to%20book%20a%20demo%20of%20Jnvoy%20Production.%0A%0ATimes%20that%20suit%20me%20%28with%20time%20zone%29%3A%0A%0A1.%20Expected%20calls%20per%20month%3A%0A2.%20Model%20providers%20we%20use%20%28for%20example%20Anthropic%2C%20OpenAI%29%3A%0A3.%20Kinds%20of%20data%20we%20need%20to%20protect%20%28for%20example%20names%2C%20national%20ID%20numbers%2C%20account%20numbers%29%3A%0A4.%20Hosted%20by%20you%2C%20or%20self-hosted%3A%0A%0AThanks%2C%0A" class="btn btn-primary">Book a demo</a>
       </div>
 
       <div class="price-card">
@@ -858,7 +951,7 @@
           <li>SLA &amp; onboarding support</li>
           <li>Dedicated Slack channel</li>
         </ul>
-        <a href="mailto:j.nagaraj2109@gmail.com?subject=Jnvoy%20Enterprise%20demo&body=Hi%20Jeevan%2C%0A%0AI%27d%20like%20to%20book%20a%20demo%20of%20Jnvoy%20Enterprise.%0A%0ATimes%20that%20suit%20me%20%28with%20time%20zone%29%3A%0A%0A1.%20Expected%20calls%20per%20month%3A%0A2.%20Model%20providers%20we%20use%20%28for%20example%20Anthropic%2C%20OpenAI%29%3A%0A3.%20Kinds%20of%20data%20we%20need%20to%20protect%20%28for%20example%20names%2C%20NHS%20numbers%2C%20account%20numbers%29%3A%0A4.%20Hosted%20by%20you%2C%20or%20self-hosted%3A%0A%0AThanks%2C%0A" class="btn btn-ghost">Book a demo</a>
+        <a href="mailto:j.nagaraj2109@gmail.com?subject=Jnvoy%20Enterprise%20demo&body=Hi%20Jeevan%2C%0A%0AI%27d%20like%20to%20book%20a%20demo%20of%20Jnvoy%20Enterprise.%0A%0ATimes%20that%20suit%20me%20%28with%20time%20zone%29%3A%0A%0A1.%20Expected%20calls%20per%20month%3A%0A2.%20Model%20providers%20we%20use%20%28for%20example%20Anthropic%2C%20OpenAI%29%3A%0A3.%20Kinds%20of%20data%20we%20need%20to%20protect%20%28for%20example%20names%2C%20national%20ID%20numbers%2C%20account%20numbers%29%3A%0A4.%20Hosted%20by%20you%2C%20or%20self-hosted%3A%0A%0AThanks%2C%0A" class="btn btn-ghost">Book a demo</a>
       </div>
     </div>
 
@@ -866,7 +959,7 @@
       <div>
         <h3>Book a demo</h3>
         <p class="lede2">A short call where we run Jnvoy on text like yours and scope a plan around your volume.</p>
-        <a href="mailto:j.nagaraj2109@gmail.com?subject=Jnvoy%20demo&body=Hi%20Jeevan%2C%0A%0AI%27d%20like%20to%20book%20a%20demo%20of%20Jnvoy.%0A%0ATimes%20that%20suit%20me%20%28with%20time%20zone%29%3A%0A%0A1.%20Expected%20calls%20per%20month%3A%0A2.%20Model%20providers%20we%20use%20%28for%20example%20Anthropic%2C%20OpenAI%29%3A%0A3.%20Kinds%20of%20data%20we%20need%20to%20protect%20%28for%20example%20names%2C%20NHS%20numbers%2C%20account%20numbers%29%3A%0A4.%20Hosted%20by%20you%2C%20or%20self-hosted%3A%0A%0AThanks%2C%0A" class="btn btn-primary">Book a demo</a>
+        <a href="mailto:j.nagaraj2109@gmail.com?subject=Jnvoy%20demo&body=Hi%20Jeevan%2C%0A%0AI%27d%20like%20to%20book%20a%20demo%20of%20Jnvoy.%0A%0ATimes%20that%20suit%20me%20%28with%20time%20zone%29%3A%0A%0A1.%20Expected%20calls%20per%20month%3A%0A2.%20Model%20providers%20we%20use%20%28for%20example%20Anthropic%2C%20OpenAI%29%3A%0A3.%20Kinds%20of%20data%20we%20need%20to%20protect%20%28for%20example%20names%2C%20national%20ID%20numbers%2C%20account%20numbers%29%3A%0A4.%20Hosted%20by%20you%2C%20or%20self-hosted%3A%0A%0AThanks%2C%0A" class="btn btn-primary">Book a demo</a>
         <p class="small">No preparation needed. A few sample prompts help.</p>
       </div>
       <dl>
@@ -949,7 +1042,7 @@ response = httpx.post(
     <div>
       <div class="shead" style="margin-bottom:0;">
         <h2>The document your auditor is asking for</h2>
-        <p>When the FCA or ICO asks what controls you apply before data reaches external AI models, Jnvoy generates the record automatically. One endpoint. One PDF.</p>
+        <p>When a regulator, an auditor or a customer&rsquo;s security team asks what controls you apply before data reaches external AI models, Jnvoy generates the record automatically. One endpoint. One PDF.</p>
       </div>
       <div class="badges">
         <span class="badge">EMAIL_ADDRESS</span>
@@ -963,6 +1056,10 @@ response = httpx.post(
         <span class="badge">IP_ADDRESS</span>
         <span class="badge">PASSPORT</span>
         <span class="badge">SORT_CODE</span>
+        <span class="badge">US_SSN</span>
+        <span class="badge">IN_AADHAAR</span>
+        <span class="badge">BR_CPF</span>
+        <span class="badge">AU_TFN</span>
         <span class="badge">API_KEY</span>
       </div>
     </div>
@@ -1022,5 +1119,75 @@ response = httpx.post(
   </div>
 </footer>
 
+<script type="application/json" id="hero-examples">
+[
+ {
+  "region": "United Kingdom",
+  "a": "My NI is ",
+  "va": "AB123456C",
+  "ta": "NI_NUMBER",
+  "b": "and email is ",
+  "vb": "john@acme.com",
+  "tb": "EMAIL_ADDRESS"
+ },
+ {
+  "region": "United States",
+  "a": "My SSN is ",
+  "va": "536-90-4399",
+  "ta": "US_SSN",
+  "b": "and email is ",
+  "vb": "maria@acme.com",
+  "tb": "EMAIL_ADDRESS"
+ },
+ {
+  "region": "India",
+  "a": "My Aadhaar is ",
+  "va": "7260 1815 9082",
+  "ta": "IN_AADHAAR",
+  "b": "and email is ",
+  "vb": "priya@acme.in",
+  "tb": "EMAIL_ADDRESS"
+ },
+ {
+  "region": "Brazil",
+  "a": "My CPF is ",
+  "va": "111.444.777-35",
+  "ta": "BR_CPF",
+  "b": "and email is ",
+  "vb": "lucas@acme.com.br",
+  "tb": "EMAIL_ADDRESS"
+ },
+ {
+  "region": "Australia",
+  "a": "My TFN is ",
+  "va": "123 456 782",
+  "ta": "AU_TFN",
+  "b": "and email is ",
+  "vb": "emma@acme.com.au",
+  "tb": "EMAIL_ADDRESS"
+ }
+]
+</script>
+<script>
+(function(){
+  var el = document.getElementById('hero-demo'), tag = document.getElementById('hero-region'), data;
+  try { data = JSON.parse(document.getElementById('hero-examples').textContent); } catch (e) { return; }
+  if (!el || !data || data.length < 2) return;
+  if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  function esc(t){ return t.replace(/&/g,'&amp;').replace(/</g,'&lt;'); }
+  function w(t){ return Math.round(t.length * 8.2) + 6; }
+  function render(x){
+    el.innerHTML =
+      '<div><span class="c1">&gt;</span> <span class="raw">"' + esc(x.a) + '</span><span class="redact-bar reveal-redact" style="--w:' + w(x.va) + 'px; --d:0.3s">' + esc(x.va) + '</span><span class="raw">"</span></div>' +
+      '<div><span class="raw">&nbsp;&nbsp;"' + esc(x.b) + '</span><span class="redact-bar reveal-redact" style="--w:' + w(x.vb) + 'px; --d:0.55s">' + esc(x.vb) + '</span><span class="raw">"</span></div>' +
+      '<div class="doc-divider"></div>' +
+      '<div class="doc-out"><span class="c1">#</span> what the model receives</div>' +
+      '<div class="doc-out">"' + esc(x.a) + '<span class="token">[' + x.ta + '_1]</span> ' + esc(x.b) + '<span class="token">[' + x.tb + '_1]</span>"</div>';
+    if (tag) tag.textContent = x.region;
+  }
+  var i = 0;
+  setInterval(function(){ i = (i + 1) % data.length; render(data[i]); }, 5000);
+})();
+</script>
 </body>
 </html>

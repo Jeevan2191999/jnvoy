@@ -123,9 +123,11 @@ def resolve_entities(entities=None, env=None):
     if entities is not None:
         return list(entities)
     env = _os.environ if env is None else env
+    from core.regions import region_entities
+    base = list(DEFAULT_ENTITIES) + region_entities(env)   # JNVOY_REGIONS, default all
     raw = str(env.get("JNVOY_REDACT_EXTRA", "")).strip()
     if not raw:
-        return list(DEFAULT_ENTITIES)
+        return base
     names = [n.strip().upper() for n in raw.split(",") if n.strip()]
     if "ALL" in names:
         return None
@@ -138,7 +140,7 @@ def resolve_entities(entities=None, env=None):
             + ", ".join(OPTIONAL_ENTITIES)
             + ", or all."
         )
-    return list(DEFAULT_ENTITIES) + [n for n in names if n not in DEFAULT_ENTITIES]
+    return base + [n for n in names if n not in base]
 
 
 def _make_phone_recogniser():
@@ -180,6 +182,10 @@ def _build_analyzer() -> AnalyzerEngine:
 
     from core.extra_recognisers import make_extra_recognisers
     for recogniser in make_extra_recognisers():
+        registry.add_recognizer(recogniser)
+
+    from core.regions import make_region_recognisers
+    for recogniser in make_region_recognisers():
         registry.add_recognizer(recogniser)
 
     return AnalyzerEngine(nlp_engine=nlp_engine, registry=registry)

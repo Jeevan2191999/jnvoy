@@ -60,6 +60,26 @@ Without Docker: `pip install -r requirements.txt`, then `uvicorn api.proxy_v2:ap
 
 **Personal data** (redacted by default): names, email addresses, phone numbers, payment cards, IBANs, bank account numbers and sort codes, National Insurance and NHS numbers, passport numbers, postcodes and street addresses, dates of birth, reference numbers such as customer or case IDs, IP and MAC addresses, URLs, and credentials such as API keys, tokens, passwords and connection strings.
 
+**National identifiers, by region.** Beyond the UK and US rules, Jnvoy recognises these. Each is accepted only when its own check digit is valid, and plain-digit numbers are only reported next to a telling word (for example "Aadhaar" or "TFN"), so ordinary numbers are left alone.
+
+| Region | Identifiers |
+|---|---|
+| United Kingdom | National Insurance, NHS number, postcode, sort code and account number, passport |
+| United States | Social Security number, ITIN, passport, driver's licence, bank account, ZIP code |
+| European Union | Germany tax ID and pension number, Spain NIF and NIE, Italy codice fiscale, Poland PESEL, Sweden personnummer, Finland henkilötunnus, France NIR, Netherlands BSN |
+| India | Aadhaar, PAN |
+| Australia | Tax file number, Medicare number |
+| Canada | Social Insurance Number |
+| Singapore | NRIC and FIN |
+| China | Resident identity card number |
+| South Korea | Resident registration number |
+| Thailand, Turkey | National ID numbers |
+| Brazil | CPF |
+| United Arab Emirates | Emirates ID |
+| South Africa | ID number |
+
+All regions are on by default. Restrict them with `JNVOY_REGIONS` (for example `in,au,sg`, `eu`, or `none`). They are tested against published sample numbers (`evaluation/regions.jsonl`); accuracy on real data has not been measured. Names are detected best in English and street addresses in UK and US formats. If your country is missing, open an issue with the identifier.
+
 **Off by default:** organisations, locations, dates and nationalities. Switch them on with `JNVOY_REDACT_EXTRA`.
 
 **Attacks:** direct injection, jailbreaks, system prompt extraction, role confusion, indirect injection, data exfiltration and obfuscation in prompts, and tool poisoning, secret leakage and injection in MCP traffic.
@@ -105,6 +125,7 @@ Full request and response details, with an Authorize button for trying calls, ar
 | `JNVOY_ADMIN_KEYS` | Admin keys, comma separated |
 | `JNVOY_RATE_LIMIT_PER_MIN` | Requests per key per minute. Default 60, `0` for no limit |
 | `JNVOY_AUTH=off` | Switches authentication off. Local development only |
+| `JNVOY_REGIONS` | National identifier packs: `all` (default), `none`, `eu`, or country codes such as `in,au,sg` |
 | `JNVOY_REDACT_EXTRA` | `ORGANIZATION`, `LOCATION`, `DATE_TIME`, `NRP`, or `all` |
 | `JNVOY_JUDGE_BACKEND` | Second check: `none` (default), `ollama` or `anthropic` |
 | `JNVOY_JUDGE_FAIL_MODE` | If the second check fails: `open` (default) keeps first-pass redaction, `closed` rejects the request |
