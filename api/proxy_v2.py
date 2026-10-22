@@ -445,7 +445,23 @@ async def proxy_request(
     )
 
 
-@app.get("/v1/scan")
+from pydantic import BaseModel as _ScanBase, Field as _ScanField
+
+
+class ScanRequest(_ScanBase):
+    text: str = _ScanField(..., max_length=200_000)
+
+
+@app.post("/v1/scan")
+async def scan_text_post(body: ScanRequest):
+    """Scan text for PII without forwarding to LLM. The text travels in the body, not the URL."""
+    try:
+        return await detector.ascan_for_report(body.text)
+    except JudgeError:
+        raise HTTPException(status_code=503, detail={"error": "pii_judge_unavailable"})
+
+
+@app.get("/v1/scan", deprecated=True)
 async def scan_text(text: str):
     """Scan text for PII without forwarding to LLM."""
     try:
