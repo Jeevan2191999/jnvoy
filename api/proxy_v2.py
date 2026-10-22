@@ -469,19 +469,31 @@ async def scan_text_post(body: ScanRequest):
         raise HTTPException(status_code=503, detail={"error": "pii_judge_unavailable"})
 
 
-@app.get("/v1/scan", deprecated=True)
-async def scan_text(text: str):
-    """Scan text for PII without forwarding to LLM."""
-    try:
-        return await detector.ascan_for_report(text)
-    except JudgeError:
-        raise HTTPException(status_code=503, detail={"error": "pii_judge_unavailable"})
+def _gone_use_post(path: str) -> HTTPException:
+    return HTTPException(
+        status_code=410,
+        detail={
+            "error": "use_post",
+            "message": f"GET {path} is removed because text in a web address gets logged. "
+                       f"Send POST {path} with a JSON body: {{\"text\": \"...\"}}.",
+        },
+    )
 
 
-@app.get("/v1/scan/injection")
-async def scan_injection(text: str):
-    """Scan text for prompt injection attempts."""
-    result = injection_detector.scan(text)
+@app.get("/v1/scan", include_in_schema=False)
+async def scan_text_get_removed():
+    raise _gone_use_post("/v1/scan")
+
+
+@app.get("/v1/scan/injection", include_in_schema=False)
+async def scan_injection_get_removed():
+    raise _gone_use_post("/v1/scan/injection")
+
+
+@app.post("/v1/scan/injection")
+async def scan_injection(body: ScanRequest):
+    """Scan text for prompt injection attempts. The text travels in the body, not the URL."""
+    result = injection_detector.scan(body.text)
     return {
         "injection_detected": result.injection_detected,
         "blocked": result.blocked,

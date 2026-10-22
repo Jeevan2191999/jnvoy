@@ -302,7 +302,7 @@
       <section id="sending">
         <h2>Sending text safely</h2>
         <ul class="plain">
-          <li><strong>Send text in the request body.</strong> Use <code>POST /v1/scan</code>. The older <code>GET</code> routes put your text in the web address, and web servers commonly record addresses in their logs. Those routes are deprecated.</li>
+          <li><strong>Send text in the request body.</strong> Use <code>POST /v1/scan</code>. The old <code>GET</code> versions put your text in the web address, and web servers commonly record addresses in their logs. They have been removed and now answer with an error.</li>
           <li><strong>Keep your API key out of source code.</strong> Keys are checked in constant time, are never written to logs or responses, and can be rate limited.</li>
           <li><strong>Treat the second check as a choice.</strong> If your data cannot go to a second vendor in any form, ask for it to stay off.</li>
         </ul>

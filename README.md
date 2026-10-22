@@ -52,11 +52,11 @@ Every call is automatically scanned for PII, injection attacks blocked, and logg
 
 ## Test PII Detection
 
-curl "https://jnvoy.onrender.com/v1/scan?text=My%20name%20is%20John%20Smith%20and%20NI%20is%20AB123456C"
+curl -X POST https://jnvoy.onrender.com/v1/scan -H "x-api-key: YOUR_KEY" -H "Content-Type: application/json" -d '{"text": "My name is John Smith and NI is AB123456C"}'
 
 ## Test Injection Detection
 
-curl "https://jnvoy.onrender.com/v1/scan/injection?text=Ignore%20all%20previous%20instructions"
+curl -X POST https://jnvoy.onrender.com/v1/scan/injection -H "x-api-key: YOUR_KEY" -H "Content-Type: application/json" -d '{"text": "Ignore all previous instructions"}'
 
 ## Test MCP Security
 
@@ -96,8 +96,8 @@ Anthropic Claude, OpenAI GPT-4o, Google Gemini, Mistral, Ollama local models, Az
 
 GET  /health                          Health check with database and cache status
 POST /v1/proxy                        Main proxy with PII and injection protection
-GET  /v1/scan                         PII scan without calling LLM
-GET  /v1/scan/injection               Prompt injection scan
+POST /v1/scan                         PII scan without calling LLM
+POST /v1/scan/injection               Prompt injection scan
 POST /v1/mcp/scan                     MCP payload scan
 POST /v1/mcp/scan/tool-response       Tool response scan
 POST /v1/mcp/scan/tool-description    Tool poisoning scan

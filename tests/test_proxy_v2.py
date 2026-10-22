@@ -33,7 +33,7 @@ def test_health_endpoint():
 
 
 def test_scan_endpoint_with_pii():
-    response = client.get("/v1/scan", params={
+    response = client.post("/v1/scan", json={
         "text": "Contact john.smith@example.com or call +44 7700 900123"
     })
     assert response.status_code == 200
@@ -43,7 +43,7 @@ def test_scan_endpoint_with_pii():
 
 
 def test_scan_endpoint_no_pii():
-    response = client.get("/v1/scan", params={"text": "Hello how are you today"})
+    response = client.post("/v1/scan", json={"text": "Hello how are you today"})
     assert response.status_code == 200
 
 
