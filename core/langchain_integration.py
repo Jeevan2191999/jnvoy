@@ -88,7 +88,7 @@ class JnvoyClient:
     def _headers(self) -> dict:
         headers = {"Content-Type": "application/json"}
         if self.api_key:
-            headers["X-Jnvoy-API-Key"] = self.api_key
+            headers["x-api-key"] = self.api_key
         return headers
 
     def call(self, messages: list[dict]) -> dict:
@@ -143,9 +143,9 @@ class JnvoyClient:
 
     def scan_pii(self, text: str) -> dict:
         """Scan text for PII without calling the LLM."""
-        response = httpx.get(
+        response = httpx.post(
             f"{self.jnvoy_url}/v1/scan",
-            params={"text": text},
+            json={"text": text},
             headers=self._headers(),
             timeout=30.0
         )
@@ -154,9 +154,9 @@ class JnvoyClient:
 
     def scan_injection(self, text: str) -> dict:
         """Scan text for prompt injection attempts."""
-        response = httpx.get(
+        response = httpx.post(
             f"{self.jnvoy_url}/v1/scan/injection",
-            params={"text": text},
+            json={"text": text},
             headers=self._headers(),
             timeout=30.0
         )
