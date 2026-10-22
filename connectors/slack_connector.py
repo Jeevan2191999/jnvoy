@@ -224,7 +224,7 @@ def handle_home_opened(event, client):
                     "type": "header",
                     "text": {
                         "type": "plain_text",
-                        "text": "🛡️ Jnvoy AI Privacy Firewall"
+                        "text": "🛡️ Jnvoy"
                     }
                 },
                 {

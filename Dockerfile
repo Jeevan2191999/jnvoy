@@ -1,4 +1,4 @@
-# Jnvoy AI Privacy Firewall
+# Jnvoy privacy and security gateway
 # Production Dockerfile
 
 FROM python:3.12-slim

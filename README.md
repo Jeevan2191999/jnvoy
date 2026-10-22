@@ -1,4 +1,4 @@
-# Jnvoy — AI Trust Layer
+# Jnvoy: privacy and security gateway for LLM traffic
 
 **Live API:** https://jnvoy.onrender.com
 **API Docs:** https://jnvoy.onrender.com/docs
@@ -6,9 +6,9 @@
 
 Protect sensitive data and block attacks before they reach any LLM.
 
-Jnvoy sits between your application and any LLM. It detects and redacts PII locally, blocks prompt injection attacks, secures MCP tool calls, and generates compliance audit reports. Zero code changes. Change one URL.
+Jnvoy sits between your application and any LLM. It detects and redacts PII locally, blocks prompt injection attacks, secures MCP tool calls, and generates compliance audit reports. Change one URL and add your API key.
 
-## Version 2.3 — What is new
+## Features
 
 - LangChain integration: JnvoyLLM and JnvoyChat wrappers, works with all chains and agents
 - MCP proxy security: tool poisoning detection, secret leakage prevention, PII in tool responses

@@ -42,6 +42,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from core.detector_v2 import PIIDetectorV2
 from core.judged_detector import JudgedPIIDetector
 from core.auth import install_api_key_auth
+from api.docs_config import API_DESCRIPTION, OPENAPI_TAGS, VERSION, apply_docs
 from core.pii_judge import JudgeError
 from core.intelligence import semantic_cache, intelligent_router, outage_detector
 from core.injection import InjectionDetector
@@ -54,9 +55,11 @@ from core.database import (
 
 # Initialise app
 app = FastAPI(
-    title="Jnvoy",
-    description="AI Privacy Firewall with intelligent routing, semantic caching, and persistent audit logs",
-    version="2.1.0"
+    title="Jnvoy API",
+    description=API_DESCRIPTION,
+    version=VERSION,
+    openapi_tags=OPENAPI_TAGS,
+    docs_url=None,  # served by apply_docs(): Jnvoy header, Authorize help
 )
 
 app.add_middleware(
@@ -89,7 +92,7 @@ async def landing():
     _index = os.path.join(_static_dir, "index.html")
     if os.path.exists(_index):
         return FileResponse(_index)
-    return {"message": "Jnvoy AI Trust Layer", "docs": "/docs", "version": "2.1.0"}
+    return {"message": "Jnvoy privacy and security gateway", "docs": "/docs", "version": VERSION}
 
 
 @app.get("/privacy", include_in_schema=False)
@@ -399,7 +402,7 @@ async def health():
     db_health = health_check_db() if _db_available else {"status": "unavailable"}
     return {
         "status": "healthy",
-        "version": "2.1.0",
+        "version": VERSION,
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "providers": outage_detector.get_dashboard(),
         "cache": semantic_cache.stats,
@@ -785,3 +788,6 @@ async def download_eu_ai_act_report(
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Report generation failed: {e}")
+
+
+apply_docs(app)

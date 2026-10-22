@@ -1,6 +1,6 @@
 version: '3.9'
 
-# Jnvoy AI Privacy Firewall - Full Stack
+# Jnvoy privacy and security gateway - Full Stack
 # Starts: API + PostgreSQL in one command
 # Setup:  cp .env.example .env, set your keys in .env, then run: docker-compose up
 
