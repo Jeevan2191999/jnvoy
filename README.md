@@ -15,21 +15,22 @@ Jnvoy sits between your application and any LLM. It detects and redacts PII loca
 - Prompt injection detection: 7 attack types, 30+ patterns, blocks attacks before they reach the LLM
 - EU AI Act Article 50 compliance report: covers August 2026 transparency obligations
 - Microsoft Presidio PII detection with 20+ entity types and confidence scoring
-- Semantic caching saves 20 to 40 percent of LLM costs automatically
+- Exact-match response caching: an identical request from the same API key returns the stored answer with no model call
 - Intelligent routing assigns the cheapest capable model to each query
 - Automatic failover when a provider goes down
-- PostgreSQL audit logs that survive forever for FCA and GDPR compliance
-- Multi-tenant API keys so multiple companies can use it with complete data isolation
-- PDF compliance report generator, FCA and GDPR ready
+- PostgreSQL audit log of what was detected: counts by type, never the original text
+- API keys with client and admin roles, per-key rate limits and constant-time checking
+- PDF compliance report generator
 - Slack connector protecting AI bot messages in enterprise workspaces
-- Docker stack: API plus PostgreSQL plus Redis in one command
-- 180 automated tests passing
+- Docker stack: API plus PostgreSQL in one command
+- 374 automated tests passing
 - Support for Claude, GPT-4o, Gemini, Mistral, and local models via Ollama
 
 ## Quick Start
 
 git clone https://github.com/Jeevan2191999/jnvoy.git
 cd jnvoy
+cp .env.example .env     # then open .env and set your keys
 docker-compose up
 
 ## LangChain Integration
@@ -108,7 +109,7 @@ GET  /docs                            Interactive API documentation
 
 ## Test Results
 
-180 tests passing across PII detection, prompt injection detection, MCP security, LangChain integration, LLM gateway, semantic cache, intelligent router, outage detector, database, multi-tenant keys, PDF report, and proxy v2.
+374 tests passing across PII detection, prompt injection detection, MCP security, LangChain integration, LLM gateway, semantic cache, intelligent router, outage detector, database, multi-tenant keys, PDF report, and proxy v2.
 
 ## Built By
 

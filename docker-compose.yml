@@ -1,8 +1,8 @@
 version: '3.9'
 
 # Jnvoy AI Privacy Firewall - Full Stack
-# Starts: API + Redis + PostgreSQL in one command
-# Usage: docker-compose up
+# Starts: API + PostgreSQL in one command
+# Setup:  cp .env.example .env, set your keys in .env, then run: docker-compose up
 
 services:
 
@@ -17,12 +17,11 @@ services:
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - GOOGLE_API_KEY=${GOOGLE_API_KEY}
       - MISTRAL_API_KEY=${MISTRAL_API_KEY}
-      - REDIS_URL=redis://redis:6379
+      - JNVOY_API_KEYS=${JNVOY_API_KEYS:?Set JNVOY_API_KEYS in your .env file (see .env.example)}
+      - JNVOY_ADMIN_KEYS=${JNVOY_ADMIN_KEYS:-}
       - DATABASE_URL=postgresql://jnvoy:jnvoy@postgres:5432/jnvoy
       - ENVIRONMENT=production
     depends_on:
-      redis:
-        condition: service_healthy
       postgres:
         condition: service_healthy
     restart: unless-stopped
@@ -33,28 +32,12 @@ services:
       retries: 3
       start_period: 40s
 
-  # ── Redis (token store and semantic cache) ─────────────────────────────────
-  redis:
-    image: redis:7-alpine
-    container_name: jnvoy-redis
-    ports:
-      - "6379:6379"
-    volumes:
-      - redis_data:/data
-    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
   # ── PostgreSQL (audit log and compliance data) ─────────────────────────────
   postgres:
     image: postgres:16-alpine
     container_name: jnvoy-postgres
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
     environment:
       - POSTGRES_USER=jnvoy
       - POSTGRES_PASSWORD=jnvoy
@@ -70,5 +53,4 @@ services:
       retries: 5
 
 volumes:
-  redis_data:
   postgres_data:

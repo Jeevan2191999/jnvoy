@@ -350,12 +350,11 @@
      PRICING: card grid, one featured tier, self-host callout
      ============================================================ */
   .pricing-grid{
-    display:grid; grid-template-columns:repeat(4,1fr); gap:0;
+    display:grid; grid-template-columns:repeat(3,1fr); gap:0;
     border-top:1px solid var(--line-strong);
     border-left:1px solid var(--line-strong);
   }
-  @media (max-width:980px){ .pricing-grid{ grid-template-columns:repeat(2,1fr); } }
-  @media (max-width:620px){ .pricing-grid{ grid-template-columns:1fr; } }
+  @media (max-width:900px){ .pricing-grid{ grid-template-columns:1fr; } }
   .price-card{
     padding:30px 26px;
     border-right:1px solid var(--line-strong);
@@ -776,7 +775,7 @@
       <div class="clause">
         <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 8l8-5 8 5v8l-8 5-8-5V8z"/><path d="M4 8l8 5 8-5M12 13v8"/></svg>
         <h3>Docker stack</h3>
-        <p>One command starts everything. API plus PostgreSQL plus Redis. Self-hostable on your own infrastructure.</p>
+        <p>One command starts the API and its PostgreSQL audit database, once your keys are set. Self-hostable on your own infrastructure.</p>
       </div>
 
       <div class="clause">
@@ -821,7 +820,7 @@
         <div class="tier-tag">Free</div>
         <h3>Get started</h3>
         <div class="vol">10,000</div>
-        <div class="vol-sub">calls a month, £0</div>
+        <div class="vol-sub">calls a month</div>
         <p class="outcome">Try it on real prompts and see exactly what gets redacted.</p>
         <ul>
           <li>Community support</li>
@@ -830,33 +829,20 @@
         <a href="/docs" class="btn btn-ghost">Start free</a>
       </div>
 
-      <div class="price-card">
-        <div class="tier-tag">Pro</div>
+      <div class="price-card featured">
+        <div class="tier-tag">Production <span class="flag">recommended</span></div>
         <h3>For live products</h3>
         <div class="vol">100,000+</div>
         <div class="vol-sub">calls a month, quoted for you</div>
-        <p class="outcome">For a product with live users: protected traffic, cached answers and a report you can hand to a customer.</p>
+        <p class="outcome">For products with live users and teams with audit duties: protected traffic, a key for each app and a report you can hand to a customer.</p>
         <ul>
           <li>Response cache &amp; intelligent routing</li>
           <li>Compliance report PDF</li>
-          <li>Email support</li>
-        </ul>
-        <a href="mailto:j.nagaraj2109@gmail.com?subject=Jnvoy%20Pro%20demo&body=Hi%20Jeevan%2C%0A%0AI%27d%20like%20to%20book%20a%20demo%20of%20Jnvoy%20Pro.%0A%0ATimes%20that%20suit%20me%20%28with%20time%20zone%29%3A%0A%0A1.%20Expected%20calls%20per%20month%3A%0A2.%20Model%20providers%20we%20use%20%28for%20example%20Anthropic%2C%20OpenAI%29%3A%0A3.%20Kinds%20of%20data%20we%20need%20to%20protect%20%28for%20example%20names%2C%20NHS%20numbers%2C%20account%20numbers%29%3A%0A4.%20Hosted%20by%20you%2C%20or%20self-hosted%3A%0A%0AThanks%2C%0A" class="btn btn-ghost">Book a demo</a>
-      </div>
-
-      <div class="price-card featured">
-        <div class="tier-tag">Business <span class="flag">recommended</span></div>
-        <h3>For regulated teams</h3>
-        <div class="vol">1,000,000+</div>
-        <div class="vol-sub">calls a month, quoted for you</div>
-        <p class="outcome">For regulated teams: a key for each app, provider monitoring and priority support.</p>
-        <ul>
-          <li>Everything in Pro</li>
           <li>Multiple API keys with per-key rate limits</li>
           <li>Provider health monitoring</li>
-          <li>Priority support</li>
+          <li>Email support</li>
         </ul>
-        <a href="mailto:j.nagaraj2109@gmail.com?subject=Jnvoy%20Business%20demo&body=Hi%20Jeevan%2C%0A%0AI%27d%20like%20to%20book%20a%20demo%20of%20Jnvoy%20Business.%0A%0ATimes%20that%20suit%20me%20%28with%20time%20zone%29%3A%0A%0A1.%20Expected%20calls%20per%20month%3A%0A2.%20Model%20providers%20we%20use%20%28for%20example%20Anthropic%2C%20OpenAI%29%3A%0A3.%20Kinds%20of%20data%20we%20need%20to%20protect%20%28for%20example%20names%2C%20NHS%20numbers%2C%20account%20numbers%29%3A%0A4.%20Hosted%20by%20you%2C%20or%20self-hosted%3A%0A%0AThanks%2C%0A" class="btn btn-primary">Book a demo</a>
+        <a href="mailto:j.nagaraj2109@gmail.com?subject=Jnvoy%20Production%20demo&body=Hi%20Jeevan%2C%0A%0AI%27d%20like%20to%20book%20a%20demo%20of%20Jnvoy%20Production.%0A%0ATimes%20that%20suit%20me%20%28with%20time%20zone%29%3A%0A%0A1.%20Expected%20calls%20per%20month%3A%0A2.%20Model%20providers%20we%20use%20%28for%20example%20Anthropic%2C%20OpenAI%29%3A%0A3.%20Kinds%20of%20data%20we%20need%20to%20protect%20%28for%20example%20names%2C%20NHS%20numbers%2C%20account%20numbers%29%3A%0A4.%20Hosted%20by%20you%2C%20or%20self-hosted%3A%0A%0AThanks%2C%0A" class="btn btn-primary">Book a demo</a>
       </div>
 
       <div class="price-card">
@@ -866,7 +852,7 @@
         <div class="vol-sub">calls, scoped with you</div>
         <p class="outcome">For custom deployments: a dedicated audit database, your own recognisers and an SLA.</p>
         <ul>
-          <li>Everything in Business</li>
+          <li>Everything in Production</li>
           <li>Dedicated audit database</li>
           <li>Custom PII recognisers</li>
           <li>SLA &amp; onboarding support</li>
@@ -880,7 +866,7 @@
       <div>
         <h3>Book a demo</h3>
         <p class="lede2">A short call where we run Jnvoy on text like yours and scope a plan around your volume.</p>
-        <a href="mailto:j.nagaraj2109@gmail.com?subject=Jnvoy%20Pro%20demo&body=Hi%20Jeevan%2C%0A%0AI%27d%20like%20to%20book%20a%20demo%20of%20Jnvoy%20Pro.%0A%0ATimes%20that%20suit%20me%20%28with%20time%20zone%29%3A%0A%0A1.%20Expected%20calls%20per%20month%3A%0A2.%20Model%20providers%20we%20use%20%28for%20example%20Anthropic%2C%20OpenAI%29%3A%0A3.%20Kinds%20of%20data%20we%20need%20to%20protect%20%28for%20example%20names%2C%20NHS%20numbers%2C%20account%20numbers%29%3A%0A4.%20Hosted%20by%20you%2C%20or%20self-hosted%3A%0A%0AThanks%2C%0A" class="btn btn-primary">Book a demo</a>
+        <a href="mailto:j.nagaraj2109@gmail.com?subject=Jnvoy%20demo&body=Hi%20Jeevan%2C%0A%0AI%27d%20like%20to%20book%20a%20demo%20of%20Jnvoy.%0A%0ATimes%20that%20suit%20me%20%28with%20time%20zone%29%3A%0A%0A1.%20Expected%20calls%20per%20month%3A%0A2.%20Model%20providers%20we%20use%20%28for%20example%20Anthropic%2C%20OpenAI%29%3A%0A3.%20Kinds%20of%20data%20we%20need%20to%20protect%20%28for%20example%20names%2C%20NHS%20numbers%2C%20account%20numbers%29%3A%0A4.%20Hosted%20by%20you%2C%20or%20self-hosted%3A%0A%0AThanks%2C%0A" class="btn btn-primary">Book a demo</a>
         <p class="small">No preparation needed. A few sample prompts help.</p>
       </div>
       <dl>
