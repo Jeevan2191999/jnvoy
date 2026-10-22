@@ -327,7 +327,7 @@ def get_compliance_summary(
             "cache_hit_rate_percent": cache_rate,
             "average_latency_ms": float(summary["avg_latency_ms"] or 0),
             "sensitive_data_transmitted_to_llm": bool(summary["any_sensitive_transmitted"]),
-            "compliance_statement": "Zero sensitive data was transmitted to any LLM API during this period.",
+            "compliance_statement": "No PII detected by Jnvoy was transmitted to any LLM API during this period. Detection is automated and not guaranteed to be exhaustive.",
             "generated_at": datetime.now(timezone.utc).isoformat()
         }
     finally:

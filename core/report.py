@@ -1,8 +1,9 @@
 """
 Jnvoy PDF Compliance Report Generator
 
-Generates FCA and GDPR-ready compliance reports that prove
-zero sensitive data was transmitted to any LLM API.
+Generates compliance reports that document what Jnvoy detected and
+redacted before any data reached an LLM API, to support FCA and GDPR
+record keeping.
 
 This is what compliance officers pay for. A single PDF that answers
 the question: how do we prove our AI systems handle sensitive data correctly?
@@ -181,7 +182,7 @@ def generate_compliance_report(
 
     if not transmitted:
         story += [
-            p("CONFIRMED: Zero sensitive data was transmitted to any "
+            p("No PII detected by Jnvoy was transmitted to any "
               "LLM API during the audit period.",
               COMPLIANCE),
             sp(0.5),
@@ -191,8 +192,11 @@ def generate_compliance_report(
               "identified in any request was redacted and replaced with "
               "reversible tokens prior to transmission. The original values "
               "were restored in the response before delivery to the end user. "
-              "No raw PII was transmitted to any external LLM provider at any "
-              "point during the audit period.", BODY),
+              "Detection is automated and is not guaranteed to be exhaustive. "
+              "Data that does not match a configured detector, such as unusual "
+              "formats or free-text identifiers, may not be redacted. This "
+              "report documents the controls applied and their results. It is "
+              "not a guarantee that no personal data was ever transmitted.", BODY),
         ]
     else:
         story += [
