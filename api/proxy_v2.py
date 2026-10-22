@@ -41,6 +41,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from core.detector_v2 import PIIDetectorV2
 from core.judged_detector import JudgedPIIDetector
+from core.auth import install_api_key_auth
 from core.pii_judge import JudgeError
 from core.intelligence import semantic_cache, intelligent_router, outage_detector
 from core.injection import InjectionDetector
@@ -78,6 +79,10 @@ mcp_scanner = MCPSecurityScanner(action="block", confidence_threshold=0.6)
 _static_dir = os.path.join(os.path.dirname(__file__), "..", "static")
 if os.path.exists(_static_dir):
     app.mount("/static", StaticFiles(directory=_static_dir), name="static")
+
+# Every /v1/... route needs a valid x-api-key. The homepage, /health and docs stay open.
+install_api_key_auth(app)
+
 
 @app.get("/", include_in_schema=False)
 async def landing():

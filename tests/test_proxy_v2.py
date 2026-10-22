@@ -14,6 +14,13 @@ from api.proxy_v2 import app, semantic_cache
 
 client = TestClient(app)
 
+# API key auth: /v1 routes need a key, so this test client sends a test-only admin key.
+import os as _os
+
+TEST_ADMIN_KEY = "test-admin-key-" + "0" * 24
+_os.environ["JNVOY_ADMIN_KEYS"] = TEST_ADMIN_KEY
+client.headers.update({"x-api-key": TEST_ADMIN_KEY})
+
 
 def test_health_endpoint():
     response = client.get("/health")
