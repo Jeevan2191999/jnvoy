@@ -685,24 +685,39 @@
       <div class="ledger-row head">
         <div>Type</div><div>Example</div><div>Why it's caught</div>
       </div>
-      <div class="ledger-row">
-        <div class="type" data-k="Type">National Insurance number</div>
-        <div class="example" data-k="Example">AB <span class="redacted">123456</span> C</div>
-        <div class="why" data-k="Why">UK government identifier</div>
+            <div class="ledger-row">
+        <div class="type" data-k="Type">National ID (India, Aadhaar)</div>
+        <div class="example" data-k="Example"><span class="redacted">7260 1815 9082</span></div>
+        <div class="why" data-k="Why">government identifier</div>
       </div>
       <div class="ledger-row">
-        <div class="type" data-k="Type">NHS number</div>
+        <div class="type" data-k="Type">Social Security number (US)</div>
+        <div class="example" data-k="Example"><span class="redacted">536-90-4399</span></div>
+        <div class="why" data-k="Why">government identifier</div>
+      </div>
+      <div class="ledger-row">
+        <div class="type" data-k="Type">National Insurance number (UK)</div>
+        <div class="example" data-k="Example">AB <span class="redacted">123456</span> C</div>
+        <div class="why" data-k="Why">government identifier</div>
+      </div>
+      <div class="ledger-row">
+        <div class="type" data-k="Type">Tax number (Brazil, CPF)</div>
+        <div class="example" data-k="Example"><span class="redacted">111.444.777-35</span></div>
+        <div class="why" data-k="Why">tax identifier</div>
+      </div>
+      <div class="ledger-row">
+        <div class="type" data-k="Type">Health number (UK, NHS)</div>
         <div class="example" data-k="Example"><span class="redacted">943 476 5919</span></div>
         <div class="why" data-k="Why">special category health data</div>
       </div>
       <div class="ledger-row">
-        <div class="type" data-k="Type">UK postcode</div>
-        <div class="example" data-k="Example"><span class="redacted">SW1A 2AA</span></div>
+        <div class="type" data-k="Type">Postcode and ZIP code</div>
+        <div class="example" data-k="Example"><span class="redacted">SW1A 2AA</span> / Austin, TX <span class="redacted">78701</span></div>
         <div class="why" data-k="Why">precise location data</div>
       </div>
       <div class="ledger-row">
-        <div class="type" data-k="Type">Sort code and account</div>
-        <div class="example" data-k="Example">20-00-00 / <span class="redacted">12345678</span></div>
+        <div class="type" data-k="Type">Bank account (IBAN, sort code)</div>
+        <div class="example" data-k="Example"><span class="redacted">GB82 WEST 1234 5698 7654 32</span></div>
         <div class="why" data-k="Why">financial identifiers</div>
       </div>
       <div class="ledger-row">
@@ -712,7 +727,7 @@
       </div>
       <div class="ledger-row">
         <div class="type" data-k="Type">Card and passport numbers</div>
-        <div class="example" data-k="Example"><span class="redacted">4532 1234 5678 9012</span></div>
+        <div class="example" data-k="Example"><span class="redacted">4242 4242 4242 4242</span></div>
         <div class="why" data-k="Why">payment and travel identifiers</div>
       </div>
       <div class="ledger-row">
@@ -720,6 +735,7 @@
         <div class="example" data-k="Example"><span class="redacted">sk-ant-***</span></div>
         <div class="why" data-k="Why">credentials, not personal data</div>
       </div>
+    </div>
     </div>
   </div>
 </section>

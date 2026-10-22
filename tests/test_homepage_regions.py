@@ -44,3 +44,17 @@ def test_coverage_section_names_every_country_with_a_pack():
 def test_the_site_does_not_present_itself_as_uk_only():
     assert "UK-specific recognisers sit alongside" not in HTML
     assert "NHS numbers, NI numbers" not in HTML
+
+
+def test_what_it_catches_examples_are_all_really_redacted_and_international():
+    section = re.search(r'<section id="catches">(.*?)</section>', HTML, re.S).group(1)
+    d = PIIDetectorV2()
+    for row in re.findall(r'<div class="example"[^>]*>(.*?)</div>', section, re.S):
+        hidden = re.findall(r'<span class="redacted">(.*?)</span>', row)
+        plain = re.sub(r"<[^>]+>", "", row)
+        out = d.detect(plain).redacted_text
+        for v in hidden:
+            if v == "sk-ant-***":   # a masked illustration, not a real key
+                continue
+            assert v not in out, (plain, v)
+    assert "India" in section and "Brazil" in section and "US" in section
