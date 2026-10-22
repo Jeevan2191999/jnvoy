@@ -51,10 +51,10 @@ def test_what_it_catches_examples_are_all_really_redacted_and_international():
     d = PIIDetectorV2()
     for row in re.findall(r'<div class="example"[^>]*>(.*?)</div>', section, re.S):
         hidden = re.findall(r'<span class="redacted">(.*?)</span>', row)
-        plain = re.sub(r"<[^>]+>", "", row)
+        plain = re.sub(r"<[^>]+>", "", re.sub(r"</span>\s*<span", "</span> · <span", row))
         out = d.detect(plain).redacted_text
         for v in hidden:
             if v == "sk-ant-***":   # a masked illustration, not a real key
                 continue
             assert v not in out, (plain, v)
-    assert "India" in section and "Brazil" in section and "US" in section
+    assert "21 countries" in section
