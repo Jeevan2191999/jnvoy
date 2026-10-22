@@ -898,7 +898,7 @@ response = httpx.post(
     <div>
       <div class="shead" style="margin-bottom:0;">
         <h2>The document your auditor is asking for</h2>
-        <p>When the FCA or ICO asks how you ensure sensitive data never reaches external AI models, Jnvoy generates the answer automatically. One endpoint. One PDF. Done.</p>
+        <p>When the FCA or ICO asks what controls you apply before data reaches external AI models, Jnvoy generates the record automatically. One endpoint. One PDF.</p>
       </div>
       <div class="badges">
         <span class="badge">EMAIL_ADDRESS</span>
@@ -922,17 +922,17 @@ response = httpx.post(
           <h4>Compliance audit report</h4>
           <div class="ref">JNVOY-E7377E46 · Acme Financial Ltd</div>
         </div>
-        <div class="stamp">VERIFIED<br>CLEAN</div>
+        <div class="stamp">AUDIT<br>RECORD</div>
       </div>
       <div class="cert-rows">
         <div class="cert-row"><span class="k">Audit period</span><span class="v">Sep 1 to Oct 1 2026</span></div>
         <div class="cert-row"><span class="k">Total API calls</span><span class="v">1,250</span></div>
         <div class="cert-row"><span class="k">PII instances redacted</span><span class="v">847</span></div>
         <div class="cert-row"><span class="k">Cache hit rate</span><span class="v">34.2%</span></div>
-        <div class="cert-row"><span class="k">Sensitive data transmitted</span><span class="v zero">ZERO</span></div>
+        <div class="cert-row"><span class="k">Detected PII sent unredacted</span><span class="v zero">ZERO</span></div>
       </div>
       <div class="cert-quote">
-        "Zero sensitive data was transmitted to any LLM API during the audit period."
+        "No PII detected by Jnvoy was transmitted to any LLM API during the audit period."
       </div>
     </div>
   </div>
