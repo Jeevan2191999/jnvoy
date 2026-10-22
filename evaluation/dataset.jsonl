@@ -1,0 +1,117 @@
+{"id": "001", "text": "Please email jane.doe@acme-consulting.co.uk about the renewal.", "sensitive": [{"value": "jane.doe@acme-consulting.co.uk", "type": "EMAIL"}], "keep": []}
+{"id": "002", "text": "My address is priya_sharma92@gmail.com, thanks.", "sensitive": [{"value": "priya_sharma92@gmail.com", "type": "EMAIL"}], "keep": []}
+{"id": "003", "text": "Contact: j.obrien@hospital.nhs.uk for the rota.", "sensitive": [{"value": "j.obrien@hospital.nhs.uk", "type": "EMAIL"}], "keep": []}
+{"id": "004", "text": "Send it to SUPPORT@BIGCORP.COM and copy first.last+tag@sub.domain.example.org", "sensitive": [{"value": "SUPPORT@BIGCORP.COM", "type": "EMAIL"}, {"value": "first.last+tag@sub.domain.example.org", "type": "EMAIL"}], "keep": []}
+{"id": "005", "text": "Her work email (m.fernandez@example.es) bounced.", "sensitive": [{"value": "m.fernandez@example.es", "type": "EMAIL"}], "keep": []}
+{"id": "006", "text": "Write to ops-team@startup.io and ask about the invoice.", "sensitive": [{"value": "ops-team@startup.io", "type": "EMAIL"}], "keep": []}
+{"id": "007", "text": "Call me on 07911 123456 after lunch.", "sensitive": [{"value": "07911 123456", "type": "PHONE"}], "keep": []}
+{"id": "008", "text": "My mobile is +44 7911 123456.", "sensitive": [{"value": "+44 7911 123456", "type": "PHONE"}], "keep": []}
+{"id": "009", "text": "Office line 020 7946 0958, ask for accounts.", "sensitive": [{"value": "020 7946 0958", "type": "PHONE"}], "keep": []}
+{"id": "010", "text": "Ring (0113) 496 0123 before 5.", "sensitive": [{"value": "(0113) 496 0123", "type": "PHONE"}], "keep": []}
+{"id": "011", "text": "WhatsApp me: 07700900123", "sensitive": [{"value": "07700900123", "type": "PHONE"}], "keep": []}
+{"id": "012", "text": "Dublin office +353 87 123 4567.", "sensitive": [{"value": "+353 87 123 4567", "type": "PHONE"}], "keep": []}
+{"id": "013", "text": "US contact 212-555-0147 or (415) 555-0132.", "sensitive": [{"value": "212-555-0147", "type": "PHONE"}, {"value": "(415) 555-0132", "type": "PHONE"}], "keep": []}
+{"id": "014", "text": "Emergency contact: 0161 496 0000", "sensitive": [{"value": "0161 496 0000", "type": "PHONE"}], "keep": []}
+{"id": "015", "text": "My National Insurance number is AB123456C.", "sensitive": [{"value": "AB123456C", "type": "NI"}], "keep": []}
+{"id": "016", "text": "NI: AB 12 34 56 C", "sensitive": [{"value": "AB 12 34 56 C", "type": "NI"}], "keep": []}
+{"id": "017", "text": "Employee NINO jk654321d is on file.", "sensitive": [{"value": "jk654321d", "type": "NI"}], "keep": []}
+{"id": "018", "text": "Payroll needs NI number QQ 12 34 56 A for the new starter.", "sensitive": [{"value": "QQ 12 34 56 A", "type": "NI"}], "keep": []}
+{"id": "019", "text": "NHS number 943 476 5919, seen last week.", "sensitive": [{"value": "943 476 5919", "type": "NHS"}], "keep": []}
+{"id": "020", "text": "Patient NHS 9434765919 referred to cardiology.", "sensitive": [{"value": "9434765919", "type": "NHS"}], "keep": []}
+{"id": "021", "text": "NHS number: 401 023 2137", "sensitive": [{"value": "401 023 2137", "type": "NHS"}], "keep": []}
+{"id": "022", "text": "Her NHS no. is 485-777-3456.", "sensitive": [{"value": "485-777-3456", "type": "NHS"}], "keep": []}
+{"id": "023", "text": "Deliver to SW1A 1AA please.", "sensitive": [{"value": "SW1A 1AA", "type": "POSTCODE"}], "keep": []}
+{"id": "024", "text": "The office is at EC1A 1BB.", "sensitive": [{"value": "EC1A 1BB", "type": "POSTCODE"}], "keep": []}
+{"id": "025", "text": "Postcode M1 1AE for the Manchester branch.", "sensitive": [{"value": "M1 1AE", "type": "POSTCODE"}], "keep": []}
+{"id": "026", "text": "Lives in B33 8TH, near the station.", "sensitive": [{"value": "B33 8TH", "type": "POSTCODE"}], "keep": []}
+{"id": "027", "text": "post code: sw1a 2aa", "sensitive": [{"value": "sw1a 2aa", "type": "POSTCODE"}], "keep": []}
+{"id": "028", "text": "Sort code 20-00-00 account number 55779911.", "sensitive": [{"value": "20-00-00", "type": "BANK"}, {"value": "55779911", "type": "BANK"}], "keep": []}
+{"id": "029", "text": "Pay into sort code 608371, account 12345678.", "sensitive": [{"value": "608371", "type": "BANK"}, {"value": "12345678", "type": "BANK"}], "keep": []}
+{"id": "030", "text": "Bank details: 40-47-84 / 70872490", "sensitive": [{"value": "40-47-84", "type": "BANK"}, {"value": "70872490", "type": "BANK"}], "keep": []}
+{"id": "031", "text": "Card 4111 1111 1111 1111 expiry 12/28.", "sensitive": [{"value": "4111 1111 1111 1111", "type": "CARD"}], "keep": []}
+{"id": "032", "text": "Use 5555555555554444 for the test payment.", "sensitive": [{"value": "5555555555554444", "type": "CARD"}], "keep": []}
+{"id": "033", "text": "Amex 3782 822463 10005 was declined.", "sensitive": [{"value": "3782 822463 10005", "type": "CARD"}], "keep": []}
+{"id": "034", "text": "Visa 4242-4242-4242-4242", "sensitive": [{"value": "4242-4242-4242-4242", "type": "CARD"}], "keep": []}
+{"id": "035", "text": "IBAN GB82 WEST 1234 5698 7654 32 for the refund.", "sensitive": [{"value": "GB82 WEST 1234 5698 7654 32", "type": "IBAN"}], "keep": []}
+{"id": "036", "text": "Supplier IBAN DE89 3704 0044 0532 0130 00.", "sensitive": [{"value": "DE89 3704 0044 0532 0130 00", "type": "IBAN"}], "keep": []}
+{"id": "037", "text": "French account FR14 2004 1010 0505 0001 3M02 606", "sensitive": [{"value": "FR14 2004 1010 0505 0001 3M02 606", "type": "IBAN"}], "keep": []}
+{"id": "038", "text": "UK passport number 533401872 expires 2031.", "sensitive": [{"value": "533401872", "type": "PASSPORT"}], "keep": []}
+{"id": "039", "text": "Passport AB1234567 was scanned at check in.", "sensitive": [{"value": "AB1234567", "type": "PASSPORT"}], "keep": []}
+{"id": "040", "text": "Traveller passport no 925019263.", "sensitive": [{"value": "925019263", "type": "PASSPORT"}], "keep": []}
+{"id": "041", "text": "Please reply to Margaret Thatcher about the invoice.", "sensitive": [{"value": "Margaret Thatcher", "type": "PERSON"}], "keep": []}
+{"id": "042", "text": "Oluwaseun Adeyemi joined the team on Monday.", "sensitive": [{"value": "Oluwaseun Adeyemi", "type": "PERSON"}], "keep": ["Monday"]}
+{"id": "043", "text": "Zhang Wei approved the budget.", "sensitive": [{"value": "Zhang Wei", "type": "PERSON"}], "keep": []}
+{"id": "044", "text": "Dr. Aisha Rahman will see you at 3pm.", "sensitive": [{"value": "Aisha Rahman", "type": "PERSON"}], "keep": ["3pm"]}
+{"id": "045", "text": "Mr Peter O'Neill asked for a callback.", "sensitive": [{"value": "Peter O'Neill", "type": "PERSON"}], "keep": []}
+{"id": "046", "text": "Maria Jose Fernandez sent the signed copy.", "sensitive": [{"value": "Maria Jose Fernandez", "type": "PERSON"}], "keep": []}
+{"id": "047", "text": "Jamal Washington is the account owner.", "sensitive": [{"value": "Jamal Washington", "type": "PERSON"}], "keep": []}
+{"id": "048", "text": "Katarzyna Nowak, a patient, reported dizziness.", "sensitive": [{"value": "Katarzyna Nowak", "type": "PERSON"}], "keep": []}
+{"id": "049", "text": "Hiroshi Tanaka and Priya Patel are the signatories.", "sensitive": [{"value": "Hiroshi Tanaka", "type": "PERSON"}, {"value": "Priya Patel", "type": "PERSON"}], "keep": []}
+{"id": "050", "text": "The complaint was filed by Sarah Johnson against Mark Davies.", "sensitive": [{"value": "Sarah Johnson", "type": "PERSON"}, {"value": "Mark Davies", "type": "PERSON"}], "keep": []}
+{"id": "051", "text": "Summarise the meeting between Fatima Al-Sayed and the board.", "sensitive": [{"value": "Fatima Al-Sayed", "type": "PERSON"}], "keep": []}
+{"id": "052", "text": "Dear Mrs Eleanor Whitfield, your claim has been approved.", "sensitive": [{"value": "Eleanor Whitfield", "type": "PERSON"}], "keep": []}
+{"id": "053", "text": "Server at 192.168.1.42 is unreachable.", "sensitive": [{"value": "192.168.1.42", "type": "IP"}], "keep": []}
+{"id": "054", "text": "The request came from 203.0.113.77 at 09:12.", "sensitive": [{"value": "203.0.113.77", "type": "IP"}], "keep": []}
+{"id": "055", "text": "IPv6 address 2001:db8::ff00:42:8329 was blocked.", "sensitive": [{"value": "2001:db8::ff00:42:8329", "type": "IP"}], "keep": []}
+{"id": "056", "text": "Reset link: https://app.example.com/reset?token=8f3a9c2e1b7d4f60a5c9e2b1d7f3a8c4", "sensitive": [{"value": "8f3a9c2e1b7d4f60a5c9e2b1d7f3a8c4", "type": "URL_SECRET"}], "keep": []}
+{"id": "057", "text": "Profile at https://example.com/u/jane.doe-1985/settings", "sensitive": [{"value": "jane.doe-1985", "type": "URL_SECRET"}], "keep": []}
+{"id": "058", "text": "key = s<>k-ant-api03-Zq9XvT2mLp7WcR4bNe8JdY1uHs6KfAg3OiVx5Ct0Pl2MbQwE", "sensitive": [{"value": "s<>k-ant-api03-Zq9XvT2mLp7WcR4bNe8JdY1uHs6KfAg3OiVx5Ct0Pl2MbQwE", "type": "API_KEY"}], "keep": []}
+{"id": "059", "text": "OPENAI_API_KEY=s<>k-proj-Hq7Lm2Xv9Rt4Bn8Wc3Yd6Kf1Pj5Zs0Ua", "sensitive": [{"value": "s<>k-proj-Hq7Lm2Xv9Rt4Bn8Wc3Yd6Kf1Pj5Zs0Ua", "type": "API_KEY"}], "keep": []}
+{"id": "060", "text": "Old style key s<>k-Tq8Vm3Xz7Rl2Bn5Wc9Yd4Kf6Pj1Hs0UaEg2Ni8Ol", "sensitive": [{"value": "s<>k-Tq8Vm3Xz7Rl2Bn5Wc9Yd4Kf6Pj1Hs0UaEg2Ni8Ol", "type": "API_KEY"}], "keep": []}
+{"id": "061", "text": "aws_access_key_id = A<>KIAIOSFODNN7EXAMPLE", "sensitive": [{"value": "A<>KIAIOSFODNN7EXAMPLE", "type": "API_KEY"}], "keep": []}
+{"id": "062", "text": "Use token g<>hp_a1B2c3D4e5F6g7H8i9J0k1L2m3N4o5P6q7R8 to clone.", "sensitive": [{"value": "g<>hp_a1B2c3D4e5F6g7H8i9J0k1L2m3N4o5P6q7R8", "type": "API_KEY"}], "keep": []}
+{"id": "063", "text": "STRIPE_KEY=s<>k_live_4eC39HqLyjWDarjtT1zdp7dc", "sensitive": [{"value": "s<>k_live_4eC39HqLyjWDarjtT1zdp7dc", "type": "API_KEY"}], "keep": []}
+{"id": "064", "text": "Slack bot token x<>oxb-123456789012-1234567890123-AbCdEfGhIjKlMnOpQrStUvWx", "sensitive": [{"value": "x<>oxb-123456789012-1234567890123-AbCdEfGhIjKlMnOpQrStUvWx", "type": "API_KEY"}], "keep": []}
+{"id": "065", "text": "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4ifQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c", "sensitive": [{"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4ifQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c", "type": "API_KEY"}], "keep": []}
+{"id": "066", "text": "db password is Tr0ub4dor&3xK9 for the staging database", "sensitive": [{"value": "Tr0ub4dor&3xK9", "type": "API_KEY"}], "keep": []}
+{"id": "067", "text": "postgres://admin:S3cr3tP4ss@db.internal.example.com:5432/prod", "sensitive": [{"value": "S3cr3tP4ss", "type": "API_KEY"}], "keep": []}
+{"id": "068", "text": "Born on 14/03/1985 in Leeds.", "sensitive": [{"value": "14/03/1985", "type": "DOB"}], "keep": ["Leeds"]}
+{"id": "069", "text": "DOB: 03 March 1985", "sensitive": [{"value": "03 March 1985", "type": "DOB"}], "keep": []}
+{"id": "070", "text": "Date of birth 1985-03-14, male.", "sensitive": [{"value": "1985-03-14", "type": "DOB"}], "keep": []}
+{"id": "071", "text": "She turned 40 and her birthday is 22 July 1986.", "sensitive": [{"value": "22 July 1986", "type": "DOB"}], "keep": []}
+{"id": "072", "text": "Flat 3, 27 Acacia Avenue, Leeds LS6 2AB", "sensitive": [{"value": "27 Acacia Avenue", "type": "ADDRESS"}, {"value": "LS6 2AB", "type": "POSTCODE"}], "keep": []}
+{"id": "073", "text": "He lives at 14 Kingsway Road, Bristol.", "sensitive": [{"value": "14 Kingsway Road", "type": "ADDRESS"}], "keep": ["Bristol"]}
+{"id": "074", "text": "Ship to 221B Baker Street, London NW1 6XE", "sensitive": [{"value": "221B Baker Street", "type": "ADDRESS"}, {"value": "NW1 6XE", "type": "POSTCODE"}], "keep": []}
+{"id": "075", "text": "Home address: 9 Orchard Close, Cambridge CB1 2AA", "sensitive": [{"value": "9 Orchard Close", "type": "ADDRESS"}, {"value": "CB1 2AA", "type": "POSTCODE"}], "keep": []}
+{"id": "076", "text": "Customer ID CUS-48213-X has an open complaint.", "sensitive": [{"value": "CUS-48213-X", "type": "INTERNAL_ID"}], "keep": []}
+{"id": "077", "text": "Case reference WOLF-7731-DELTA was escalated.", "sensitive": [{"value": "WOLF-7731-DELTA", "type": "INTERNAL_ID"}], "keep": []}
+{"id": "078", "text": "Employee number E00482913 is on long term sick leave.", "sensitive": [{"value": "E00482913", "type": "INTERNAL_ID"}], "keep": []}
+{"id": "079", "text": "Policy number PL-2291-8841-GB renews in March.", "sensitive": [{"value": "PL-2291-8841-GB", "type": "INTERNAL_ID"}], "keep": ["March"]}
+{"id": "080", "text": "Patient MRN-0048213 needs a follow up.", "sensitive": [{"value": "MRN-0048213", "type": "INTERNAL_ID"}], "keep": []}
+{"id": "081", "text": "Tenant reference TNT/2025/00917 is in arrears.", "sensitive": [{"value": "TNT/2025/00917", "type": "INTERNAL_ID"}], "keep": []}
+{"id": "082", "text": "Licence number MORGA657054SM9IJ is on the form.", "sensitive": [{"value": "MORGA657054SM9IJ", "type": "INTERNAL_ID"}], "keep": []}
+{"id": "083", "text": "Hi, I'm Priya Patel (priya.patel@example.com, 07911 123456). My NI number is AB123456C and I live at SW1A 1AA. Can you help me with my pension?", "sensitive": [{"value": "Priya Patel", "type": "PERSON"}, {"value": "priya.patel@example.com", "type": "EMAIL"}, {"value": "07911 123456", "type": "PHONE"}, {"value": "AB123456C", "type": "NI"}, {"value": "SW1A 1AA", "type": "POSTCODE"}], "keep": ["pension"]}
+{"id": "084", "text": "Draft a reply to Mark Davies at mark.davies@acme.com. He asked about invoice 20931 and our Microsoft licence renewal in Paris.", "sensitive": [{"value": "Mark Davies", "type": "PERSON"}, {"value": "mark.davies@acme.com", "type": "EMAIL"}], "keep": ["Microsoft", "Paris", "invoice 20931"]}
+{"id": "085", "text": "Patient Katarzyna Nowak (NHS 943 476 5919, DOB 14/03/1985) presented with chest pain. Contact 020 7946 0958.", "sensitive": [{"value": "Katarzyna Nowak", "type": "PERSON"}, {"value": "943 476 5919", "type": "NHS"}, {"value": "14/03/1985", "type": "DOB"}, {"value": "020 7946 0958", "type": "PHONE"}], "keep": ["chest pain"]}
+{"id": "086", "text": "Log: user jamal.washington@example.org from 203.0.113.77 used key s<>k-Tq8Vm3Xz7Rl2Bn5Wc9Yd4Kf6Pj1Hs0UaEg2Ni8Ol", "sensitive": [{"value": "jamal.washington@example.org", "type": "EMAIL"}, {"value": "203.0.113.77", "type": "IP"}, {"value": "s<>k-Tq8Vm3Xz7Rl2Bn5Wc9Yd4Kf6Pj1Hs0UaEg2Ni8Ol", "type": "API_KEY"}], "keep": []}
+{"id": "087", "text": "Wire GBP 2,500 to sort code 20-00-00 account 55779911 in the name of Fatima Al-Sayed.", "sensitive": [{"value": "20-00-00", "type": "BANK"}, {"value": "55779911", "type": "BANK"}, {"value": "Fatima Al-Sayed", "type": "PERSON"}], "keep": ["GBP 2,500"]}
+{"id": "088", "text": "Explain how DNS works in two sentences.", "sensitive": [], "keep": ["DNS"]}
+{"id": "089", "text": "Write a Python function that sorts a list of dictionaries by date.", "sensitive": [], "keep": ["Python"]}
+{"id": "090", "text": "Summarise this in French and keep it formal.", "sensitive": [], "keep": ["French"]}
+{"id": "091", "text": "Translate the following paragraph to Spanish.", "sensitive": [], "keep": ["Spanish"]}
+{"id": "092", "text": "What is the capital of France? Is it Paris?", "sensitive": [], "keep": ["France", "Paris"]}
+{"id": "093", "text": "Our meeting is on Monday at 3pm.", "sensitive": [], "keep": ["Monday", "3pm"]}
+{"id": "094", "text": "Tell me about Tesla and its competitors.", "sensitive": [], "keep": ["Tesla"]}
+{"id": "095", "text": "Microsoft and Google reported earnings last quarter.", "sensitive": [], "keep": ["Microsoft", "Google"]}
+{"id": "096", "text": "Use Kubernetes on AWS for the deployment.", "sensitive": [], "keep": ["Kubernetes", "AWS"]}
+{"id": "097", "text": "Answer casually and keep it short.", "sensitive": [], "keep": ["Answer"]}
+{"id": "098", "text": "Act as a senior lawyer reviewing a supplier contract.", "sensitive": [], "keep": ["lawyer"]}
+{"id": "099", "text": "Version 3.14.159 shipped with 42 fixes in Q3 2026.", "sensitive": [], "keep": ["3.14.159", "Q3 2026"]}
+{"id": "100", "text": "The invoice total was £1,500 plus VAT at 20%.", "sensitive": [], "keep": ["£1,500", "20%"]}
+{"id": "101", "text": "Why does my API return HTTP 404 for /users/list?", "sensitive": [], "keep": ["HTTP 404"]}
+{"id": "102", "text": "Compare PostgreSQL and MySQL for a reporting workload.", "sensitive": [], "keep": ["PostgreSQL", "MySQL"]}
+{"id": "103", "text": "Draft a polite email declining a meeting next Tuesday.", "sensitive": [], "keep": ["Tuesday"]}
+{"id": "104", "text": "Explain the GDPR principle of data minimisation.", "sensitive": [], "keep": ["GDPR"]}
+{"id": "105", "text": "What does the FCA expect from firms using AI?", "sensitive": [], "keep": ["FCA"]}
+{"id": "106", "text": "Convert 150 miles to kilometres.", "sensitive": [], "keep": ["150 miles"]}
+{"id": "107", "text": "Give me a recipe for chicken tikka masala for four.", "sensitive": [], "keep": ["chicken tikka masala"]}
+{"id": "108", "text": "List three risks of using LLMs on customer data.", "sensitive": [], "keep": ["LLMs"]}
+{"id": "109", "text": "Rewrite this sentence in the passive voice: The team shipped the release.", "sensitive": [], "keep": ["The team shipped the release"]}
+{"id": "110", "text": "Review this SQL: SELECT id, total FROM orders WHERE total > 100;", "sensitive": [], "keep": ["SELECT id, total FROM orders"]}
+{"id": "111", "text": "Our London and Manchester offices both close on 25 December.", "sensitive": [], "keep": ["London", "Manchester", "25 December"]}
+{"id": "112", "text": "How do I read https://docs.python.org/3/library/asyncio.html effectively?", "sensitive": [], "keep": ["https://docs.python.org/3/library/asyncio.html"]}
+{"id": "113", "text": "The Eiffel Tower is about 330 metres tall.", "sensitive": [], "keep": ["Eiffel Tower", "330 metres"]}
+{"id": "114", "text": "Explain what a sort code is and how it differs from an IBAN.", "sensitive": [], "keep": ["sort code", "IBAN"]}
+{"id": "115", "text": "Order 20931 shipped on 3 March and arrives in 4 days.", "sensitive": [], "keep": ["Order 20931", "3 March"]}
+{"id": "116", "text": "Describe the French Revolution in five bullet points.", "sensitive": [], "keep": ["French Revolution"]}
+{"id": "117", "text": "What is the boiling point of water at altitude?", "sensitive": [], "keep": ["boiling point"]}

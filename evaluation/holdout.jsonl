@@ -1,0 +1,68 @@
+{"id": "H001", "text": "reach out via liam.oconnor@northwind-traders.ie when you can", "sensitive": [{"value": "liam.oconnor@northwind-traders.ie", "type": "EMAIL"}], "keep": []}
+{"id": "H002", "text": "cc: ACCOUNTS@Smith-and-Sons.co.uk", "sensitive": [{"value": "ACCOUNTS@Smith-and-Sons.co.uk", "type": "EMAIL"}], "keep": []}
+{"id": "H003", "text": "his mobile: +44(0)7911 123 456", "sensitive": [{"value": "+44(0)7911 123 456", "type": "PHONE"}], "keep": []}
+{"id": "H004", "text": "text me on 07911-123-456 please", "sensitive": [{"value": "07911-123-456", "type": "PHONE"}], "keep": []}
+{"id": "H005", "text": "fax 0161 496 0001 and tel 0161 496 0002", "sensitive": [{"value": "0161 496 0001", "type": "PHONE"}, {"value": "0161 496 0002", "type": "PHONE"}], "keep": []}
+{"id": "H006", "text": "NINO AB 123456 C for the new hire", "sensitive": [{"value": "AB 123456 C", "type": "NI"}], "keep": []}
+{"id": "H007", "text": "National Insurance: ZX987654B", "sensitive": [{"value": "ZX987654B", "type": "NI"}], "keep": []}
+{"id": "H008", "text": "NHS no. 9434765919 (NHS number again: 943 476 5919)", "sensitive": [{"value": "9434765919", "type": "NHS"}, {"value": "943 476 5919", "type": "NHS"}], "keep": []}
+{"id": "H009", "text": "postcode SW1A1AA is wrong", "sensitive": [{"value": "SW1A1AA", "type": "POSTCODE"}], "keep": []}
+{"id": "H010", "text": "card number 4111111111111111 on file", "sensitive": [{"value": "4111111111111111", "type": "CARD"}], "keep": []}
+{"id": "H011", "text": "iban gb82west12345698765432", "sensitive": [{"value": "gb82west12345698765432", "type": "IBAN"}], "keep": []}
+{"id": "H012", "text": "Remit to sort code 12 34 56, acct 87654321", "sensitive": [{"value": "12 34 56", "type": "BANK"}, {"value": "87654321", "type": "BANK"}], "keep": []}
+{"id": "H013", "text": "my passport is 533401872", "sensitive": [{"value": "533401872", "type": "PASSPORT"}], "keep": []}
+{"id": "H014", "text": "Passport No: 925019263, issued in London", "sensitive": [{"value": "925019263", "type": "PASSPORT"}], "keep": ["London"]}
+{"id": "H015", "text": "DOB 3rd Mar 1985", "sensitive": [{"value": "3rd Mar 1985", "type": "DOB"}], "keep": []}
+{"id": "H016", "text": "birth date: 1985/03/14", "sensitive": [{"value": "1985/03/14", "type": "DOB"}], "keep": []}
+{"id": "H017", "text": "The claimant was born 14 March 1985.", "sensitive": [{"value": "14 March 1985", "type": "DOB"}], "keep": []}
+{"id": "H018", "text": "D.O.B. 14-03-85", "sensitive": [{"value": "14-03-85", "type": "DOB"}], "keep": []}
+{"id": "H019", "text": "Her birthday is the 9th of June 1990", "sensitive": [{"value": "9th of June 1990", "type": "DOB"}], "keep": []}
+{"id": "H020", "text": "Apartment 12, 5 Orchard Rd, Brighton BN1 1AA", "sensitive": [{"value": "5 Orchard Rd", "type": "ADDRESS"}, {"value": "BN1 1AA", "type": "POSTCODE"}], "keep": []}
+{"id": "H021", "text": "Return parcels to 88 Victoria Embankment, London EC4Y 0DH", "sensitive": [{"value": "88 Victoria Embankment", "type": "ADDRESS"}, {"value": "EC4Y 0DH", "type": "POSTCODE"}], "keep": []}
+{"id": "H022", "text": "They live at 3 Rue de Rivoli, Paris", "sensitive": [{"value": "3 Rue de Rivoli", "type": "ADDRESS"}], "keep": []}
+{"id": "H023", "text": "Flat 2B, Maple House, High Street, Reading", "sensitive": [{"value": "Maple House", "type": "ADDRESS"}], "keep": []}
+{"id": "H024", "text": "1600 Pennsylvania Avenue NW, Washington DC 20500", "sensitive": [{"value": "1600 Pennsylvania Avenue", "type": "ADDRESS"}], "keep": []}
+{"id": "H025", "text": "Customer no. 7731990 called twice today", "sensitive": [{"value": "7731990", "type": "INTERNAL_ID"}], "keep": []}
+{"id": "H026", "text": "claim CLM-2025-004417 is pending review", "sensitive": [{"value": "CLM-2025-004417", "type": "INTERNAL_ID"}], "keep": []}
+{"id": "H027", "text": "Staff ID: HR-009123", "sensitive": [{"value": "HR-009123", "type": "INTERNAL_ID"}], "keep": []}
+{"id": "H028", "text": "account holder reference AH9923-77B", "sensitive": [{"value": "AH9923-77B", "type": "INTERNAL_ID"}], "keep": []}
+{"id": "H029", "text": "the member ID is M-448120-22 per the portal", "sensitive": [{"value": "M-448120-22", "type": "INTERNAL_ID"}], "keep": []}
+{"id": "H030", "text": "student number 20251234 is on the register", "sensitive": [{"value": "20251234", "type": "INTERNAL_ID"}], "keep": []}
+{"id": "H031", "text": "export HF_TOKEN=h<>f_AbCdEfGhIjKlMnOpQrStUvWxYz0123456789", "sensitive": [{"value": "h<>f_AbCdEfGhIjKlMnOpQrStUvWxYz0123456789", "type": "API_KEY"}], "keep": []}
+{"id": "H032", "text": "n<>pm_Zx9Yw8Vu7Ts6Rq5Po4Nm3Lk2Ji1Hg0Fe9Dc8 is the publish token", "sensitive": [{"value": "n<>pm_Zx9Yw8Vu7Ts6Rq5Po4Nm3Lk2Ji1Hg0Fe9Dc8", "type": "API_KEY"}], "keep": []}
+{"id": "H033", "text": "GOOGLE_KEY=A<>IzaSyA1b2C3d4E5f6G7h8I9j0K1l2M3n4O5p6Q", "sensitive": [{"value": "A<>IzaSyA1b2C3d4E5f6G7h8I9j0K1l2M3n4O5p6Q", "type": "API_KEY"}], "keep": []}
+{"id": "H034", "text": "the password for the database is Winter2025!Secure", "sensitive": [{"value": "Winter2025!Secure", "type": "API_KEY"}], "keep": []}
+{"id": "H035", "text": "pw: hunter2hunter2 (rotate it)", "sensitive": [{"value": "hunter2hunter2", "type": "API_KEY"}], "keep": []}
+{"id": "H036", "text": "Use g<>ithub_pat_11ABCDEFG0abcdefghijkl_MNOPQRSTUVWXYZ0123456789abcdefghijklmnop to push", "sensitive": [{"value": "g<>ithub_pat_11ABCDEFG0abcdefghijkl_MNOPQRSTUVWXYZ0123456789abcdefghijklmnop", "type": "API_KEY"}], "keep": []}
+{"id": "H037", "text": "-<>----BEGIN RSA PRIVATE KEY-----\nMIIEowIBAAKCAQEA7vbqajDw4o6gJy8UtmIbkcpnkO3Kwc4qsEnSZp\n-----END RSA PRIVATE KEY-----", "sensitive": [{"value": "MIIEowIBAAKCAQEA7vbqajDw4o6gJy8UtmIbkcpnkO3Kwc4qsEnSZp", "type": "API_KEY"}], "keep": []}
+{"id": "H038", "text": "DATABASE_URL=mysql://root:Pa55w0rd99@10.0.0.5:3306/app", "sensitive": [{"value": "Pa55w0rd99", "type": "API_KEY"}], "keep": []}
+{"id": "H039", "text": "API_SECRET=9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08", "sensitive": [{"value": "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08", "type": "API_KEY"}], "keep": []}
+{"id": "H040", "text": "tell sarah connor that the delivery is late", "sensitive": [{"value": "sarah connor", "type": "PERSON"}], "keep": []}
+{"id": "H041", "text": "Minutes: attendees were Chidi Anagonye, Eleanor Shellstrop and Tahani Al-Jamil.", "sensitive": [{"value": "Chidi Anagonye", "type": "PERSON"}, {"value": "Eleanor Shellstrop", "type": "PERSON"}, {"value": "Tahani Al-Jamil", "type": "PERSON"}], "keep": []}
+{"id": "H042", "text": "Claim submitted by Dr Wei Ling Chen on behalf of the estate.", "sensitive": [{"value": "Wei Ling Chen", "type": "PERSON"}], "keep": []}
+{"id": "H043", "text": "Thanks, Bartholomew", "sensitive": [{"value": "Bartholomew", "type": "PERSON"}], "keep": []}
+{"id": "H044", "text": "Interview feedback for Ngozi Okonkwo-Eze was positive.", "sensitive": [{"value": "Ngozi Okonkwo-Eze", "type": "PERSON"}], "keep": []}
+{"id": "H045", "text": "Regards, Ahmed", "sensitive": [{"value": "Ahmed", "type": "PERSON"}], "keep": []}
+{"id": "H046", "text": "The witness, Ivan Petrov, saw the vehicle.", "sensitive": [{"value": "Ivan Petrov", "type": "PERSON"}], "keep": []}
+{"id": "H047", "text": "Mrs Joan Ellis (DOB 02/11/1950, NHS 401 023 2137) has type 2 diabetes. Phone 0113 496 0123.", "sensitive": [{"value": "Joan Ellis", "type": "PERSON"}, {"value": "02/11/1950", "type": "DOB"}, {"value": "401 023 2137", "type": "NHS"}, {"value": "0113 496 0123", "type": "PHONE"}], "keep": ["type 2 diabetes"]}
+{"id": "H048", "text": "User tobias.fischer@example.de logged in from 198.51.100.23 with token g<>hp_Q1w2E3r4T5y6U7i8O9p0A1s2D3f4G5h6J7k8", "sensitive": [{"value": "tobias.fischer@example.de", "type": "EMAIL"}, {"value": "198.51.100.23", "type": "IP"}, {"value": "g<>hp_Q1w2E3r4T5y6U7i8O9p0A1s2D3f4G5h6J7k8", "type": "API_KEY"}], "keep": []}
+{"id": "H049", "text": "Fix JIRA ticket PROJ-1234 before Friday's release.", "sensitive": [], "keep": ["PROJ-1234", "Friday"]}
+{"id": "H050", "text": "Order 20931 and order 20932 shipped from the Leeds warehouse.", "sensitive": [], "keep": ["20931", "20932", "Leeds"]}
+{"id": "H051", "text": "See reference ISO 27001 clause 5.2 for the policy requirements.", "sensitive": [], "keep": ["ISO 27001", "5.2"]}
+{"id": "H052", "text": "Checkout commit a1b2c3d4e5f6a7b8c9d0 and rebuild.", "sensitive": [], "keep": ["a1b2c3d4e5f6a7b8c9d0"]}
+{"id": "H053", "text": "The request id is 550e8400-e29b-41d4-a716-446655440000 in the logs.", "sensitive": [], "keep": ["550e8400-e29b-41d4-a716-446655440000"]}
+{"id": "H054", "text": "Unix time 1699999999 is in November 2023.", "sensitive": [], "keep": ["1699999999", "November 2023"]}
+{"id": "H055", "text": "Use the colour #ff8800 for the header.", "sensitive": [], "keep": ["#ff8800"]}
+{"id": "H056", "text": "We use scikit-learn and pandas for the model.", "sensitive": [], "keep": ["scikit-learn", "pandas"]}
+{"id": "H057", "text": "Born in the USA is a famous song by Bruce Springsteen.", "sensitive": [], "keep": ["Born in the USA"]}
+{"id": "H058", "text": "Plan a birthday party for next Saturday at the park.", "sensitive": [], "keep": ["birthday party", "Saturday"]}
+{"id": "H059", "text": "Passport control was quick at Heathrow.", "sensitive": [], "keep": ["Passport control", "Heathrow"]}
+{"id": "H060", "text": "Our customer service team handles patient care enquiries.", "sensitive": [], "keep": ["customer service", "patient care"]}
+{"id": "H061", "text": "The policy takes effect on 1 January 2027.", "sensitive": [], "keep": ["1 January 2027"]}
+{"id": "H062", "text": "Meet at 10 Downing Street for the photo.", "sensitive": [], "keep": ["Downing Street"]}
+{"id": "H063", "text": "Server responded in 120 ms with status 200.", "sensitive": [], "keep": ["120 ms", "status 200"]}
+{"id": "H064", "text": "Docker image node:20-alpine is 180 MB.", "sensitive": [], "keep": ["node:20-alpine", "180 MB"]}
+{"id": "H065", "text": "The GDPR fine was up to 4% of turnover.", "sensitive": [], "keep": ["GDPR", "4%"]}
+{"id": "H066", "text": "Is Dr Pepper sold in Germany?", "sensitive": [], "keep": ["Pepper", "Germany"]}
+{"id": "H067", "text": "Summarise the 2024 annual report of Barclays in five bullets.", "sensitive": [], "keep": ["Barclays", "2024"]}
+{"id": "H068", "text": "What time zone is Tokyo in during winter?", "sensitive": [], "keep": ["Tokyo"]}

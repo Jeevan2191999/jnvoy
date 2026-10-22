@@ -106,6 +106,7 @@ DEFAULT_ENTITIES = [
     "US_BANK_NUMBER", "US_DRIVER_LICENSE", "US_ITIN", "US_PASSPORT", "US_SSN",
     "UK_NHS", "NI_NUMBER", "UK_POSTCODE", "SORT_CODE", "ACCOUNT_NUMBER",
     "PASSPORT", "API_KEY", "SECRET_TOKEN",
+    "DATE_OF_BIRTH", "STREET_ADDRESS", "ID_NUMBER",
 ]
 
 # Often not personal data on their own. Off by default, switched on with JNVOY_REDACT_EXTRA.
@@ -175,6 +176,10 @@ def _build_analyzer() -> AnalyzerEngine:
     registry.add_recognizer(_make_phone_recogniser())
 
     for recogniser in make_uk_recognisers():
+        registry.add_recognizer(recogniser)
+
+    from core.extra_recognisers import make_extra_recognisers
+    for recogniser in make_extra_recognisers():
         registry.add_recognizer(recogniser)
 
     return AnalyzerEngine(nlp_engine=nlp_engine, registry=registry)
