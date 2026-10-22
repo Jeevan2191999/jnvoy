@@ -95,6 +95,64 @@ def make_uk_recognisers():
 
 # ── Initialise Presidio ───────────────────────────────────────────────────────
 
+# ── What gets redacted ────────────────────────────────────────────────────────
+
+import os as _os
+
+# Personal data and identifiers. These are always redacted.
+DEFAULT_ENTITIES = [
+    "PERSON", "EMAIL_ADDRESS", "PHONE_NUMBER", "CREDIT_CARD", "IBAN_CODE",
+    "IP_ADDRESS", "MAC_ADDRESS", "CRYPTO", "MEDICAL_LICENSE", "URL",
+    "US_BANK_NUMBER", "US_DRIVER_LICENSE", "US_ITIN", "US_PASSPORT", "US_SSN",
+    "UK_NHS", "NI_NUMBER", "UK_POSTCODE", "SORT_CODE", "ACCOUNT_NUMBER",
+    "PASSPORT", "API_KEY", "SECRET_TOKEN",
+]
+
+# Often not personal data on their own. Off by default, switched on with JNVOY_REDACT_EXTRA.
+OPTIONAL_ENTITIES = ["ORGANIZATION", "LOCATION", "DATE_TIME", "NRP"]
+
+
+def resolve_entities(entities=None, env=None):
+    """
+    Which entity types to look for. Returns a list, or None meaning "everything".
+
+    entities  explicit list (wins over the environment)
+    env       defaults to os.environ; reads JNVOY_REDACT_EXTRA
+    """
+    if entities is not None:
+        return list(entities)
+    env = _os.environ if env is None else env
+    raw = str(env.get("JNVOY_REDACT_EXTRA", "")).strip()
+    if not raw:
+        return list(DEFAULT_ENTITIES)
+    names = [n.strip().upper() for n in raw.split(",") if n.strip()]
+    if "ALL" in names:
+        return None
+    unknown = [n for n in names if n not in OPTIONAL_ENTITIES and n not in DEFAULT_ENTITIES]
+    if unknown:
+        raise ValueError(
+            "JNVOY_REDACT_EXTRA has unknown entity name(s): "
+            + ", ".join(unknown)
+            + ". Valid: "
+            + ", ".join(OPTIONAL_ENTITIES)
+            + ", or all."
+        )
+    return list(DEFAULT_ENTITIES) + [n for n in names if n not in DEFAULT_ENTITIES]
+
+
+def _make_phone_recogniser():
+    """Presidio's phone recogniser, but scored above the detection threshold."""
+    from presidio_analyzer.predefined_recognizers import PhoneRecognizer
+
+    class ConfidentPhoneRecognizer(PhoneRecognizer):
+        SCORE = 0.9  # the default 0.4 is below the 0.6 threshold, so numbers were dropped
+
+    return ConfidentPhoneRecognizer(
+        supported_regions=("GB", "US", "DE", "FR", "IE", "IN", "CA", "AU", "IL", "BR"),
+        leniency=1,
+    )
+
+
 def _build_analyzer() -> AnalyzerEngine:
     """Build the Presidio analyzer with the large spaCy model and UK recognisers."""
     # Use en_core_web_lg in production for best accuracy
@@ -111,6 +169,10 @@ def _build_analyzer() -> AnalyzerEngine:
 
     registry = RecognizerRegistry()
     registry.load_predefined_recognizers(nlp_engine=nlp_engine)
+    registry.recognizers = [
+        r for r in registry.recognizers if list(r.supported_entities) != ["PHONE_NUMBER"]
+    ]
+    registry.add_recognizer(_make_phone_recogniser())
 
     for recogniser in make_uk_recognisers():
         registry.add_recognizer(recogniser)
@@ -177,9 +239,11 @@ class PIIDetectorV2:
     def __init__(
         self,
         confidence_threshold: float = 0.6,
-        languages: list[str] = None
+        languages: list[str] = None,
+        entities: Optional[list] = None,
     ):
         self.confidence_threshold = confidence_threshold
+        self.entities = resolve_entities(entities)
         self.languages = languages or ["en"]
         self._token_counter: dict[str, int] = {}
 
@@ -209,6 +273,7 @@ class PIIDetectorV2:
         results = _analyzer.analyze(
             text=text,
             language="en",
+            entities=self.entities,
             score_threshold=self.confidence_threshold
         )
 
