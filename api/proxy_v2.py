@@ -91,6 +91,14 @@ async def landing():
         return FileResponse(_index)
     return {"message": "Jnvoy AI Trust Layer", "docs": "/docs", "version": "2.1.0"}
 
+
+@app.get("/privacy", include_in_schema=False)
+async def privacy_page():
+    _page = os.path.join(_static_dir, "privacy.html")
+    if os.path.exists(_page):
+        return FileResponse(_page)
+    raise HTTPException(status_code=404, detail="Not found")
+
 # In-memory fallback audit log used when database is unavailable
 audit_log: list[dict] = []
 

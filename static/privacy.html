@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jnvoy: privacy and data handling</title>
+<meta name="description" content="Where your text goes when it passes through Jnvoy, what is stored, who else sees redacted text, and what redaction does not promise.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* Same tokens as the homepage, so the two pages read as one product. */
+  :root{
+    --ink:        #12161B;
+    --ink-soft:   #42484F;
+    --ink-faint:  #71777E;
+    --paper:      #EDEEE9;
+    --paper-raised:#F8F8F4;
+    --line:       #D7D8D1;
+    --line-strong:#B9BAB2;
+    --red:        #8A2A16;
+    --red-dim:    #B8491F;
+    --red-wash:   #F4E7E2;
+    --green:      #1E6450;
+    --green-wash: #E3EEE9;
+    --redact:     #15171A;
+
+    --mono: 'Courier Prime', ui-monospace, 'SF Mono', Consolas, monospace;
+    --sans: 'Inter', -apple-system, 'Segoe UI', sans-serif;
+
+    --maxw: 1180px;
+    --radius-ui: 4px;
+  }
+
+  *,*::before,*::after{ box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:var(--sans);
+    font-size:16px;
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,p,ul,figure{ margin:0; }
+  a{ color:inherit; }
+  .wrap{ max-width:var(--maxw); margin:0 auto; padding:0 28px; }
+  :focus-visible{ outline:2px solid var(--green); outline-offset:3px; }
+  @media (prefers-reduced-motion: reduce){
+    html{ scroll-behavior:auto; }
+    *{ transition-duration:0.001ms !important; }
+  }
+
+  /* ---------- nav (identical to the homepage) ---------- */
+  header.site{
+    position:sticky; top:0; z-index:40;
+    background:rgba(237,238,233,0.92);
+    backdrop-filter:blur(6px);
+    border-bottom:1px solid var(--line);
+  }
+  .nav{ display:flex; align-items:center; justify-content:space-between; height:68px; }
+  .wordmark{
+    font-family:var(--mono); font-weight:700; font-size:1.05rem; letter-spacing:0.01em;
+    display:flex; align-items:center; gap:9px; text-decoration:none; color:var(--ink);
+  }
+  .wordmark .dot{ width:8px; height:8px; border-radius:50%; background:var(--green); box-shadow:0 0 0 3px var(--green-wash); }
+  .navlinks{ display:flex; align-items:center; gap:30px; }
+  .navlinks a{ text-decoration:none; font-size:0.9375rem; color:var(--ink-soft); font-weight:500; }
+  .navlinks a:hover{ color:var(--ink); }
+  .btn{
+    display:inline-flex; align-items:center; gap:8px;
+    font-family:var(--sans); font-weight:600; font-size:0.85rem;
+    padding:0.5em 1em; border-radius:var(--radius-ui); text-decoration:none;
+    border:1px solid transparent; transition:background 0.15s ease;
+  }
+  .navlinks a.btn{ background:var(--red); color:#fff; }
+  .navlinks a.btn:hover{ background:var(--red-dim); color:#fff; }
+  @media (max-width:760px){ .navlinks a:not(.btn){ display:none; } }
+
+  /* ---------- page head ---------- */
+  .pagehead{ padding:72px 0 56px; border-bottom:1px solid var(--line-strong); }
+  .pagehead h1{
+    font-family:var(--mono); font-weight:700;
+    font-size:clamp(2rem, 4.2vw, 3rem); line-height:1.1; letter-spacing:-0.01em;
+    max-width:18ch;
+  }
+  .pagehead .lede{ margin-top:20px; font-size:1.125rem; color:var(--ink-soft); max-width:56ch; line-height:1.65; }
+  .meta{ margin-top:28px; font-family:var(--mono); font-size:0.8125rem; color:var(--ink-faint); }
+
+  /* ---------- two column document ---------- */
+  .doc{
+    display:grid; grid-template-columns:200px minmax(0,1fr); gap:72px;
+    padding:64px 0 96px; align-items:start;
+  }
+  @media (max-width:900px){ .doc{ grid-template-columns:1fr; gap:0; padding-top:40px; } }
+  .toc{ position:sticky; top:96px; font-size:0.9rem; }
+  .toc p{ font-weight:600; color:var(--ink-faint); font-size:0.8125rem; margin-bottom:10px; }
+  .toc ul{ list-style:none; padding:0; border-left:1px solid var(--line-strong); }
+  .toc a{
+    display:block; padding:6px 0 6px 16px; margin-left:-1px;
+    border-left:2px solid transparent; text-decoration:none; color:var(--ink-soft);
+  }
+  .toc a:hover{ color:var(--ink); border-left-color:var(--line-strong); }
+  .toc a.on{ color:var(--ink); font-weight:600; border-left-color:var(--green); }
+  @media (max-width:900px){ .toc{ display:none; } }
+
+  .content > section{ padding:0 0 64px; scroll-margin-top:92px; }
+  .content > section + section{ padding-top:56px; border-top:1px solid var(--line); }
+  .content h2{
+    font-family:var(--mono); font-weight:700; font-size:1.55rem; line-height:1.25; margin-bottom:18px;
+  }
+  .content h3{ font-size:1rem; font-weight:600; margin:28px 0 6px; }
+  .content p{ color:var(--ink-soft); max-width:66ch; margin-top:14px; }
+  .content p:first-of-type{ margin-top:0; }
+  .content p strong, .content li strong{ color:var(--ink); font-weight:600; }
+  .content ul.plain{ padding-left:1.15em; margin-top:14px; color:var(--ink-soft); max-width:66ch; }
+  .content ul.plain li{ margin-top:8px; }
+  code{
+    font-family:var(--mono); font-size:0.9em; color:var(--ink);
+    background:var(--paper-raised); border:1px solid var(--line); border-radius:3px; padding:0.05em 0.35em;
+  }
+  .content a{ color:var(--green); text-underline-offset:3px; }
+
+  /* ---------- the ledger (answers at a glance, and storage) ---------- */
+  .ledger{ margin-top:26px; border-top:1px solid var(--line-strong); }
+  .row{
+    display:grid; grid-template-columns:minmax(0,1.1fr) minmax(0,1.6fr) minmax(0,0.9fr);
+    gap:20px; padding:16px 0; border-bottom:1px solid var(--line); align-items:baseline;
+  }
+  .row.head{ font-weight:600; font-size:0.8125rem; color:var(--ink-faint); padding-bottom:10px; }
+  .row .k{ font-weight:600; }
+  .row .v{ color:var(--ink-soft); font-size:0.9375rem; }
+  .row .s{ font-family:var(--mono); font-size:0.875rem; font-weight:700; }
+  .row .s.no{ color:var(--green); }
+  .row .s.yes{ color:var(--red); }
+  .row .s.mid{ color:var(--ink-soft); }
+  @media (max-width:700px){
+    .row{ grid-template-columns:1fr; gap:4px; }
+    .row.head{ display:none; }
+  }
+
+  /* ---------- the flow figure ---------- */
+  .flow{ margin-top:28px; }
+  .zones{ display:grid; grid-template-columns:1fr 1fr; gap:0; }
+  .zone{ padding-bottom:10px; font-size:0.8125rem; font-weight:600; border-bottom:2px solid var(--ink); }
+  .zone.out{ border-bottom-color:var(--green); color:var(--green); margin-left:12px; }
+  .zone.in{ color:var(--ink); margin-right:12px; }
+  .stops{ display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-top:12px; }
+  .stop{ background:var(--paper-raised); border:1px solid var(--line-strong); border-radius:3px; padding:16px 16px 18px; }
+  .stop h3{ margin:0 0 6px; font-size:0.9375rem; }
+  .stop .what{ font-size:0.8125rem; color:var(--ink-faint); line-height:1.5; }
+  .stop .sample{
+    margin-top:12px; padding:10px 10px; border-radius:3px;
+    font-family:var(--mono); font-size:0.78rem; line-height:1.55; overflow-wrap:anywhere;
+  }
+  .sample.raw{ background:var(--ink); color:#EDEEE9; }
+  .sample.tok{ background:var(--green-wash); color:var(--green); }
+  .stop.optional{ border-style:dashed; }
+  @media (max-width:900px){
+    .zones{ display:none; }
+    .stops{ grid-template-columns:1fr 1fr; }
+  }
+  @media (max-width:560px){ .stops{ grid-template-columns:1fr; } }
+  .flow figcaption{ margin-top:14px; font-size:0.875rem; color:var(--ink-faint); max-width:70ch; }
+
+  /* ---------- notice ---------- */
+  .notice{
+    margin-top:22px; padding:16px 18px; background:var(--red-wash);
+    border-left:3px solid var(--red); border-radius:0 3px 3px 0; max-width:66ch;
+    font-size:0.9375rem; color:var(--ink-soft);
+  }
+  .notice strong{ color:var(--ink); }
+
+  /* ---------- footer (identical to the homepage plus Privacy) ---------- */
+  footer{ padding:40px 0; border-top:1px solid var(--line); }
+  .fgrid{ display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px; }
+  .fgrid .left{ font-family:var(--mono); font-size:0.8125rem; color:var(--ink-faint); }
+  .flinks{ display:flex; gap:22px; flex-wrap:wrap; }
+  .flinks a{ text-decoration:none; font-size:0.875rem; color:var(--ink-soft); }
+  .flinks a:hover{ color:var(--ink); }
+</style>
+</head>
+<body>
+
+<header class="site">
+  <div class="wrap nav">
+    <a href="/" class="wordmark"><span class="dot"></span>jnvoy</a>
+    <nav class="navlinks" aria-label="Main">
+      <a href="/">Home</a>
+      <a href="/docs">Docs</a>
+      <a href="https://github.com/Jeevan2191999/jnvoy">GitHub</a>
+      <a class="btn" href="/docs">Try the API</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="pagehead">
+    <div class="wrap">
+      <h1>Privacy and data handling</h1>
+      <p class="lede">What happens to your text when it passes through Jnvoy, what we keep, who else sees it, and where redaction can fall short.</p>
+      <p class="meta">Last updated 22 October 2026</p>
+    </div>
+  </div>
+
+  <div class="wrap doc">
+    <nav class="toc" aria-label="On this page">
+      <p>On this page</p>
+      <ul>
+        <li><a href="#glance">The short version</a></li>
+        <li><a href="#flow">How a request flows</a></li>
+        <li><a href="#stored">What is stored</a></li>
+        <li><a href="#others">Who else sees redacted text</a></li>
+        <li><a href="#limits">What redaction does not promise</a></li>
+        <li><a href="#sending">Sending text safely</a></li>
+        <li><a href="#contact">Questions</a></li>
+      </ul>
+    </nav>
+
+    <div class="content">
+
+      <section id="glance">
+        <h2>The short version</h2>
+        <p>Jnvoy replaces sensitive values in your prompts with placeholder tokens before the prompt reaches a language model, then puts the real values back into the reply.</p>
+        <div class="ledger">
+          <div class="row head"><div>Question</div><div>Answer</div><div>Status</div></div>
+          <div class="row"><div class="k">Is original text saved?</div><div class="v">Not in the database, the audit log, the cache or the logs. It exists in memory while a request is processed.</div><div class="s no">Not stored</div></div>
+          <div class="row"><div class="k">What reaches the model provider?</div><div class="v">The redacted text only, sent to the provider you choose.</div><div class="s no">Redacted</div></div>
+          <div class="row"><div class="k">Does anyone else see redacted text?</div><div class="v">Anthropic does, but only if the optional second check is switched on.</div><div class="s mid">Optional</div></div>
+          <div class="row"><div class="k">Is detection guaranteed to be complete?</div><div class="v">No. It is strong, and it is measured, but a value can be missed.</div><div class="s yes">Not guaranteed</div></div>
+        </div>
+      </section>
+
+      <section id="flow">
+        <h2>How a request flows</h2>
+        <p>Your application sends its prompt to Jnvoy. Jnvoy finds sensitive values and swaps each one for a token such as <code>[PERSON_1]</code>. Only the tokenised prompt moves on. When the reply comes back, Jnvoy swaps the tokens for the original values before the reply reaches you.</p>
+        <figure class="flow">
+          <div class="zones" aria-hidden="true">
+            <div class="zone in">Original text exists here</div>
+            <div class="zone out">Redacted text only</div>
+          </div>
+          <div class="stops">
+            <div class="stop">
+              <h3>Your application</h3>
+              <p class="what">Sends the prompt to Jnvoy over HTTPS.</p>
+              <div class="sample raw">Email Priya Raman at priya@acme.co</div>
+            </div>
+            <div class="stop">
+              <h3>Jnvoy</h3>
+              <p class="what">Finds sensitive values and replaces them. Holds the originals in memory for this request only.</p>
+              <div class="sample tok">Email [PERSON_1] at [EMAIL_ADDRESS_1]</div>
+            </div>
+            <div class="stop optional">
+              <h3>Second check (optional)</h3>
+              <p class="what">When switched on, Anthropic reviews the redacted text for anything the first pass missed.</p>
+              <div class="sample tok">Email [PERSON_1] at [EMAIL_ADDRESS_1]</div>
+            </div>
+            <div class="stop">
+              <h3>Model provider</h3>
+              <p class="what">Receives the redacted prompt and writes a reply that uses the tokens.</p>
+              <div class="sample tok">Email [PERSON_1] at [EMAIL_ADDRESS_1]</div>
+            </div>
+          </div>
+          <figcaption>The original text reaches Jnvoy, because Jnvoy has to read it to redact it. It does not travel past Jnvoy.</figcaption>
+        </figure>
+      </section>
+
+      <section id="stored">
+        <h2>What is stored</h2>
+        <p>Jnvoy keeps a record of each request so you can audit it. The record describes the request. It does not contain it.</p>
+        <div class="ledger">
+          <div class="row head"><div>Where</div><div>What it holds</div><div>Original text</div></div>
+          <div class="row"><div class="k">Audit log (database)</div><div class="v">Request ID, time, provider, model, response time, whether the cache answered, a short hash of the API key, and counts of what was found by type, for example one person and one phone number.</div><div class="s no">Never</div></div>
+          <div class="row"><div class="k">Response cache (memory)</div><div class="v">The model's reply with tokens still in place, filed under a hash and separated by API key. Cleared whenever the service restarts.</div><div class="s no">Never</div></div>
+          <div class="row"><div class="k">Request memory</div><div class="v">The original values, so they can be restored into the reply. Discarded when the request ends.</div><div class="s yes">Briefly</div></div>
+        </div>
+        <p style="margin-top:20px">The audit log and compliance report routes need an admin key. Client keys cannot read them. The audit log is kept for the whole deployment and is not separated per customer.</p>
+      </section>
+
+      <section id="others">
+        <h2>Who else sees redacted text</h2>
+        <p>Jnvoy sends redacted text to other services to do its job. None of them receive the original values from Jnvoy.</p>
+        <ul class="plain">
+          <li><strong>The model provider you choose</strong> (for example Anthropic or OpenAI) receives the redacted prompt. Its own terms govern what it does with that text.</li>
+          <li><strong>Anthropic, for the second check,</strong> receives the redacted text only when the operator switches the check on. It adds about a second per request. If that service is unavailable, Jnvoy carries on with the first-pass redaction.</li>
+          <li><strong>Render</strong> hosts the Jnvoy service and its database. Jnvoy does not write original text to either.</li>
+        </ul>
+      </section>
+
+      <section id="limits">
+        <h2>What redaction does not promise</h2>
+        <p>Detection combines pattern rules, a trained model for names and places, and the optional second check. Together they catch most of what we test for, and they can still miss a value or hide a harmless word.</p>
+        <ul class="plain">
+          <li><strong>Misses happen.</strong> Unusual formats, names with no surrounding context, and addresses written in free text are the likeliest to slip through.</li>
+          <li><strong>Over-redaction happens too.</strong> A ten digit number can be read as an NHS number, and a brand name can be read as a person.</li>
+          <li><strong>Our measurements are small.</strong> The labelled test set is in the <a href="https://github.com/Jeevan2191999/jnvoy/tree/main/evaluation">repository</a>, written by us, and you can run it yourself. Treat it as evidence, not proof.</li>
+        </ul>
+        <p>For that reason Jnvoy's compliance report says no PII <em>detected by Jnvoy</em> was transmitted. It does not say none existed.</p>
+      </section>
+
+      <section id="sending">
+        <h2>Sending text safely</h2>
+        <ul class="plain">
+          <li><strong>Send text in the request body.</strong> Use <code>POST /v1/scan</code>. The older <code>GET</code> routes put your text in the web address, and web servers commonly record addresses in their logs. Those routes are deprecated.</li>
+          <li><strong>Keep your API key out of source code.</strong> Keys are checked in constant time, are never written to logs or responses, and can be rate limited.</li>
+          <li><strong>Treat the second check as a choice.</strong> If your data cannot go to a second vendor in any form, ask for it to stay off.</li>
+        </ul>
+        <div class="notice"><strong>This page describes how the software behaves today.</strong> It is not a contract or legal advice. If your organisation needs a data processing agreement, ask before you send real data.</div>
+      </section>
+
+      <section id="contact">
+        <h2>Questions</h2>
+        <p>Write to <a href="mailto:j.nagaraj2109@gmail.com?subject=Jnvoy%20privacy">j.nagaraj2109@gmail.com</a> with anything about data handling. The source is open, so you can also check any statement on this page against the code on <a href="https://github.com/Jeevan2191999/jnvoy">GitHub</a>.</p>
+      </section>
+
+    </div>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap fgrid">
+    <div class="left">jnvoy, built by Jeevan Nagaraj</div>
+    <div class="flinks">
+      <a href="/docs">API docs</a>
+      <a href="https://github.com/Jeevan2191999/jnvoy">GitHub</a>
+      <a href="/v1/report/compliance">Sample report</a>
+      <a href="/privacy">Privacy</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // Highlight the section being read in the contents list.
+  (function(){
+    var links = document.querySelectorAll('.toc a');
+    var map = {};
+    links.forEach(function(a){ map[a.getAttribute('href').slice(1)] = a; });
+    if (!('IntersectionObserver' in window)) return;
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if (e.isIntersecting){
+          links.forEach(function(a){ a.classList.remove('on'); });
+          var a = map[e.target.id]; if (a) a.classList.add('on');
+        }
+      });
+    }, { rootMargin:'-20% 0px -70% 0px' });
+    Object.keys(map).forEach(function(id){
+      var el = document.getElementById(id); if (el) io.observe(el);
+    });
+  })();
+</script>
+</body>
+</html>
