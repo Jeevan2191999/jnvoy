@@ -215,8 +215,28 @@ class ProxyResponse(BaseModel):
 
 # ── LLM Callers ───────────────────────────────────────────────────────────────
 
-async def call_anthropic(messages: list[dict], model: str, max_tokens: int) -> str:
-    api_key = os.getenv("ANTHROPIC_API_KEY")
+def _own_key_error(provider: str, status: int, text: str) -> HTTPException:
+    """
+    The error to give a caller who used their own provider key.
+
+    A rejected key is reported as a plain 400 (a 401 here would look like Jnvoy's own key
+    check) and never echoes the provider's reply, because some providers repeat part of the
+    key back in it. Other errors keep the provider's message, which is about the caller's own
+    request (a wrong model name, a rate limit on their own account).
+    """
+    if status in (401, 403):
+        return HTTPException(status_code=400, detail={
+            "error": "provider_key_rejected",
+            "message": f"{provider} rejected your provider key. Check the x-provider-key header.",
+        })
+    return HTTPException(status_code=status, detail=f"{provider} API error: {text[:500]}")
+
+
+async def call_anthropic(messages: list[dict], model: str, max_tokens: int,
+                         api_key: Optional[str] = None) -> str:
+    # api_key is the caller's own key (hosted customers). Without it the operator's key is used.
+    own_key = api_key is not None
+    api_key = api_key or os.getenv("ANTHROPIC_API_KEY")
     if not api_key:
         raise HTTPException(status_code=500, detail="ANTHROPIC_API_KEY not configured")
 
@@ -233,7 +253,11 @@ async def call_anthropic(messages: list[dict], model: str, max_tokens: int) -> s
                 json={"model": model, "max_tokens": max_tokens, "messages": messages}
             )
             if response.status_code != 200:
-                outage_detector.record_failure("anthropic", response.text[:100])
+                # A customer's wrong key or model must not mark the provider unhealthy for everyone.
+                if not own_key or response.status_code >= 500:
+                    outage_detector.record_failure("anthropic", response.text[:100])
+                if own_key:
+                    raise _own_key_error("Anthropic", response.status_code, response.text)
                 raise HTTPException(status_code=response.status_code,
                                     detail=f"Anthropic API error: {response.text}")
             data = response.json()
@@ -244,11 +268,13 @@ async def call_anthropic(messages: list[dict], model: str, max_tokens: int) -> s
         raise
     except Exception as e:
         outage_detector.record_failure("anthropic", str(e))
-        raise HTTPException(status_code=502, detail=f"Anthropic connection error: {e}")
+        raise HTTPException(status_code=502, detail="Anthropic connection error")
 
 
-async def call_openai(messages: list[dict], model: str, max_tokens: int, temperature: float) -> str:
-    api_key = os.getenv("OPENAI_API_KEY")
+async def call_openai(messages: list[dict], model: str, max_tokens: int, temperature: float,
+                      api_key: Optional[str] = None) -> str:
+    own_key = api_key is not None
+    api_key = api_key or os.getenv("OPENAI_API_KEY")
     if not api_key:
         raise HTTPException(status_code=500, detail="OPENAI_API_KEY not configured")
 
@@ -262,7 +288,10 @@ async def call_openai(messages: list[dict], model: str, max_tokens: int, tempera
                       "max_tokens": max_tokens, "temperature": temperature}
             )
             if response.status_code != 200:
-                outage_detector.record_failure("openai", response.text[:100])
+                if not own_key or response.status_code >= 500:
+                    outage_detector.record_failure("openai", response.text[:100])
+                if own_key:
+                    raise _own_key_error("OpenAI", response.status_code, response.text)
                 raise HTTPException(status_code=response.status_code,
                                     detail=f"OpenAI API error: {response.text}")
             data = response.json()
@@ -273,7 +302,7 @@ async def call_openai(messages: list[dict], model: str, max_tokens: int, tempera
         raise
     except Exception as e:
         outage_detector.record_failure("openai", str(e))
-        raise HTTPException(status_code=502, detail=f"OpenAI connection error: {e}")
+        raise HTTPException(status_code=502, detail="OpenAI connection error")
 
 
 # ── Core Proxy Pipeline ───────────────────────────────────────────────────────
@@ -304,7 +333,8 @@ def _cache_key(tenant: str, request, redacted_messages: list) -> str:
 
 
 async def run_proxy_pipeline(request: ProxyRequest, tenant: str = "anonymous",
-                             policy: Optional[dict] = None) -> dict:
+                             policy: Optional[dict] = None,
+                             provider_key: Optional[str] = None) -> dict:
     """
     Full Jnvoy pipeline:
     1. Scan all messages for PII and redact
@@ -399,14 +429,15 @@ async def run_proxy_pipeline(request: ProxyRequest, tenant: str = "anonymous",
         llm_response_raw = out_scan.text
     else:
         provider = (request.provider or "anthropic").lower()
+        own = {"api_key": provider_key} if provider_key else {}
         if provider == "anthropic":
             llm_response_raw = await call_anthropic(
-                redacted_messages, routed_model, request.max_tokens
+                redacted_messages, routed_model, request.max_tokens, **own
             )
         elif provider == "openai":
             llm_response_raw = await call_openai(
                 redacted_messages, routed_model,
-                request.max_tokens, request.temperature
+                request.max_tokens, request.temperature, **own
             )
         else:
             raise HTTPException(status_code=400, detail=f"Unknown provider: {provider}")
@@ -473,19 +504,35 @@ async def health():
 async def proxy_request(
     request: ProxyRequest,
     http_request: Request,
-    x_api_key: Optional[str] = Header(None)
+    x_api_key: Optional[str] = Header(None),
+    x_provider_key: Optional[str] = Header(
+        None,
+        description="Your own key for the model provider (Anthropic or OpenAI). Required for customer keys. "
+                    "Used for this one request, never stored, logged or cached.",
+    ),
 ):
     """
     Main proxy endpoint with full intelligence layer.
     Automatically caches, routes, and protects every request.
     Audit logs written to PostgreSQL permanently.
+
+    Customers pay their model provider directly: send your own provider key in the
+    `x-provider-key` header. Jnvoy's own provider keys are never used for a customer.
     """
     audit_id = str(uuid.uuid4())
     caller = _caller(http_request)
+    provider_key = (x_provider_key or "").strip() or None
+    if caller.metered and not provider_key:
+        raise HTTPException(status_code=400, detail={
+            "error": "provider_key_required",
+            "message": "Send your own model provider key in the x-provider-key header. "
+                       "Jnvoy does not supply model access.",
+        })
     key_hash = hashlib.sha256((x_api_key or "anonymous").encode()).hexdigest()
     # Customers are isolated by tenant (all their keys), the operator's own keys by key.
     tenant = caller.tenant_id if caller.metered else key_hash
-    result = await run_proxy_pipeline(request, tenant=tenant, policy=caller.policy)
+    result = await run_proxy_pipeline(request, tenant=tenant, policy=caller.policy,
+                                      provider_key=provider_key)
 
     asyncio.create_task(_write_audit(
         audit_id=audit_id,

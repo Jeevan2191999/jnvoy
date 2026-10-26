@@ -89,3 +89,9 @@ def test_security_page_has_a_data_flow_diagram_and_a_text_version():
     assert text.count('<ol class="steps">') == 1
     for phrase in ("only place the original text travels to", "never writes the text"):
         assert phrase in text
+
+
+def test_pages_say_customers_use_their_own_provider_key():
+    assert "model provider key" in client.get("/security").text
+    assert "x-provider-key" in client.get("/privacy").text
+    assert "own model provider account" in client.get("/").text

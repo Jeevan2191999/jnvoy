@@ -305,6 +305,7 @@
         <h2>Sending text safely</h2>
         <ul class="plain">
           <li><strong>Send text in the request body.</strong> Use <code>POST /v1/scan</code>. The old <code>GET</code> versions put your text in the web address, and web servers commonly record addresses in their logs. They have been removed and now answer with an error.</li>
+          <li><strong>Your model provider key travels with each request.</strong> Send it in the <code>x-provider-key</code> header. It is used to make that one call, and is never stored, logged, cached or written to the audit log.</li>
           <li><strong>Keep your API key out of source code.</strong> Keys are checked in constant time, are never written to logs or responses, and can be rate limited.</li>
           <li><strong>Treat the second check as a choice.</strong> If your data cannot go to a second vendor in any form, set <code>judge</code> to <code>off</code> in your settings, or ask for it to stay off.</li>
         </ul>

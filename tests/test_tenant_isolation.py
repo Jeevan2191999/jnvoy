@@ -254,7 +254,7 @@ def test_proxy_calls_are_audited_to_the_right_customer_and_use_their_settings(cl
     import api.proxy_v2 as app_module
     seen = {}
 
-    async def fake_anthropic(messages, model, max_tokens):
+    async def fake_anthropic(messages, model, max_tokens, api_key=None):
         seen["messages"] = messages
         return "Noted: " + messages[-1]["content"]
 
@@ -264,12 +264,12 @@ def test_proxy_calls_are_audited_to_the_right_customer_and_use_their_settings(cl
     body = {"messages": [{"role": "user", "content": "My Aadhaar number is 7260 1815 9082."}],
             "provider": "anthropic", "model": "claude-haiku-4-5", "use_cache": False, "use_routing": False}
 
-    ra = client.post("/v1/proxy", json=body, headers={"x-api-key": a["api_key"]})
+    ra = client.post("/v1/proxy", json=body, headers={"x-api-key": a["api_key"], "x-provider-key": "sk-ant-test"})
     assert ra.status_code == 200, ra.text
     assert "7260" not in seen["messages"][-1]["content"]          # customer A: redacted before the model
     assert "7260 1815 9082" in ra.json()["content"]               # and restored in the reply
 
-    rb = client.post("/v1/proxy", json=body, headers={"x-api-key": b["api_key"]})
+    rb = client.post("/v1/proxy", json=body, headers={"x-api-key": b["api_key"], "x-provider-key": "sk-ant-test"})
     assert rb.status_code == 200
     assert "7260 1815 9082" in seen["messages"][-1]["content"]    # customer B turned regions off
 
@@ -302,13 +302,13 @@ def test_reply_findings_are_audited_per_customer_as_counts_only(client, monkeypa
     import api.proxy_v2 as app_module
     secret = "sk-ant-api03-" + "AbCdEfGh1234567890" * 3
 
-    async def fake_anthropic(messages, model, max_tokens):
+    async def fake_anthropic(messages, model, max_tokens, api_key=None):
         return f"Use {secret}"
 
     monkeypatch.setattr(app_module, "call_anthropic", fake_anthropic)
     t = make_tenant(client, policy={"output_scan": "redact"})
     key = {"x-api-key": t["api_key"]}
-    r = client.post("/v1/proxy", headers=key, json={
+    r = client.post("/v1/proxy", headers={**key, "x-provider-key": "sk-ant-test"}, json={
         "model": "claude-haiku-4-5", "messages": [{"role": "user", "content": "give me a key"}],
         "use_cache": False, "use_routing": False})
     assert r.status_code == 200

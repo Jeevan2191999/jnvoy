@@ -253,6 +253,7 @@
           <li>API keys are compared in constant time, are never written to logs or responses, and each key is rate limited.</li>
           <li>Repeated wrong keys from one address are blocked for a while.</li>
           <li>Operator routes, such as creating customers and reading the whole deployment, need an operator key that customer keys cannot use.</li>
+          <li>Customers use their own model provider key. It is sent in a header, used for that one request, and never stored, logged or cached. Jnvoy's own provider keys are never used for a customer.</li>
           <li>A customer key can be replaced on request. The old key stops working straight away.</li>
         </ul>
         <h3>Customer separation</h3>

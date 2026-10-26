@@ -136,6 +136,18 @@ The response holds the customer's key once. Plans are `free` (10,000 calls a mon
 
 Settings (`policy`) per customer: `regions`, `redact_extra`, `judge` (`default`, `on`, `off`), `judge_fail_mode` and `output_scan` (`flag` by default, `redact`, or `off`). `judge: off` means no text, not even redacted text, goes to a second provider. Keys from `JNVOY_API_KEYS` and `JNVOY_ADMIN_KEYS` are the operator's own and are not metered. Customers need the database (`DATABASE_URL`).
 
+#### Model provider keys
+
+Customers pay their model provider directly. Jnvoy does not supply model access and never uses its own provider keys for a customer. A customer calls `/v1/proxy` with their own provider key in the `x-provider-key` header:
+
+```
+curl -X POST https://your-host/v1/proxy -H "x-api-key: $JNVOY_KEY" -H "x-provider-key: $ANTHROPIC_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"provider":"anthropic","model":"claude-haiku-4-5","messages":[{"role":"user","content":"Hello"}]}'
+```
+
+The provider key is used for that one request. It is never stored, logged, cached or written to the audit log, and a rejected key is reported as `400 provider_key_rejected` without repeating any part of it. Without the header a customer gets `400 provider_key_required`. `/v1/scan` and the MCP routes call no provider, so they need no provider key.
+
 Full request and response details, with an Authorize button for trying calls, are at [/docs](https://www.jnvoy.com/docs).
 
 ## Configuration
@@ -151,7 +163,7 @@ Full request and response details, with an Authorize button for trying calls, ar
 | `JNVOY_JUDGE_BACKEND` | Second check: `none` (default), `ollama` or `anthropic` |
 | `JNVOY_JUDGE_FAIL_MODE` | If the second check fails: `open` (default) keeps first-pass redaction, `closed` rejects the request |
 | `DATABASE_URL` | PostgreSQL for the audit log. Without it, an in-memory log is used |
-| `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `GOOGLE_API_KEY`, `MISTRAL_API_KEY` | Provider keys for the models you use |
+| `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `GOOGLE_API_KEY`, `MISTRAL_API_KEY` | Provider keys for the models you use. These belong to whoever runs Jnvoy and are used only for the operator's own keys. A hosted customer sends their own, see below |
 
 ## Python and LangChain
 
