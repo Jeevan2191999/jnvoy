@@ -41,3 +41,17 @@ def test_security_headers_are_present():
     assert r.headers["x-content-type-options"] == "nosniff"
     assert r.headers["x-frame-options"] == "DENY"
     assert "max-age" in r.headers["strict-transport-security"]
+
+
+def test_every_response_has_a_unique_request_id_even_a_refusal():
+    a = client.get("/health")
+    b = client.get("/health")
+    assert len(a.headers["x-request-id"]) == 32
+    assert a.headers["x-request-id"] != b.headers["x-request-id"]
+    big = client.post("/v1/scan", json={"text": "a" * 300_000}, headers=HEADERS)
+    assert big.status_code == 413 and big.headers.get("x-request-id")
+
+
+def test_a_client_supplied_request_id_is_not_echoed():
+    r = client.get("/health", headers={"x-request-id": "evil\\r\\ninjected"})
+    assert "evil" not in r.headers["x-request-id"]

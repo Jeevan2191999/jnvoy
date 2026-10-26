@@ -100,9 +100,10 @@ if os.path.exists(_static_dir):
 install_api_key_auth(app)
 
 # Outermost: refuse oversized bodies before auth or scanning, and add basic security headers.
-from core.http_limits import BodySizeLimit, SecurityHeaders  # noqa: E402
+from core.http_limits import BodySizeLimit, RequestId, SecurityHeaders  # noqa: E402
 app.add_middleware(BodySizeLimit)
 app.add_middleware(SecurityHeaders)
+app.add_middleware(RequestId)
 
 
 @app.get("/", include_in_schema=False)

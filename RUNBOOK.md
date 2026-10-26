@@ -63,23 +63,38 @@ What is stored: per request, only counts of what was found (by type), the provid
 latency, the customer id and a short key fingerprint. Never prompt text, never replies. See
 `/privacy`. The tenants table holds customer names, contact emails, plans and hashed keys.
 
-Backups are the database host's job. Check, in the Render dashboard for the Postgres
-instance, that backups are on for your plan and note the retention. Some free database plans
-are deleted after a set period, so confirm the plan before real customers rely on it.
+Backups are the database host's job. In the Render dashboard, open the Postgres instance and its
+Recovery tab. Two things are available: point-in-time recovery (the last 3 days on the current
+plan) and logical backups (kept 7 days). Check both are listed after any plan change.
 
-Take your own copy now and then (needs the `DATABASE_URL`, which stays in your terminal):
+The database accepts connections only from the Jnvoy service, on Render's private network, so
+`pg_dump` from your laptop cannot reach it. That is deliberate. Use the dashboard instead.
 
-    pg_dump "$DATABASE_URL" --no-owner -Fc -f jnvoy_$(date +%Y%m%d).dump
+**Practise a restore once, before a customer relies on it.** This uses a logical backup and your
+own machine, and changes nothing in production:
 
-Practise restoring into a scratch database at least once, before you need to:
+1. Render dashboard, the Postgres instance, Recovery tab, Logical backups: download the latest.
+2. On your machine, with PostgreSQL installed:
 
-    createdb jnvoy_restore_test
-    pg_restore --no-owner -d jnvoy_restore_test jnvoy_20260101.dump
+       createdb jnvoy_restore_test
+       pg_restore --no-owner -d jnvoy_restore_test path/to/the_download.dump
+
+3. Check it: `psql jnvoy_restore_test -c "select count(*) from audit_log;"` and
+   `psql jnvoy_restore_test -c "select count(*) from tenants;"`. Counts should look right.
+4. Drop it: `dropdb jnvoy_restore_test`.
+
+For a real incident, "Restore" in the Recovery tab creates a new database from a chosen time.
+Point `DATABASE_URL` in Render at the new one (use its internal hostname), save, and wait for the
+deploy. Write down the time you restored to.
 
 ## 5. Deploys and rollback
 
-Pushing to `main` deploys. If a deploy misbehaves, use Render's "Rollback" to the last good
-deploy, then fix forward. Run `pytest -q` before every push.
+Pushing to `main` deploys, once the GitHub tests pass (Render: the web service, Settings, Build
+and Deploy, Auto-Deploy "After CI Checks Pass"). If a deploy misbehaves, use Render's "Rollback"
+to the last good deploy, then fix forward. Run `pytest -q` before every push.
+
+Every response carries an `x-request-id` header. Ask a customer for it when they report a problem,
+then search Render's logs for it. It identifies one request and contains none of their text.
 
 ## 6. Something is wrong
 
@@ -87,8 +102,10 @@ deploy, then fix forward. Run `pytest -q` before every push.
 2. `401` for everyone: operator keys changed or are malformed (section 3). `503` with
    `auth_not_configured`: same. `429 monthly_limit_reached` for one customer: expected,
    raise the limit if they should have more.
-3. Slow responses: the optional second check (`JNVOY_JUDGE_BACKEND`) adds about a second.
-   If its provider is down, `JNVOY_JUDGE_FAIL_MODE=open` (default) keeps first-pass redaction.
+3. Slow responses: very large requests are slower to scan (the limit is `JNVOY_MAX_BODY_BYTES`,
+   default about 256 KB). The second check (`JNVOY_JUDGE_BACKEND`) is off on the hosted service.
+   If you switch it on and its provider is down, `JNVOY_JUDGE_FAIL_MODE=open` (default) keeps
+   first-pass redaction.
 4. Model errors (`502`, provider errors): the provider is the problem. `/v1/providers/health`
    (admin key) shows recent failures.
 5. Tell affected customers what happened, what data was involved (usually none: only counts

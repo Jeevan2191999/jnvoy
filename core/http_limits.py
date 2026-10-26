@@ -7,6 +7,7 @@ starts. The limit is JNVOY_MAX_BODY_BYTES (default 262144, about 256 KB).
 
 import json
 import os
+import uuid
 
 DEFAULT_MAX_BODY_BYTES = 262_144
 
@@ -105,3 +106,26 @@ class SecurityHeaders:
             await send(message)
 
         await self.app(scope, receive, send_with_headers)
+
+
+class RequestId:
+    """Adds an x-request-id header to every response. It is generated here, never taken from
+    the client, and contains nothing from the request."""
+
+    def __init__(self, app):
+        self.app = app
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+        request_id = uuid.uuid4().hex
+
+        async def send_with_id(message):
+            if message["type"] == "http.response.start":
+                message = dict(message)
+                message["headers"] = list(message.get("headers", [])) + [
+                    (b"x-request-id", request_id.encode())]
+            await send(message)
+
+        await self.app(scope, receive, send_with_id)
