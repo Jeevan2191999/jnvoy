@@ -78,3 +78,14 @@ def test_public_pages_do_not_call_the_code_open_source():
         text = client.get(path).text.lower()
         assert "open source" not in text and "open-source" not in text, path
         assert "source is open" not in text, path
+
+
+def test_security_page_has_a_data_flow_diagram_and_a_text_version():
+    text = client.get("/security").text
+    assert 'id="dataflow"' in text
+    assert "<svg" in text and 'role="img"' in text
+    assert 'href="#dataflow"' in text
+    # the same flow written out, for phones and screen readers
+    assert text.count('<ol class="steps">') == 1
+    for phrase in ("only place the original text travels to", "never writes the text"):
+        assert phrase in text

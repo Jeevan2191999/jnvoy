@@ -172,6 +172,20 @@
   }
   .notice strong{ color:var(--ink); }
 
+
+  /* ---------- data-flow figure ---------- */
+  .dflow{ margin-top:26px; }
+  .dflow svg{ width:100%; height:auto; display:block; background:var(--paper-raised); border:1px solid var(--line-strong); border-radius:3px; }
+  .dflow .steps{ margin-top:20px; padding-left:1.3em; color:var(--ink-soft); max-width:70ch; }
+  .dflow .steps li{ margin-top:8px; }
+  .dflow figcaption{ margin-top:14px; font-size:0.875rem; color:var(--ink-faint); max-width:70ch; }
+  .dflow .t{ font-family:var(--sans); font-size:13px; fill:var(--ink); }
+  .dflow .t.h{ font-weight:600; font-size:14px; }
+  .dflow .t.s{ fill:var(--ink-soft); font-size:12px; }
+  .dflow .t.z{ font-family:var(--mono); font-weight:700; font-size:12px; }
+  .dflow .t.n{ font-family:var(--mono); font-weight:700; font-size:13px; fill:var(--green); }
+  @media (max-width:760px){ .dflow svg{ display:none; } }
+
   /* ---------- footer (identical to the homepage plus Privacy) ---------- */
   footer{ padding:40px 0; border-top:1px solid var(--line); }
   .fgrid{ display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px; }
@@ -210,6 +224,7 @@
       <ul>
         <li><a href="#glance">The short version</a></li>
         <li><a href="#controls">How it is protected</a></li>
+        <li><a href="#dataflow">Where your text goes</a></li>
         <li><a href="#services">Services we use</a></li>
         <li><a href="#notyet">What we have not done yet</a></li>
         <li><a href="#report">Report a problem</a></li>
@@ -262,6 +277,100 @@
           <li>The source is published on <a href="https://github.com/Jeevan2191999/jnvoy">GitHub</a> under the Business Source License, so you can read the code and check any statement here against it.</li>
           <li>More than 500 automated tests run before every change is published.</li>
         </ul>
+      </section>
+
+
+      <section id="dataflow">
+        <h2>Where your text goes</h2>
+        <p>The original text reaches Jnvoy, because Jnvoy has to read it to redact it. It does not travel past Jnvoy. Only the redacted text goes to a model provider or the optional second check, and the database holds counts, never text.</p>
+        <figure class="dflow">
+          <svg viewBox="0 0 960 470" role="img" aria-labelledby="dfT dfD">
+            <title id="dfT">Data flow through Jnvoy</title>
+            <desc id="dfD">The application sends the original prompt to the Jnvoy service. Jnvoy replaces sensitive values and sends only the redacted prompt to the model provider, and optionally to a second check. The reply comes back, is scanned, has real values restored and returns to the application. The database receives counts only.</desc>
+            <defs>
+              <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#12161B"/></marker>
+              <marker id="arg" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#1E6450"/></marker>
+            </defs>
+
+            <text class="t z" x="20" y="24" fill="#12161B">ORIGINAL TEXT EXISTS</text>
+            <text class="t z" x="730" y="24" fill="#1E6450" style="fill:#1E6450">REDACTED TEXT ONLY</text>
+
+            <!-- Your application -->
+            <rect x="20" y="70" width="190" height="140" rx="3" fill="#F8F8F4" stroke="#12161B" stroke-width="1.5"/>
+            <text class="t h" x="36" y="100">Your application</text>
+            <text class="t s" x="36" y="122">Sends the prompt over</text>
+            <text class="t s" x="36" y="139">HTTPS with its API key.</text>
+            <text class="t s" x="36" y="170">Receives the reply with</text>
+            <text class="t s" x="36" y="187">real values restored.</text>
+
+            <!-- Jnvoy zone -->
+            <rect x="262" y="44" width="420" height="408" rx="4" fill="none" stroke="#12161B" stroke-width="1.5" stroke-dasharray="6 5"/>
+            <text class="t z" x="278" y="66" fill="#12161B">JNVOY SERVICE, HOSTED ON RENDER</text>
+
+            <rect x="282" y="84" width="380" height="96" rx="3" fill="#F8F8F4" stroke="#12161B"/>
+            <text class="t h" x="298" y="110">Find and replace</text>
+            <text class="t s" x="298" y="131">Sensitive values become tokens such as [PERSON_1].</text>
+            <text class="t s" x="298" y="148">Originals are held in memory for this request only.</text>
+            <text class="t s" x="298" y="165">Checked against the customer's own settings.</text>
+
+            <rect x="282" y="226" width="380" height="80" rx="3" fill="#F8F8F4" stroke="#12161B"/>
+            <text class="t h" x="298" y="252">Scan the reply</text>
+            <text class="t s" x="298" y="273">Flags keys, card numbers and injection text, then</text>
+            <text class="t s" x="298" y="290">puts the real values back before it returns.</text>
+
+            <rect x="282" y="352" width="380" height="84" rx="3" fill="#E3EEE9" stroke="#1E6450"/>
+            <text class="t h" x="298" y="378">Database, Frankfurt (private network only)</text>
+            <text class="t s" x="298" y="399">Counts of what was found, by type. Account details</text>
+            <text class="t s" x="298" y="416">and a hash of the key. Never the original text.</text>
+
+            <!-- Second check -->
+            <rect x="740" y="70" width="200" height="108" rx="3" fill="#E3EEE9" stroke="#1E6450" stroke-dasharray="5 4"/>
+            <text class="t h" x="756" y="98">Second check</text>
+            <text class="t s" x="756" y="118">Optional. Off unless switched</text>
+            <text class="t s" x="756" y="135">on, and a customer can turn</text>
+            <text class="t s" x="756" y="152">it off. Can run on your own</text>
+            <text class="t s" x="756" y="169">model instead of Anthropic.</text>
+
+            <!-- Model provider -->
+            <rect x="740" y="240" width="200" height="108" rx="3" fill="#E3EEE9" stroke="#1E6450"/>
+            <text class="t h" x="756" y="268">Model provider</text>
+            <text class="t s" x="756" y="289">The one the customer picks,</text>
+            <text class="t s" x="756" y="306">for example Anthropic or</text>
+            <text class="t s" x="756" y="323">OpenAI. Writes the reply.</text>
+
+            <!-- 1 prompt in -->
+            <path d="M210,110 H282" stroke="#12161B" stroke-width="1.6" fill="none" marker-end="url(#ar)"/>
+            <text class="t n" x="233" y="100" style="fill:#12161B">1</text>
+
+            <!-- 2 redacted prompt to provider -->
+            <path d="M662,150 H706 V294 H740" stroke="#1E6450" stroke-width="1.6" fill="none" marker-end="url(#arg)"/>
+            <text class="t n" x="690" y="140">2</text>
+
+            <!-- optional second check -->
+            <path d="M662,112 H740" stroke="#1E6450" stroke-width="1.4" stroke-dasharray="5 4" fill="none" marker-end="url(#arg)"/>
+            <text class="t s" x="689" y="104">optional</text>
+
+            <!-- 3 reply back -->
+            <path d="M740,330 H690 V266 H662" stroke="#1E6450" stroke-width="1.6" fill="none" marker-end="url(#arg)"/>
+            <text class="t n" x="700" y="316">3</text>
+
+            <!-- 4 reply to app -->
+            <path d="M282,266 H236 V192 H210" stroke="#12161B" stroke-width="1.6" fill="none" marker-end="url(#ar)"/>
+            <text class="t n" x="226" y="232" style="fill:#12161B">4</text>
+
+            <!-- 5 counts to db -->
+            <path d="M472,306 V352" stroke="#1E6450" stroke-width="1.6" fill="none" marker-end="url(#arg)"/>
+            <text class="t n" x="482" y="334">5</text>
+          </svg>
+          <ol class="steps">
+            <li><strong>Your application</strong> sends the prompt to Jnvoy over HTTPS. This is the only place the original text travels to.</li>
+            <li><strong>Jnvoy</strong> replaces sensitive values with tokens and sends the redacted prompt to the model provider the customer chose. If the second check is on, the redacted text also goes there.</li>
+            <li><strong>The model provider</strong> writes a reply that uses the tokens, and sends it back.</li>
+            <li><strong>Jnvoy</strong> scans the reply, puts the real values back, and returns it to your application.</li>
+            <li><strong>Jnvoy</strong> writes counts of what it found to the database. It never writes the text.</li>
+          </ol>
+          <figcaption>Original values exist in the application and in Jnvoy's memory while a request is processed. Everything Jnvoy sends on to another service is redacted.</figcaption>
+        </figure>
       </section>
 
       <section id="services">
