@@ -70,3 +70,11 @@ def test_privacy_page_matches_the_customer_model():
 
 def test_docs_page_footer_links_to_security():
     assert 'href="/security"' in client.get("/docs").text
+
+
+def test_public_pages_do_not_call_the_code_open_source():
+    # The licence is the Business Source License: source-available, not open source.
+    for path in ("/", "/privacy", "/security"):
+        text = client.get(path).text.lower()
+        assert "open source" not in text and "open-source" not in text, path
+        assert "source is open" not in text, path
