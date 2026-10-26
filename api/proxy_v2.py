@@ -32,7 +32,7 @@ from typing import Optional
 import httpx
 from fastapi import FastAPI, HTTPException, Header, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, Response
 from fastapi.staticfiles import StaticFiles
 from starlette.concurrency import run_in_threadpool
 from pydantic import BaseModel
@@ -111,6 +111,28 @@ async def privacy_page():
     if os.path.exists(_page):
         return FileResponse(_page)
     raise HTTPException(status_code=404, detail="Not found")
+
+@app.get("/security", include_in_schema=False)
+async def security_page():
+    _page = os.path.join(_static_dir, "security.html")
+    if os.path.exists(_page):
+        return FileResponse(_page)
+    raise HTTPException(status_code=404, detail="Not found")
+
+
+SECURITY_TXT = (
+    "Contact: mailto:j.nagaraj2109@gmail.com\n"
+    "Expires: 2027-10-26T00:00:00.000Z\n"
+    "Preferred-Languages: en\n"
+    "Canonical: https://www.jnvoy.com/.well-known/security.txt\n"
+    "Policy: https://www.jnvoy.com/security\n"
+)
+
+
+@app.get("/.well-known/security.txt", include_in_schema=False)
+async def security_txt():
+    return Response(SECURITY_TXT, media_type="text/plain; charset=utf-8")
+
 
 # In-memory fallback audit log used when database is unavailable
 audit_log: list[dict] = []
@@ -713,7 +735,7 @@ async def _write_audit(
 
 # ── PDF Compliance Report Endpoint ────────────────────────────────────────────
 
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, Response
 import tempfile
 import os
 

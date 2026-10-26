@@ -123,6 +123,7 @@ _BAR = """
   <nav class="jn-links" aria-label="Jnvoy">
     <a href="/">Home</a>
     <a href="/privacy">Privacy</a>
+    <a href="/security">Security</a>
     <a href="https://github.com/Jeevan2191999/jnvoy">GitHub</a>
   </nav>
 </div>

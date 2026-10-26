@@ -200,7 +200,7 @@
     <div class="wrap">
       <h1>Privacy and data handling</h1>
       <p class="lede">What happens to your text when it passes through Jnvoy, what we keep, who else sees it, and where redaction can fall short.</p>
-      <p class="meta">Last updated 22 October 2026</p>
+      <p class="meta">Last updated 26 October 2026</p>
     </div>
   </div>
 
@@ -227,7 +227,7 @@
           <div class="row head"><div>Question</div><div>Answer</div><div>Status</div></div>
           <div class="row"><div class="k">Is original text saved?</div><div class="v">Not in the database, the audit log, the cache or the logs. It exists in memory while a request is processed.</div><div class="s no">Not stored</div></div>
           <div class="row"><div class="k">What reaches the model provider?</div><div class="v">The redacted text only, sent to the provider you choose.</div><div class="s no">Redacted</div></div>
-          <div class="row"><div class="k">Does anyone else see redacted text?</div><div class="v">Anthropic does, but only if the optional second check is switched on.</div><div class="s mid">Optional</div></div>
+          <div class="row"><div class="k">Does anyone else see redacted text?</div><div class="v">Anthropic does, but only if the optional second check is switched on. Each customer can switch it off for their own traffic.</div><div class="s mid">Optional</div></div>
           <div class="row"><div class="k">Is detection guaranteed to be complete?</div><div class="v">No. It is strong, and it is measured, but a value can be missed.</div><div class="s yes">Not guaranteed</div></div>
         </div>
       </section>
@@ -271,11 +271,13 @@
         <p>Jnvoy keeps a record of each request so you can audit it. The record describes the request. It does not contain it.</p>
         <div class="ledger">
           <div class="row head"><div>Where</div><div>What it holds</div><div>Original text</div></div>
-          <div class="row"><div class="k">Audit log (database)</div><div class="v">Request ID, time, provider, model, response time, whether the cache answered, a short hash of the API key, and counts of what was found by type, for example one person and one phone number.</div><div class="s no">Never</div></div>
+          <div class="row"><div class="k">Audit log (database)</div><div class="v">Request ID, time, provider, model, response time, whether the cache answered, a short hash of the API key, and counts of what was found by type, for example one person and one phone number. If reply scanning is on, it also holds counts of what was found in the model's reply, by type.</div><div class="s no">Never</div></div>
           <div class="row"><div class="k">Response cache (memory)</div><div class="v">The model's reply with tokens still in place, filed under a hash and separated by API key. Cleared whenever the service restarts.</div><div class="s no">Never</div></div>
           <div class="row"><div class="k">Request memory</div><div class="v">The original values, so they can be restored into the reply. Discarded when the request ends.</div><div class="s yes">Briefly</div></div>
+          <div class="row"><div class="k">Customer account (database)</div><div class="v">Company name, contact email, plan, your settings, the number of calls made each month, and a SHA-256 hash of your API key. The key itself is shown once when it is created and is never stored.</div><div class="s no">Never</div></div>
         </div>
-        <p style="margin-top:20px">The audit log and compliance report routes need an admin key. Client keys cannot read them. The audit log is kept for the whole deployment and is not separated per customer.</p>
+        <p style="margin-top:20px">Each customer can read only their own audit records and usage, using their own key. Operator keys can read the whole deployment, and the operator's compliance report routes need an operator key. Records are kept for the life of the deployment. If you need a different retention period, ask.</p>
+        <p>Jnvoy can also scan the model's reply for things that should not come back, such as keys, card numbers and prompt injection text. That check runs on the reply as it arrives, before real values are put back. It records counts only.</p>
       </section>
 
       <section id="others">
@@ -283,8 +285,8 @@
         <p>Jnvoy sends redacted text to other services to do its job. None of them receive the original values from Jnvoy.</p>
         <ul class="plain">
           <li><strong>The model provider you choose</strong> (for example Anthropic or OpenAI) receives the redacted prompt. Its own terms govern what it does with that text.</li>
-          <li><strong>Anthropic, for the second check,</strong> receives the redacted text only when the operator switches the check on. It adds about a second per request. If that service is unavailable, Jnvoy carries on with the first-pass redaction.</li>
-          <li><strong>Render</strong> hosts the Jnvoy service and its database. Jnvoy does not write original text to either.</li>
+          <li><strong>Anthropic, for the second check,</strong> receives the redacted text only when the check is switched on. It adds about a second per request. If that service is unavailable, Jnvoy carries on with the first-pass redaction. A customer can switch the check off for their own traffic, and a self-hosted deployment can run it on a model on its own machine instead.</li>
+          <li><strong>Render</strong> hosts the Jnvoy service and its database. Request text is processed in the service's memory, and Jnvoy does not write original text to either. The <a href="/security">security page</a> lists every service we use.</li>
         </ul>
       </section>
 
@@ -304,7 +306,7 @@
         <ul class="plain">
           <li><strong>Send text in the request body.</strong> Use <code>POST /v1/scan</code>. The old <code>GET</code> versions put your text in the web address, and web servers commonly record addresses in their logs. They have been removed and now answer with an error.</li>
           <li><strong>Keep your API key out of source code.</strong> Keys are checked in constant time, are never written to logs or responses, and can be rate limited.</li>
-          <li><strong>Treat the second check as a choice.</strong> If your data cannot go to a second vendor in any form, ask for it to stay off.</li>
+          <li><strong>Treat the second check as a choice.</strong> If your data cannot go to a second vendor in any form, set <code>judge</code> to <code>off</code> in your settings, or ask for it to stay off.</li>
         </ul>
         <div class="notice"><strong>This page describes how the software behaves today.</strong> It is not a contract or legal advice. If your organisation needs a data processing agreement, ask before you send real data.</div>
       </section>
@@ -327,6 +329,7 @@
       <a href="https://github.com/Jeevan2191999/jnvoy">GitHub</a>
       <a href="/v1/report/compliance">Sample report</a>
       <a href="/privacy">Privacy</a>
+      <a href="/security">Security</a>
     </div>
   </div>
 </footer>

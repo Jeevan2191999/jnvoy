@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jnvoy: security</title>
+<meta name="description" content="How Jnvoy protects the text and keys you send it, which services are involved, and what has not been done yet.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* Same tokens as the homepage, so the two pages read as one product. */
+  :root{
+    --ink:        #12161B;
+    --ink-soft:   #42484F;
+    --ink-faint:  #71777E;
+    --paper:      #EDEEE9;
+    --paper-raised:#F8F8F4;
+    --line:       #D7D8D1;
+    --line-strong:#B9BAB2;
+    --red:        #8A2A16;
+    --red-dim:    #B8491F;
+    --red-wash:   #F4E7E2;
+    --green:      #1E6450;
+    --green-wash: #E3EEE9;
+    --redact:     #15171A;
+
+    --mono: 'Courier Prime', ui-monospace, 'SF Mono', Consolas, monospace;
+    --sans: 'Inter', -apple-system, 'Segoe UI', sans-serif;
+
+    --maxw: 1180px;
+    --radius-ui: 4px;
+  }
+
+  *,*::before,*::after{ box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:var(--sans);
+    font-size:16px;
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,p,ul,figure{ margin:0; }
+  a{ color:inherit; }
+  .wrap{ max-width:var(--maxw); margin:0 auto; padding:0 28px; }
+  :focus-visible{ outline:2px solid var(--green); outline-offset:3px; }
+  @media (prefers-reduced-motion: reduce){
+    html{ scroll-behavior:auto; }
+    *{ transition-duration:0.001ms !important; }
+  }
+
+  /* ---------- nav (identical to the homepage) ---------- */
+  header.site{
+    position:sticky; top:0; z-index:40;
+    background:rgba(237,238,233,0.92);
+    backdrop-filter:blur(6px);
+    border-bottom:1px solid var(--line);
+  }
+  .nav{ display:flex; align-items:center; justify-content:space-between; height:68px; }
+  .wordmark{
+    font-family:var(--mono); font-weight:700; font-size:1.05rem; letter-spacing:0.01em;
+    display:flex; align-items:center; gap:9px; text-decoration:none; color:var(--ink);
+  }
+  .wordmark .dot{ width:8px; height:8px; border-radius:50%; background:var(--green); box-shadow:0 0 0 3px var(--green-wash); }
+  .navlinks{ display:flex; align-items:center; gap:30px; }
+  .navlinks a{ text-decoration:none; font-size:0.9375rem; color:var(--ink-soft); font-weight:500; }
+  .navlinks a:hover{ color:var(--ink); }
+  .btn{
+    display:inline-flex; align-items:center; gap:8px;
+    font-family:var(--sans); font-weight:600; font-size:0.85rem;
+    padding:0.5em 1em; border-radius:var(--radius-ui); text-decoration:none;
+    border:1px solid transparent; transition:background 0.15s ease;
+  }
+  .navlinks a.btn{ background:var(--red); color:#fff; }
+  .navlinks a.btn:hover{ background:var(--red-dim); color:#fff; }
+  @media (max-width:760px){ .navlinks a:not(.btn){ display:none; } }
+
+  /* ---------- page head ---------- */
+  .pagehead{ padding:72px 0 56px; border-bottom:1px solid var(--line-strong); }
+  .pagehead h1{
+    font-family:var(--mono); font-weight:700;
+    font-size:clamp(2rem, 4.2vw, 3rem); line-height:1.1; letter-spacing:-0.01em;
+    max-width:18ch;
+  }
+  .pagehead .lede{ margin-top:20px; font-size:1.125rem; color:var(--ink-soft); max-width:56ch; line-height:1.65; }
+  .meta{ margin-top:28px; font-family:var(--mono); font-size:0.8125rem; color:var(--ink-faint); }
+
+  /* ---------- two column document ---------- */
+  .doc{
+    display:grid; grid-template-columns:200px minmax(0,1fr); gap:72px;
+    padding:64px 0 96px; align-items:start;
+  }
+  @media (max-width:900px){ .doc{ grid-template-columns:1fr; gap:0; padding-top:40px; } }
+  .toc{ position:sticky; top:96px; font-size:0.9rem; }
+  .toc p{ font-weight:600; color:var(--ink-faint); font-size:0.8125rem; margin-bottom:10px; }
+  .toc ul{ list-style:none; padding:0; border-left:1px solid var(--line-strong); }
+  .toc a{
+    display:block; padding:6px 0 6px 16px; margin-left:-1px;
+    border-left:2px solid transparent; text-decoration:none; color:var(--ink-soft);
+  }
+  .toc a:hover{ color:var(--ink); border-left-color:var(--line-strong); }
+  .toc a.on{ color:var(--ink); font-weight:600; border-left-color:var(--green); }
+  @media (max-width:900px){ .toc{ display:none; } }
+
+  .content > section{ padding:0 0 64px; scroll-margin-top:92px; }
+  .content > section + section{ padding-top:56px; border-top:1px solid var(--line); }
+  .content h2{
+    font-family:var(--mono); font-weight:700; font-size:1.55rem; line-height:1.25; margin-bottom:18px;
+  }
+  .content h3{ font-size:1rem; font-weight:600; margin:28px 0 6px; }
+  .content p{ color:var(--ink-soft); max-width:66ch; margin-top:14px; }
+  .content p:first-of-type{ margin-top:0; }
+  .content p strong, .content li strong{ color:var(--ink); font-weight:600; }
+  .content ul.plain{ padding-left:1.15em; margin-top:14px; color:var(--ink-soft); max-width:66ch; }
+  .content ul.plain li{ margin-top:8px; }
+  code{
+    font-family:var(--mono); font-size:0.9em; color:var(--ink);
+    background:var(--paper-raised); border:1px solid var(--line); border-radius:3px; padding:0.05em 0.35em;
+  }
+  .content a{ color:var(--green); text-underline-offset:3px; }
+
+  /* ---------- the ledger (answers at a glance, and storage) ---------- */
+  .ledger{ margin-top:26px; border-top:1px solid var(--line-strong); }
+  .row{
+    display:grid; grid-template-columns:minmax(0,1.1fr) minmax(0,1.6fr) minmax(0,0.9fr);
+    gap:20px; padding:16px 0; border-bottom:1px solid var(--line); align-items:baseline;
+  }
+  .row.head{ font-weight:600; font-size:0.8125rem; color:var(--ink-faint); padding-bottom:10px; }
+  .row .k{ font-weight:600; }
+  .row .v{ color:var(--ink-soft); font-size:0.9375rem; }
+  .row .s{ font-family:var(--mono); font-size:0.875rem; font-weight:700; }
+  .row .s.no{ color:var(--green); }
+  .row .s.yes{ color:var(--red); }
+  .row .s.mid{ color:var(--ink-soft); }
+  @media (max-width:700px){
+    .row{ grid-template-columns:1fr; gap:4px; }
+    .row.head{ display:none; }
+  }
+
+  /* ---------- the flow figure ---------- */
+  .flow{ margin-top:28px; }
+  .zones{ display:grid; grid-template-columns:1fr 1fr; gap:0; }
+  .zone{ padding-bottom:10px; font-size:0.8125rem; font-weight:600; border-bottom:2px solid var(--ink); }
+  .zone.out{ border-bottom-color:var(--green); color:var(--green); margin-left:12px; }
+  .zone.in{ color:var(--ink); margin-right:12px; }
+  .stops{ display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-top:12px; }
+  .stop{ background:var(--paper-raised); border:1px solid var(--line-strong); border-radius:3px; padding:16px 16px 18px; }
+  .stop h3{ margin:0 0 6px; font-size:0.9375rem; }
+  .stop .what{ font-size:0.8125rem; color:var(--ink-faint); line-height:1.5; }
+  .stop .sample{
+    margin-top:12px; padding:10px 10px; border-radius:3px;
+    font-family:var(--mono); font-size:0.78rem; line-height:1.55; overflow-wrap:anywhere;
+  }
+  .sample.raw{ background:var(--ink); color:#EDEEE9; }
+  .sample.tok{ background:var(--green-wash); color:var(--green); }
+  .stop.optional{ border-style:dashed; }
+  @media (max-width:900px){
+    .zones{ display:none; }
+    .stops{ grid-template-columns:1fr 1fr; }
+  }
+  @media (max-width:560px){ .stops{ grid-template-columns:1fr; } }
+  .flow figcaption{ margin-top:14px; font-size:0.875rem; color:var(--ink-faint); max-width:70ch; }
+
+  /* ---------- notice ---------- */
+  .notice{
+    margin-top:22px; padding:16px 18px; background:var(--red-wash);
+    border-left:3px solid var(--red); border-radius:0 3px 3px 0; max-width:66ch;
+    font-size:0.9375rem; color:var(--ink-soft);
+  }
+  .notice strong{ color:var(--ink); }
+
+  /* ---------- footer (identical to the homepage plus Privacy) ---------- */
+  footer{ padding:40px 0; border-top:1px solid var(--line); }
+  .fgrid{ display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px; }
+  .fgrid .left{ font-family:var(--mono); font-size:0.8125rem; color:var(--ink-faint); }
+  .flinks{ display:flex; gap:22px; flex-wrap:wrap; }
+  .flinks a{ text-decoration:none; font-size:0.875rem; color:var(--ink-soft); }
+  .flinks a:hover{ color:var(--ink); }
+</style>
+</head>
+<body>
+
+<header class="site">
+  <div class="wrap nav">
+    <a href="/" class="wordmark"><span class="dot"></span>jnvoy</a>
+    <nav class="navlinks" aria-label="Main">
+      <a href="/">Home</a>
+      <a href="/docs">Docs</a>
+      <a href="https://github.com/Jeevan2191999/jnvoy">GitHub</a>
+      <a class="btn" href="/docs">Try the API</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="pagehead">
+    <div class="wrap">
+      <h1>Security</h1>
+      <p class="lede">How Jnvoy protects the text and keys you send it, which services are involved, and what we have not done yet.</p>
+      <p class="meta">Last updated 26 October 2026</p>
+    </div>
+  </div>
+
+  <div class="wrap doc">
+    <nav class="toc" aria-label="On this page">
+      <p>On this page</p>
+      <ul>
+        <li><a href="#glance">The short version</a></li>
+        <li><a href="#controls">How it is protected</a></li>
+        <li><a href="#services">Services we use</a></li>
+        <li><a href="#notyet">What we have not done yet</a></li>
+        <li><a href="#report">Report a problem</a></li>
+      </ul>
+    </nav>
+
+    <div class="content">
+
+      <section id="glance">
+        <h2>The short version</h2>
+        <p>Jnvoy reads your text only to redact it, keeps a record that describes each request without containing it, and keeps each customer's records apart. It is a young product, so this page also says what is missing.</p>
+        <div class="ledger">
+          <div class="row head"><div>Question</div><div>Answer</div><div>Status</div></div>
+          <div class="row"><div class="k">Is traffic to Jnvoy encrypted?</div><div class="v">The hosted service is served over HTTPS.</div><div class="s no">HTTPS</div></div>
+          <div class="row"><div class="k">Are API keys stored in plain text?</div><div class="v">No. Customer keys are stored as a SHA-256 hash. A key is shown once, when it is created.</div><div class="s no">Hashed</div></div>
+          <div class="row"><div class="k">Can one customer see another's records?</div><div class="v">No. Audit records, the response cache, usage counts and settings are kept apart per customer, and an automated test checks it.</div><div class="s no">Separated</div></div>
+          <div class="row"><div class="k">Can the text stay on our own servers?</div><div class="v">Yes. Jnvoy can be self-hosted in your own cloud, and the optional second check can run on a model you host.</div><div class="s no">Available</div></div>
+          <div class="row"><div class="k">Is Jnvoy independently certified?</div><div class="v">No. There is no SOC 2 or ISO 27001 report for Jnvoy and no independent penetration test yet.</div><div class="s yes">Not yet</div></div>
+        </div>
+      </section>
+
+      <section id="controls">
+        <h2>How it is protected</h2>
+        <h3>Keys and access</h3>
+        <ul class="plain">
+          <li>API keys are compared in constant time, are never written to logs or responses, and each key is rate limited.</li>
+          <li>Repeated wrong keys from one address are blocked for a while.</li>
+          <li>Operator routes, such as creating customers and reading the whole deployment, need an operator key that customer keys cannot use.</li>
+          <li>A customer key can be replaced on request. The old key stops working straight away.</li>
+        </ul>
+        <h3>Customer separation</h3>
+        <ul class="plain">
+          <li>Each customer has their own audit records, response cache, monthly usage count and settings. A customer can read only their own.</li>
+          <li>Monthly plan limits are enforced for every customer, so one customer's traffic cannot use up another's allowance.</li>
+        </ul>
+        <h3>What is kept</h3>
+        <ul class="plain">
+          <li>Original text is never saved. The audit record holds counts of what was found, by type. The <a href="/privacy">privacy page</a> lists every place data lives.</li>
+          <li>The database accepts connections only from the Jnvoy service inside its private network. It is closed to the public internet.</li>
+        </ul>
+        <h3>Availability and recovery</h3>
+        <ul class="plain">
+          <li>The database is backed up continuously and can be restored to any moment in the last 3 days.</li>
+          <li>The health page is checked every 5 minutes from outside, and an alert is sent if it fails or reports the database as unwell.</li>
+          <li>If the database restarts, Jnvoy replaces its dead connections by itself. This is tested by cutting every connection.</li>
+          <li>There is a written runbook for deploys, key changes, restores and incidents.</li>
+        </ul>
+        <h3>The code</h3>
+        <ul class="plain">
+          <li>The source is open on <a href="https://github.com/Jeevan2191999/jnvoy">GitHub</a>, so you can check any statement here against it.</li>
+          <li>More than 500 automated tests run before every change is published.</li>
+        </ul>
+      </section>
+
+      <section id="services">
+        <h2>Services we use</h2>
+        <p>These are the services involved in running Jnvoy. Only the first three can ever see request text, and only in the form shown.</p>
+        <div class="ledger">
+          <div class="row head"><div>Service</div><div>What it is used for</div><div>Sees your text?</div></div>
+          <div class="row"><div class="k">Render</div><div class="v">Hosts the Jnvoy service and its database (the database runs in Frankfurt). Request text is processed in the service's memory and is not written to the database or the logs.</div><div class="s mid">In memory</div></div>
+          <div class="row"><div class="k">The model provider you choose</div><div class="v">Answers the prompt, for example Anthropic or OpenAI. Its own terms apply to what it receives.</div><div class="s no">Redacted only</div></div>
+          <div class="row"><div class="k">Anthropic, second check only</div><div class="v">Optional review of redacted text. Off unless switched on, and a customer can switch it off for their own traffic.</div><div class="s no">Redacted only</div></div>
+          <div class="row"><div class="k">UptimeRobot</div><div class="v">Requests the health page every 5 minutes to alert us if the service is down. The health page holds no customer data.</div><div class="s no">No</div></div>
+          <div class="row"><div class="k">GitHub</div><div class="v">Holds the source code. No customer data is stored there.</div><div class="s no">No</div></div>
+        </div>
+        <p style="margin-top:20px">Render publishes its own SOC 2 Type 2 and ISO 27001 certifications on its <a href="https://render.com/security">security page</a>. They cover Render's platform. They do not make Jnvoy certified.</p>
+      </section>
+
+      <section id="notyet">
+        <h2>What we have not done yet</h2>
+        <p>These are the gaps a careful buyer should know about before sending real data.</p>
+        <ul class="plain">
+          <li><strong>No certification.</strong> Jnvoy has no SOC 2 or ISO 27001 report of its own.</li>
+          <li><strong>No independent penetration test.</strong> The tests are ours. We plan an independent test once there are paying customers.</li>
+          <li><strong>One instance, one region.</strong> The service runs as a single instance with no automatic failover. A deploy or a crash can mean a short outage. Uptime is not guaranteed on the free and production plans, and is agreed in writing on Enterprise.</li>
+          <li><strong>Detection is measured on a small set.</strong> See the limits on the <a href="/privacy#limits">privacy page</a>.</li>
+          <li><strong>Data processing agreement.</strong> Ask for one before you send real data.</li>
+        </ul>
+        <div class="notice"><strong>This page describes how the software behaves today.</strong> It is not a contract or legal advice. If a statement here is wrong, tell us and we will fix the page.</div>
+      </section>
+
+      <section id="report">
+        <h2>Report a problem</h2>
+        <p>If you find a security problem, write to <a href="mailto:j.nagaraj2109@gmail.com?subject=Jnvoy%20security">j.nagaraj2109@gmail.com</a> with the subject "Jnvoy security". We will acknowledge within two working days, and we will tell affected customers without undue delay if their data is involved. Please do not test against other customers' data. The same details are in our <a href="/.well-known/security.txt">security.txt</a>.</p>
+        <p>Jnvoy is operated by JNVOY LIMITED, a private company limited by shares, registered in England and Wales under company number 17536574.</p>
+      </section>
+
+    </div>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap fgrid">
+    <div class="left">JNVOY LIMITED. Registered in England and Wales, company number 17536574.</div>
+    <div class="flinks">
+      <a href="/docs">API docs</a>
+      <a href="https://github.com/Jeevan2191999/jnvoy">GitHub</a>
+      <a href="/v1/report/compliance">Sample report</a>
+      <a href="/privacy">Privacy</a>
+      <a href="/security">Security</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // Highlight the section being read in the contents list.
+  (function(){
+    var links = document.querySelectorAll('.toc a');
+    var map = {};
+    links.forEach(function(a){ map[a.getAttribute('href').slice(1)] = a; });
+    if (!('IntersectionObserver' in window)) return;
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if (e.isIntersecting){
+          links.forEach(function(a){ a.classList.remove('on'); });
+          var a = map[e.target.id]; if (a) a.classList.add('on');
+        }
+      });
+    }, { rootMargin:'-20% 0px -70% 0px' });
+    Object.keys(map).forEach(function(id){
+      var el = document.getElementById(id); if (el) io.observe(el);
+    });
+  })();
+</script>
+</body>
+</html>
