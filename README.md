@@ -109,11 +109,28 @@ All `/v1` routes need an `x-api-key` header. Routes marked admin need an admin k
 | `POST /v1/mcp/scan` | Scan an MCP message for threats | client |
 | `POST /v1/mcp/scan/tool-response` | Scan an MCP tool response | client |
 | `POST /v1/mcp/scan/tool-description` | Scan an MCP tool description for poisoning | client |
-| `GET /v1/audit`, `GET /v1/audit/summary` | Read the audit log | admin |
+| `GET /v1/me` | Your plan, this month's usage and your settings | client |
+| `GET /v1/me/audit` (`?format=csv` to export), `GET /v1/me/audit/summary` | Your own audit log | client |
+| `GET /v1/me/report/compliance` | Your own compliance report (PDF) | client |
+| `POST/GET /v1/admin/tenants`, `GET/PATCH/DELETE /v1/admin/tenants/{id}`, `POST /v1/admin/tenants/{id}/rotate-key` | Create and manage customers and their keys | admin |
+| `GET /v1/audit`, `GET /v1/audit/summary` | Read any customer's audit log (`?tenant_id=`) | admin |
 | `GET /v1/report/compliance` | Compliance report (PDF) | admin |
 | `GET /v1/report/eu-ai-act` | EU AI Act report (PDF) | admin |
 | `GET /v1/cache/stats`, `DELETE /v1/cache` | Response cache statistics and reset | admin |
 | `GET /v1/providers/health` | Model provider health | admin |
+
+### Customers
+
+Each customer gets its own key, plan, monthly allowance, settings, audit log and report. Create one with an admin key:
+
+```
+curl -X POST https://your-host/v1/admin/tenants -H "x-api-key: $ADMIN_KEY" -H "Content-Type: application/json" \
+  -d '{"company_name":"Acme Ltd","email":"security@acme.example","tier":"free","policy":{"regions":"eu","judge":"off"}}'
+```
+
+The response holds the customer's key once. Plans are `free` (10,000 calls a month), `production` (100,000), `business` and `enterprise`; set `monthly_limit` to agree a custom allowance. A customer who reaches the allowance gets `429 monthly_limit_reached`, and every metered response carries `X-Jnvoy-Monthly-Limit` and `X-Jnvoy-Monthly-Remaining`. Usage is counted per calendar month, so nothing needs resetting.
+
+Settings (`policy`) per customer: `regions`, `redact_extra`, `judge` (`default`, `on`, `off`) and `judge_fail_mode`. `judge: off` means no text, not even redacted text, goes to a second provider. Keys from `JNVOY_API_KEYS` and `JNVOY_ADMIN_KEYS` are the operator's own and are not metered. Customers need the database (`DATABASE_URL`).
 
 Full request and response details, with an Authorize button for trying calls, are at [/docs](https://www.jnvoy.com/docs).
 

@@ -30,7 +30,7 @@ from datetime import datetime, timezone
 from typing import Optional
 
 import httpx
-from fastapi import FastAPI, HTTPException, Header
+from fastapi import FastAPI, HTTPException, Header, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
@@ -42,6 +42,8 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from core.detector_v2 import PIIDetectorV2
 from core.judged_detector import JudgedPIIDetector
 from core.auth import install_api_key_auth
+from core.policy import PolicyDetectors
+from core.tenancy import Caller, DEFAULT_TENANT
 from api.docs_config import API_DESCRIPTION, OPENAPI_TAGS, VERSION, apply_docs
 from core.pii_judge import JudgeError
 from core.intelligence import semantic_cache, intelligent_router, outage_detector
@@ -71,6 +73,9 @@ app.add_middleware(
 
 # Single detector instance loaded once at startup
 detector = JudgedPIIDetector(confidence_threshold=0.6)
+
+# One detector per distinct customer policy (an empty policy uses the shared one above)
+detectors = PolicyDetectors(detector)
 
 # Injection detector — scans every request before it reaches the LLM
 injection_detector = InjectionDetector(action="block", confidence_threshold=0.6)
@@ -118,6 +123,8 @@ async def startup():
     try:
         init_pool()
         init_schema()
+        from core.tenants import init_tenant_schema
+        init_tenant_schema()
         _db_available = True
         print("Database connected and schema initialised")
     except Exception as e:
@@ -261,7 +268,8 @@ def _cache_key(tenant: str, request, redacted_messages: list) -> str:
     return hashlib.sha256(blob.encode("utf-8")).hexdigest()
 
 
-async def run_proxy_pipeline(request: ProxyRequest, tenant: str = "anonymous") -> dict:
+async def run_proxy_pipeline(request: ProxyRequest, tenant: str = "anonymous",
+                             policy: Optional[dict] = None) -> dict:
     """
     Full Jnvoy pipeline:
     1. Scan all messages for PII and redact
@@ -294,11 +302,13 @@ async def run_proxy_pipeline(request: ProxyRequest, tenant: str = "anonymous") -
     combined_token_map = {}
     combined_pii_summary = {}
 
+    det = detectors.for_policy(policy)   # this customer's regions, extra types and judge setting
+
     # The whole conversation is redacted together, so tokens are unique across
     # messages ([EMAIL_ADDRESS_1] is always the same person) and the judge runs
     # on all messages concurrently.
     try:
-        results = await detector.detect_conversation_async(
+        results = await det.detect_conversation_async(
             [msg.content for msg in request.messages]
         )
     except JudgeError:
@@ -378,7 +388,7 @@ async def run_proxy_pipeline(request: ProxyRequest, tenant: str = "anonymous") -
             )
 
     # Step 6: Restore original PII values in response
-    restored_response = detector.restore(llm_response_raw, combined_token_map)
+    restored_response = det.restore(llm_response_raw, combined_token_map)
 
     latency_ms = (time.time() - start_time) * 1000
 
@@ -413,6 +423,7 @@ async def health():
 @app.post("/v1/proxy", response_model=ProxyResponse)
 async def proxy_request(
     request: ProxyRequest,
+    http_request: Request,
     x_api_key: Optional[str] = Header(None)
 ):
     """
@@ -421,8 +432,11 @@ async def proxy_request(
     Audit logs written to PostgreSQL permanently.
     """
     audit_id = str(uuid.uuid4())
-    tenant = hashlib.sha256((x_api_key or "anonymous").encode()).hexdigest()
-    result = await run_proxy_pipeline(request, tenant=tenant)
+    caller = _caller(http_request)
+    key_hash = hashlib.sha256((x_api_key or "anonymous").encode()).hexdigest()
+    # Customers are isolated by tenant (all their keys), the operator's own keys by key.
+    tenant = caller.tenant_id if caller.metered else key_hash
+    result = await run_proxy_pipeline(request, tenant=tenant, policy=caller.policy)
 
     asyncio.create_task(_write_audit(
         audit_id=audit_id,
@@ -431,7 +445,8 @@ async def proxy_request(
         model=result["routed_model"],
         latency_ms=result["latency_ms"],
         cache_hit=result["cache_hit"],
-        api_key_hash=hashlib.sha256((x_api_key or "anonymous").encode()).hexdigest()[:8]
+        api_key_hash=key_hash[:8],
+        tenant_id=caller.tenant_id,
     ))
 
     return ProxyResponse(
@@ -464,10 +479,10 @@ class ScanRequest(_ScanBase):
 
 
 @app.post("/v1/scan")
-async def scan_text_post(body: ScanRequest):
+async def scan_text_post(body: ScanRequest, http_request: Request):
     """Scan text for PII without forwarding to LLM. The text travels in the body, not the URL."""
     try:
-        return await detector.ascan_for_report(body.text)
+        return await detectors.for_policy(_caller(http_request).policy).ascan_for_report(body.text)
     except JudgeError:
         raise HTTPException(status_code=503, detail={"error": "pii_judge_unavailable"})
 
@@ -527,56 +542,77 @@ async def providers_health():
     return outage_detector.get_dashboard()
 
 
-@app.get("/v1/audit")
-async def get_audit_log(limit: int = 50, offset: int = 0):
-    """Return recent audit entries from PostgreSQL."""
+def _caller(http_request: Request) -> Caller:
+    """Who is calling, as decided by the auth middleware."""
+    return getattr(http_request.state, "caller", None) or Caller(role="open")
+
+
+def _mine(tenant_id: str) -> list:
+    return [e for e in audit_log if e.get("tenant_id", DEFAULT_TENANT) == tenant_id]
+
+
+def audit_entries(tenant_id: str, limit: int = 50, offset: int = 0) -> dict:
+    """One tenant's audit entries, newest first. Database when available, else memory."""
     if _db_available:
         try:
-            return query_audit_log(tenant_id="default", limit=limit, offset=offset)
+            return query_audit_log(tenant_id=tenant_id, limit=limit, offset=offset)
         except Exception:
             pass
+    mine = [e for e in audit_log if e.get("tenant_id", DEFAULT_TENANT) == tenant_id]
+    newest_first = list(reversed(mine))
     return {
-        "entries": audit_log[-limit:],
-        "total": len(audit_log),
-        "note": "Sensitive data was never stored. Only hashes and PII type counts."
+        "entries": newest_first[offset:offset + limit],
+        "total": len(mine), "limit": limit, "offset": offset,
+        "note": "Sensitive data was never stored. Only hashes and PII type counts.",
     }
 
 
-@app.get("/v1/audit/summary")
-async def get_audit_summary():
-    """
-    Compliance summary from PostgreSQL.
-    This is the data that goes into FCA and GDPR compliance reports.
-    Sensitive data was never stored. Zero transmitted to any LLM.
-    """
+def audit_summary(tenant_id: str) -> dict:
+    """One tenant's compliance summary. Database when available, else memory."""
     if _db_available:
         try:
-            return get_compliance_summary(tenant_id="default")
+            return get_compliance_summary(tenant_id=tenant_id)
         except Exception:
             pass
 
-    # In-memory fallback
-    if not audit_log:
+    mine = [e for e in audit_log if e.get("tenant_id", DEFAULT_TENANT) == tenant_id]
+    if not mine:
         return {"message": "No audit entries yet"}
 
-    total = len(audit_log)
-    total_pii = sum(e["total_pii_instances"] for e in audit_log)
-    cache_hits = sum(1 for e in audit_log if e.get("cache_hit"))
+    total = len(mine)
+    total_pii = sum(e["total_pii_instances"] for e in mine)
+    cache_hits = sum(1 for e in mine if e.get("cache_hit"))
     pii_types: dict[str, int] = {}
-    for entry in audit_log:
+    for entry in mine:
         for pii_type, count in entry["pii_detected"].items():
             pii_types[pii_type] = pii_types.get(pii_type, 0) + count
 
     return {
+        "tenant_id": tenant_id,
         "total_api_calls": total,
         "total_pii_instances_detected_and_redacted": total_pii,
         "pii_types_breakdown": pii_types,
         "cache_hit_rate_percent": round(cache_hits / total * 100, 1),
-        "average_latency_ms": round(sum(e["latency_ms"] for e in audit_log) / total, 2),
+        "average_latency_ms": round(sum(e["latency_ms"] for e in mine) / total, 2),
         "sensitive_data_transmitted_to_llm": False,
         "compliance_statement": "Zero sensitive data was transmitted to any LLM API during this period.",
         "generated_at": datetime.now(timezone.utc).isoformat()
     }
+
+
+@app.get("/v1/audit")
+async def get_audit_log(limit: int = 50, offset: int = 0, tenant_id: str = DEFAULT_TENANT):
+    """Audit entries for one tenant (the operator's own by default). Admin key."""
+    return audit_entries(tenant_id, limit, offset)
+
+
+@app.get("/v1/audit/summary")
+async def get_audit_summary(tenant_id: str = DEFAULT_TENANT):
+    """
+    Compliance summary for one tenant (the operator's own by default). Admin key.
+    Sensitive data was never stored. Zero transmitted to any LLM.
+    """
+    return audit_summary(tenant_id)
 
 
 async def _write_audit(
@@ -586,7 +622,8 @@ async def _write_audit(
     model: str,
     latency_ms: float,
     cache_hit: bool,
-    api_key_hash: str
+    api_key_hash: str,
+    tenant_id: str = DEFAULT_TENANT,
 ):
     """
     Write audit entry to PostgreSQL with in-memory fallback.
@@ -602,7 +639,7 @@ async def _write_audit(
             latency_ms=latency_ms,
             cache_hit=cache_hit,
             api_key_hash=api_key_hash,
-            tenant_id="default",
+            tenant_id=tenant_id,
         )
         success = await write_audit_entry_async(entry)
         if success:
@@ -619,6 +656,7 @@ async def _write_audit(
         "latency_ms": latency_ms,
         "cache_hit": cache_hit,
         "api_key_hash": api_key_hash,
+        "tenant_id": tenant_id,
         "sensitive_data_transmitted": False
     })
 
@@ -632,6 +670,7 @@ import os
 @app.get("/v1/report/compliance")
 async def download_compliance_report(
     company_name: str = "Your Company",
+    tenant_id: str = DEFAULT_TENANT,
     x_api_key: Optional[str] = Header(None)
 ):
     """
@@ -644,14 +683,14 @@ async def download_compliance_report(
 
         # Get compliance summary from database
         if _db_available:
-            summary = get_compliance_summary(tenant_id="default")
+            summary = get_compliance_summary(tenant_id=tenant_id)
         else:
             summary = {
                 "period_start": "N/A",
                 "period_end": "N/A",
-                "total_api_calls": len(audit_log),
+                "total_api_calls": len(_mine(tenant_id)),
                 "total_pii_instances_detected_and_redacted": sum(
-                    e["total_pii_instances"] for e in audit_log
+                    e["total_pii_instances"] for e in _mine(tenant_id)
                 ),
                 "pii_types_breakdown": {},
                 "cache_hit_rate_percent": 0.0,
@@ -671,7 +710,7 @@ async def download_compliance_report(
             summary=summary,
             output_path=tmp.name,
             company_name=company_name,
-            tenant_id="default"
+            tenant_id=tenant_id
         )
 
         filename = f"jnvoy_compliance_{datetime.now(timezone.utc).strftime('%Y%m%d')}.pdf"
@@ -747,6 +786,7 @@ async def download_eu_ai_act_report(
     company_name: str = "Your Company",
     system_name: str = "AI Assistant",
     risk_classification: str = "Limited Risk",
+    tenant_id: str = DEFAULT_TENANT,
     x_api_key: Optional[str] = Header(None)
 ):
     """
@@ -758,13 +798,13 @@ async def download_eu_ai_act_report(
         import tempfile
 
         if _db_available:
-            summary = get_compliance_summary(tenant_id="default")
+            summary = get_compliance_summary(tenant_id=tenant_id)
         else:
             summary = {
                 "period_start": "N/A", "period_end": "N/A",
-                "total_api_calls": len(audit_log),
+                "total_api_calls": len(_mine(tenant_id)),
                 "total_pii_instances_detected_and_redacted": sum(
-                    e["total_pii_instances"] for e in audit_log),
+                    e["total_pii_instances"] for e in _mine(tenant_id)),
                 "pii_types_breakdown": {},
                 "cache_hit_rate_percent": 0.0,
                 "average_latency_ms": 0.0,
@@ -780,7 +820,7 @@ async def download_eu_ai_act_report(
             company_name=company_name,
             system_name=system_name,
             risk_classification=risk_classification,
-            tenant_id="default"
+            tenant_id=tenant_id
         )
 
         filename = f"jnvoy_eu_ai_act_{datetime.now(timezone.utc).strftime('%Y%m%d')}.pdf"
@@ -789,5 +829,8 @@ async def download_eu_ai_act_report(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Report generation failed: {e}")
 
+
+from api.account_routes import router as account_router  # noqa: E402
+app.include_router(account_router)
 
 apply_docs(app)

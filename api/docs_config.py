@@ -19,6 +19,7 @@ from core.auth import is_admin_route, is_protected
 VERSION = "3.0.0"
 
 ADMIN = "Administration (admin key)"
+ACCOUNT = "Your account"
 
 API_DESCRIPTION = """\
 A privacy and security gateway for LLM traffic. Jnvoy finds personal data in prompts, replaces it \
@@ -35,7 +36,7 @@ deployment. Never put a key in a URL.
 - `401` The key is missing or not valid.
 - `403` A client key was used on an administration route.
 - `422` The request body is malformed or too large.
-- `429` The rate limit was reached (60 a minute per key by default). See the `Retry-After` header.
+- `429` The rate limit was reached (60 a minute per key by default; see the `Retry-After` header), or the key has used its monthly allowance (`monthly_limit_reached`). Responses to metered calls carry `X-Jnvoy-Monthly-Limit` and `X-Jnvoy-Monthly-Remaining`.
 - `503` No keys are configured on this server, or the optional second check failed and the server \
 is set to fail closed.
 
@@ -48,6 +49,7 @@ OPENAPI_TAGS = [
     {"name": "Proxy", "description": "Send a prompt to an AI model with personal data removed first. The reply comes back with the original values restored."},
     {"name": "Scanning", "description": "Check text for personal data or prompt injection without calling any model."},
     {"name": "MCP security", "description": "Scan MCP tool calls, tool responses and tool descriptions for threats."},
+    {"name": ACCOUNT, "description": "Your plan, this month's usage, your settings, and your own audit log and report. Each customer key sees only its own data."},
     {"name": ADMIN, "description": "Audit log, compliance reports, cache controls and provider health. These routes need an admin key."},
     {"name": "Health", "description": "Service status. No key needed."},
 ]
@@ -64,8 +66,18 @@ ROUTE_DOCS = {
     ("GET", "/v1/cache/stats"): (ADMIN, "View response cache statistics"),
     ("DELETE", "/v1/cache"): (ADMIN, "Clear the response cache"),
     ("GET", "/v1/providers/health"): (ADMIN, "Check model provider health"),
-    ("GET", "/v1/audit"): (ADMIN, "Read the audit log"),
-    ("GET", "/v1/audit/summary"): (ADMIN, "Summarise the audit log"),
+    ("GET", "/v1/me"): (ACCOUNT, "See your plan, usage and settings"),
+    ("GET", "/v1/me/audit"): (ACCOUNT, "Read or export your audit log"),
+    ("GET", "/v1/me/audit/summary"): (ACCOUNT, "Summarise your audit log"),
+    ("GET", "/v1/me/report/compliance"): (ACCOUNT, "Download your compliance report (PDF)"),
+    ("POST", "/v1/admin/tenants"): (ADMIN, "Create a customer and its API key"),
+    ("GET", "/v1/admin/tenants"): (ADMIN, "List customers and their usage"),
+    ("GET", "/v1/admin/tenants/{tenant_id}"): (ADMIN, "See one customer"),
+    ("PATCH", "/v1/admin/tenants/{tenant_id}"): (ADMIN, "Change a customer's plan, limit or settings"),
+    ("POST", "/v1/admin/tenants/{tenant_id}/rotate-key"): (ADMIN, "Replace a customer's API key"),
+    ("DELETE", "/v1/admin/tenants/{tenant_id}"): (ADMIN, "Switch a customer off"),
+    ("GET", "/v1/audit"): (ADMIN, "Read any customer's audit log"),
+    ("GET", "/v1/audit/summary"): (ADMIN, "Summarise any customer's audit log"),
     ("GET", "/v1/report/compliance"): (ADMIN, "Download the compliance report (PDF)"),
     ("GET", "/v1/report/eu-ai-act"): (ADMIN, "Download the EU AI Act report (PDF)"),
 }

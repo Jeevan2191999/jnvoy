@@ -37,4 +37,7 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
     CMD curl -f http://localhost:8000/health || exit 1
 
 # Start the server
-CMD ["uvicorn", "api.proxy_v2:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "2"]
+# One worker on purpose: the response cache and the per-minute rate limit live in memory, so
+# with several workers each would keep its own count and the limits would be wrong. Scale by
+# running more containers behind a shared limiter once that exists.
+CMD ["uvicorn", "api.proxy_v2:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1"]

@@ -24,6 +24,7 @@ Tiers:
 
 import hashlib
 import json
+import logging
 import os
 import secrets
 import time
@@ -35,6 +36,8 @@ import psycopg2
 import psycopg2.extras
 
 from core.database import get_pool
+
+log = logging.getLogger("jnvoy.tenants")
 
 
 # ── Tenant Schema ─────────────────────────────────────────────────────────────
@@ -67,14 +70,23 @@ CREATE TABLE IF NOT EXISTS api_key_usage (
     call_count  INTEGER NOT NULL DEFAULT 0,
     PRIMARY KEY (tenant_id, month_year)
 );
+
+-- Per-customer settings (regions, extra entities, judge, reply scanning). See core/policy.py.
+ALTER TABLE tenants ADD COLUMN IF NOT EXISTS policy JSONB NOT NULL DEFAULT '{}';
 """
 
 TIER_LIMITS = {
     "free":       10_000,
-    "pro":        100_000,
+    "production": 100_000,   # the "Production" plan on the website
+    "pro":        100_000,   # older name for the same limit
     "business":   1_000_000,
     "enterprise": 999_999_999,
 }
+
+
+def current_month() -> str:
+    """Usage is counted per calendar month (UTC), so there is nothing to reset."""
+    return datetime.now(timezone.utc).strftime("%Y-%m")
 
 
 # ── Data Models ───────────────────────────────────────────────────────────────
@@ -90,6 +102,7 @@ class Tenant:
     active: bool
     created_at: str
     api_key_prefix: str
+    policy: dict = field(default_factory=dict)
 
     @property
     def is_within_limit(self) -> bool:
@@ -159,7 +172,9 @@ def create_tenant(
     company_name: str,
     email: str,
     tier: str = "free",
-    environment: str = "prod"
+    environment: str = "prod",
+    monthly_limit: Optional[int] = None,
+    policy: Optional[dict] = None,
 ) -> NewTenantResult:
     """
     Create a new tenant and generate their API key.
@@ -167,7 +182,11 @@ def create_tenant(
     """
     tenant_id = generate_tenant_id()
     full_key, prefix, key_hash = generate_api_key(environment)
-    monthly_limit = TIER_LIMITS.get(tier, TIER_LIMITS["free"])
+    if tier not in TIER_LIMITS:
+        raise ValueError(f"Unknown tier '{tier}'. Valid: " + ", ".join(TIER_LIMITS))
+    if monthly_limit is None:
+        monthly_limit = TIER_LIMITS[tier]
+    policy = policy or {}
 
     pool = get_pool()
     conn = pool.getconn()
@@ -177,11 +196,11 @@ def create_tenant(
                 INSERT INTO tenants (
                     tenant_id, company_name, email,
                     api_key_hash, api_key_prefix,
-                    tier, monthly_limit
-                ) VALUES (%s, %s, %s, %s, %s, %s, %s)
+                    tier, monthly_limit, policy
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
             """, (
                 tenant_id, company_name, email,
-                key_hash, prefix, tier, monthly_limit
+                key_hash, prefix, tier, monthly_limit, json.dumps(policy)
             ))
         conn.commit()
     except psycopg2.errors.UniqueViolation:
@@ -218,12 +237,14 @@ def get_tenant_by_api_key(api_key: str) -> Optional[Tenant]:
     try:
         with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
             cur.execute("""
-                SELECT tenant_id, company_name, email, tier,
-                       monthly_limit, calls_this_month, active,
-                       created_at, api_key_prefix
-                FROM tenants
-                WHERE api_key_hash = %s AND active = TRUE
-            """, (key_hash,))
+                SELECT t.tenant_id, t.company_name, t.email, t.tier,
+                       t.monthly_limit, COALESCE(u.call_count, 0) AS calls_this_month,
+                       t.active, t.created_at, t.api_key_prefix, t.policy
+                FROM tenants t
+                LEFT JOIN api_key_usage u
+                       ON u.tenant_id = t.tenant_id AND u.month_year = %s
+                WHERE t.api_key_hash = %s AND t.active = TRUE
+            """, (current_month(), key_hash))
             row = cur.fetchone()
             if not row:
                 return None
@@ -237,7 +258,8 @@ def get_tenant_by_api_key(api_key: str) -> Optional[Tenant]:
                 calls_this_month=row["calls_this_month"],
                 active=row["active"],
                 created_at=row["created_at"].isoformat(),
-                api_key_prefix=row["api_key_prefix"]
+                api_key_prefix=row["api_key_prefix"],
+                policy=row["policy"] or {},
             )
     finally:
         pool.putconn(conn)
@@ -245,28 +267,65 @@ def get_tenant_by_api_key(api_key: str) -> Optional[Tenant]:
 
 def increment_usage(tenant_id: str) -> bool:
     """
-    Increment the call count for a tenant.
-    Called after every successful proxy request.
-    Returns False if monthly limit is exceeded.
+    Count one call against this month's allowance, atomically.
+    Returns False when the monthly limit has been reached (the call is then not counted).
+    On a database error it returns True: a counting fault must not take customers down.
     """
+    return record_usage(tenant_id)[0]
+
+
+def record_usage(tenant_id: str):
+    """
+    Returns (allowed, used_this_month). The limit is read in the same statement, so two
+    requests arriving together cannot both take the last call.
+    """
+    pool = get_pool()
+    conn = pool.getconn()
+    month = current_month()
+    try:
+        with conn.cursor() as cur:
+            cur.execute("""
+                INSERT INTO api_key_usage (tenant_id, month_year, call_count)
+                SELECT %s, %s, 1 FROM tenants
+                 WHERE tenant_id = %s AND active = TRUE AND monthly_limit >= 1
+                ON CONFLICT (tenant_id, month_year) DO UPDATE
+                   SET call_count = api_key_usage.call_count + 1
+                 WHERE api_key_usage.call_count <
+                       (SELECT monthly_limit FROM tenants WHERE tenant_id = %s)
+                RETURNING call_count
+            """, (tenant_id, month, tenant_id, tenant_id))
+            result = cur.fetchone()
+            cur.execute("UPDATE tenants SET last_seen_at = NOW() WHERE tenant_id = %s", (tenant_id,))
+            used = result[0] if result is not None else None
+            if used is None:   # refused: report the current count on this same connection
+                cur.execute(
+                    "SELECT call_count FROM api_key_usage WHERE tenant_id = %s AND month_year = %s",
+                    (tenant_id, month),
+                )
+                row = cur.fetchone()
+                used = row[0] if row else 0
+        conn.commit()
+        return result is not None, used
+    except Exception as e:
+        conn.rollback()
+        log.warning("usage counting failed for %s: %s", tenant_id, e)
+        return True, 0  # fail open
+    finally:
+        pool.putconn(conn)
+
+
+def get_month_usage(tenant_id: str, month: Optional[str] = None) -> int:
     pool = get_pool()
     conn = pool.getconn()
     try:
         with conn.cursor() as cur:
-            cur.execute("""
-                UPDATE tenants
-                SET calls_this_month = calls_this_month + 1,
-                    last_seen_at = NOW()
-                WHERE tenant_id = %s
-                  AND calls_this_month < monthly_limit
-                RETURNING calls_this_month
-            """, (tenant_id,))
-            result = cur.fetchone()
+            cur.execute(
+                "SELECT call_count FROM api_key_usage WHERE tenant_id = %s AND month_year = %s",
+                (tenant_id, month or current_month()),
+            )
+            row = cur.fetchone()
         conn.commit()
-        return result is not None
-    except Exception as e:
-        conn.rollback()
-        return True  # Allow on error to avoid blocking legitimate requests
+        return row[0] if row else 0
     finally:
         pool.putconn(conn)
 
@@ -282,18 +341,21 @@ def get_tenant_dashboard(tenant_id: str) -> Optional[dict]:
         with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
             cur.execute("""
                 SELECT t.tenant_id, t.company_name, t.email,
-                       t.tier, t.monthly_limit, t.calls_this_month,
-                       t.created_at, t.last_seen_at, t.api_key_prefix,
+                       t.tier, t.monthly_limit,
+                       COALESCE(MAX(u.call_count), 0) AS calls_this_month,
+                       t.created_at, t.last_seen_at, t.api_key_prefix, t.policy,
                        COUNT(a.id) as total_calls_all_time,
                        SUM(a.total_pii) as total_pii_protected,
                        SUM(CASE WHEN a.cache_hit THEN 1 ELSE 0 END) as cache_hits
                 FROM tenants t
                 LEFT JOIN audit_log a ON a.tenant_id = t.tenant_id
+                LEFT JOIN api_key_usage u
+                       ON u.tenant_id = t.tenant_id AND u.month_year = %s
                 WHERE t.tenant_id = %s
                 GROUP BY t.tenant_id, t.company_name, t.email,
-                         t.tier, t.monthly_limit, t.calls_this_month,
-                         t.created_at, t.last_seen_at, t.api_key_prefix
-            """, (tenant_id,))
+                         t.tier, t.monthly_limit,
+                         t.created_at, t.last_seen_at, t.api_key_prefix, t.policy
+            """, (current_month(), tenant_id))
             row = cur.fetchone()
             if not row:
                 return None
@@ -320,12 +382,14 @@ def list_tenants() -> list[dict]:
     try:
         with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
             cur.execute("""
-                SELECT tenant_id, company_name, email, tier,
-                       monthly_limit, calls_this_month, active,
-                       created_at, last_seen_at, api_key_prefix
-                FROM tenants
-                ORDER BY created_at DESC
-            """)
+                SELECT t.tenant_id, t.company_name, t.email, t.tier,
+                       t.monthly_limit, COALESCE(u.call_count, 0) AS calls_this_month,
+                       t.active, t.created_at, t.last_seen_at, t.api_key_prefix, t.policy
+                FROM tenants t
+                LEFT JOIN api_key_usage u
+                       ON u.tenant_id = t.tenant_id AND u.month_year = %s
+                ORDER BY t.created_at DESC
+            """, (current_month(),))
             rows = cur.fetchall()
             result = []
             for row in rows:
@@ -359,17 +423,71 @@ def deactivate_tenant(tenant_id: str) -> bool:
 
 def reset_monthly_usage():
     """
-    Reset monthly call counts for all tenants.
-    Run this on the first of each month via a cron job.
+    Kept for older callers. Usage is stored per calendar month, so a new month starts at zero
+    on its own and there is nothing to reset.
     """
+    return None
+
+
+# ── Changes to an existing tenant ─────────────────────────────────────────────
+
+def update_tenant(tenant_id: str, tier: Optional[str] = None, monthly_limit: Optional[int] = None,
+                  policy: Optional[dict] = None, active: Optional[bool] = None,
+                  company_name: Optional[str] = None) -> bool:
+    """Change a tenant's plan, limit, settings or status. Returns False if it does not exist."""
+    sets, args = [], []
+    if tier is not None:
+        if tier not in TIER_LIMITS:
+            raise ValueError(f"Unknown tier '{tier}'. Valid: " + ", ".join(TIER_LIMITS))
+        sets.append("tier = %s"); args.append(tier)
+        if monthly_limit is None:
+            monthly_limit = TIER_LIMITS[tier]
+    if monthly_limit is not None:
+        if monthly_limit < 0:
+            raise ValueError("monthly_limit cannot be negative")
+        sets.append("monthly_limit = %s"); args.append(monthly_limit)
+    if policy is not None:
+        sets.append("policy = %s"); args.append(json.dumps(policy))
+    if active is not None:
+        sets.append("active = %s"); args.append(bool(active))
+    if company_name is not None:
+        sets.append("company_name = %s"); args.append(company_name)
+    if not sets:
+        return True
     pool = get_pool()
     conn = pool.getconn()
     try:
         with conn.cursor() as cur:
-            cur.execute("UPDATE tenants SET calls_this_month = 0")
+            cur.execute(f"UPDATE tenants SET {', '.join(sets)} WHERE tenant_id = %s", (*args, tenant_id))
+            found = cur.rowcount > 0
         conn.commit()
-    except Exception as e:
+        return found
+    except Exception:
         conn.rollback()
-        raise e
+        raise
+    finally:
+        pool.putconn(conn)
+
+
+def rotate_api_key(tenant_id: str, environment: str = "prod") -> Optional[str]:
+    """
+    Issue a new key for a tenant. The old key stops working at once.
+    Returns the new key (shown once), or None if the tenant does not exist.
+    """
+    full_key, prefix, key_hash = generate_api_key(environment)
+    pool = get_pool()
+    conn = pool.getconn()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                "UPDATE tenants SET api_key_hash = %s, api_key_prefix = %s WHERE tenant_id = %s",
+                (key_hash, prefix, tenant_id),
+            )
+            found = cur.rowcount > 0
+        conn.commit()
+        return full_key if found else None
+    except Exception:
+        conn.rollback()
+        raise
     finally:
         pool.putconn(conn)

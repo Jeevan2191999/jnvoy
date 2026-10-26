@@ -24,6 +24,7 @@ Keys must be at least 24 characters. Generate one with:
 Keys are compared in constant time and are never logged or echoed in a response.
 """
 
+import asyncio
 import hashlib
 import hmac
 import logging
@@ -43,7 +44,10 @@ FAILED_AUTH_PER_MIN = 30          # unauthenticated requests tolerated per clien
 MAX_TRACKED_ADDRESSES = 5000
 
 ADMIN_EXACT = {"/v1/cache", "/v1/cache/stats", "/v1/providers/health"}
-ADMIN_PREFIXES = ("/v1/audit", "/v1/report/")
+ADMIN_PREFIXES = ("/v1/audit", "/v1/report/", "/v1/admin")
+
+# Calls that count against a customer's monthly allowance.
+METERED_PREFIXES = ("/v1/proxy", "/v1/scan", "/v1/mcp/")
 
 
 def is_protected(path: str) -> bool:
@@ -53,6 +57,10 @@ def is_protected(path: str) -> bool:
 def is_admin_route(path: str) -> bool:
     path = path.rstrip("/") or "/"
     return path in ADMIN_EXACT or path.startswith(ADMIN_PREFIXES)
+
+
+def is_metered(method: str, path: str) -> bool:
+    return method.upper() == "POST" and path.startswith(METERED_PREFIXES)
 
 
 def _digest(value: str) -> bytes:
@@ -68,6 +76,7 @@ class Decision:
     retry_after: Optional[int] = None
     role: str = ""        # "client", "admin" or "open"
     key_id: str = ""      # first 8 hex characters of the key's hash (safe to log)
+    tenant: object = None  # the customer behind a database key, when there is one
 
 
 @dataclass
@@ -160,7 +169,15 @@ class AuthGate:
         q.append(now)
         return None
 
-    def check(self, method: str, path: str, api_key: Optional[str], client: str = "unknown") -> Decision:
+    def env_role(self, api_key: Optional[str]) -> Optional[str]:
+        """Role of an environment key ("client" or "admin"), or None. Never touches the database."""
+        cfg = self._config()
+        if cfg.off or cfg.error:
+            return None
+        return self._match(api_key, cfg)
+
+    def check(self, method: str, path: str, api_key: Optional[str], client: str = "unknown",
+              tenant=None) -> Decision:
         if not is_protected(path) or method.upper() == "OPTIONS":
             return Decision(True)
 
@@ -179,6 +196,8 @@ class AuthGate:
 
         now = self._clock()
         role = self._match(api_key, cfg)
+        if role is None and tenant is not None:
+            role = "client"          # a customer key from the database
         if role is None:
             wait = self._window_ok(self._failures, client, FAILED_AUTH_PER_MIN, now)
             if wait is not None:
@@ -192,15 +211,26 @@ class AuthGate:
         wait = self._window_ok(self._windows, _digest(api_key), cfg.rate_per_min, now)
         if wait is not None:
             return Decision(False, 429, "rate_limited", "Rate limit exceeded for this key.", wait, role=role, key_id=key_id)
-        return Decision(True, role=role, key_id=key_id)
+        return Decision(True, role=role, key_id=key_id, tenant=tenant if role == "client" else None)
 
 
 class ApiKeyAuthMiddleware:
     """Plain ASGI middleware, so it cannot interfere with background tasks or streaming."""
 
-    def __init__(self, app, gate: Optional[AuthGate] = None):
+    def __init__(self, app, gate: Optional[AuthGate] = None, resolver=None, record_usage=None):
         self.app = app
         self.gate = gate or AuthGate()
+        if resolver is None:
+            from core.tenancy import resolver as shared_resolver
+            resolver = shared_resolver
+        self.resolver = resolver
+        self._record_usage = record_usage
+
+    def _usage(self):
+        if self._record_usage is not None:
+            return self._record_usage
+        from core.tenants import record_usage
+        return record_usage
 
     async def __call__(self, scope, receive, send):
         if scope["type"] != "http":
@@ -210,20 +240,65 @@ class ApiKeyAuthMiddleware:
         headers = {k.decode("latin-1").lower(): v.decode("latin-1") for k, v in scope.get("headers", [])}
         forwarded = headers.get("x-forwarded-for", "").split(",")[-1].strip()
         client = forwarded or (scope.get("client") or ("unknown", 0))[0]
+        api_key = headers.get("x-api-key")
+        method, path = scope["method"], scope["path"]
+        loop = asyncio.get_running_loop()
 
-        decision = self.gate.check(scope["method"], scope["path"], headers.get("x-api-key"), client)
-        if decision.allowed:
+        tenant = None
+        if api_key and is_protected(path) and self.gate.env_role(api_key) is None:
+            tenant = await loop.run_in_executor(None, self.resolver.resolve, api_key)
+
+        decision = self.gate.check(method, path, api_key, client, tenant=tenant)
+        if not decision.allowed:
+            extra = {"Retry-After": str(decision.retry_after)} if decision.retry_after else {}
+            response = JSONResponse(
+                status_code=decision.status,
+                content={"error": decision.error, "message": decision.message},
+                headers=extra,
+            )
+            await response(scope, receive, send)
+            return
+
+        from core.tenancy import Caller, caller_from_tenant
+        if decision.tenant is not None:
+            caller = caller_from_tenant(decision.tenant, decision.key_id)
+        else:
+            caller = Caller(role=decision.role or "open", key_id=decision.key_id)
+        scope.setdefault("state", {})["caller"] = caller
+
+        extra_headers = []
+        if caller.metered and is_metered(method, path):
+            allowed, used = await loop.run_in_executor(None, self._usage(), caller.tenant_id)
+            limit = caller.monthly_limit
+            if not allowed:
+                response = JSONResponse(
+                    status_code=429,
+                    content={
+                        "error": "monthly_limit_reached",
+                        "message": f"This key has used its {limit} calls for the month. "
+                                   "Contact us to raise the limit.",
+                        "limit": limit, "used": used,
+                    },
+                    headers={"X-Jnvoy-Monthly-Limit": str(limit), "X-Jnvoy-Monthly-Remaining": "0"},
+                )
+                await response(scope, receive, send)
+                return
+            extra_headers = [
+                (b"x-jnvoy-monthly-limit", str(limit).encode()),
+                (b"x-jnvoy-monthly-remaining", str(max(0, limit - used)).encode()),
+            ]
+
+        if not extra_headers:
             await self.app(scope, receive, send)
             return
 
-        extra = {"Retry-After": str(decision.retry_after)} if decision.retry_after else {}
-        response = JSONResponse(
-            status_code=decision.status,
-            content={"error": decision.error, "message": decision.message},
-            headers=extra,
-        )
-        await response(scope, receive, send)
+        async def send_with_usage(message):
+            if message["type"] == "http.response.start":
+                message = {**message, "headers": list(message.get("headers", [])) + extra_headers}
+            await send(message)
+
+        await self.app(scope, receive, send_with_usage)
 
 
-def install_api_key_auth(app, gate: Optional[AuthGate] = None) -> None:
-    app.add_middleware(ApiKeyAuthMiddleware, gate=gate)
+def install_api_key_auth(app, gate: Optional[AuthGate] = None, resolver=None, record_usage=None) -> None:
+    app.add_middleware(ApiKeyAuthMiddleware, gate=gate, resolver=resolver, record_usage=record_usage)
