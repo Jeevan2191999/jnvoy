@@ -34,6 +34,7 @@ from fastapi import FastAPI, HTTPException, Header, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
+from starlette.concurrency import run_in_threadpool
 from pydantic import BaseModel
 
 import sys
@@ -431,9 +432,13 @@ async def run_proxy_pipeline(request: ProxyRequest, tenant: str = "anonymous",
 @app.get("/health")
 async def health():
     """Health check with provider, cache, and database status."""
-    db_health = health_check_db() if _db_available else {"status": "unavailable"}
+    db_health = await run_in_threadpool(health_check_db) if _db_available else {"status": "unavailable"}
+    # "degraded" when a database is configured but not working, so an uptime monitor that
+    # looks for the word "healthy" raises an alert. The HTTP status stays 200 so the host
+    # does not restart a service that can still scan text.
+    degraded = bool(os.getenv("DATABASE_URL")) and db_health.get("status") != "healthy"
     return {
-        "status": "healthy",
+        "status": "degraded" if degraded else "healthy",
         "version": VERSION,
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "providers": outage_detector.get_dashboard(),

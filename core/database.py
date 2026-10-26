@@ -387,4 +387,6 @@ def health_check_db() -> dict:
         finally:
             pool.putconn(conn)
     except Exception as e:
-        return {"status": "unhealthy", "error": str(e)}
+        # The reason goes to the log, not to a public health page (it can name hosts and users).
+        print(f"Database health check failed: {type(e).__name__}: {e}")
+        return {"status": "unhealthy"}

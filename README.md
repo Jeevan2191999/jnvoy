@@ -178,7 +178,7 @@ Anthropic Claude, OpenAI, Google Gemini, Mistral, Azure OpenAI, and local models
 
 ## Other pieces
 
-A Slack connector in [`connectors/`](connectors/) protects messages to AI bots in a Slack workspace. A Docker stack starts the API and PostgreSQL together.
+A Slack connector in [`connectors/`](connectors/) protects messages to AI bots in a Slack workspace. A Docker stack starts the API and PostgreSQL together. [`RUNBOOK.md`](RUNBOOK.md) covers day-to-day operation: customers, keys, backups, deploys and what to do when something is wrong.
 
 ## Tests
 
