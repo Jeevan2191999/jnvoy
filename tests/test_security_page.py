@@ -95,3 +95,14 @@ def test_pages_say_customers_use_their_own_provider_key():
     assert "model provider key" in client.get("/security").text
     assert "x-provider-key" in client.get("/privacy").text
     assert "own model provider account" in client.get("/").text
+
+
+def test_pages_say_the_second_check_is_off_on_the_hosted_service():
+    # The hosted service runs with JNVOY_JUDGE_BACKEND unset, so no redacted text goes to a
+    # second vendor. If that ever changes, these pages and the services table must change first.
+    for path in ("/security", "/privacy", "/"):
+        text = client.get(path).text
+        assert "Anthropic, second check" not in text, path
+        assert "sent to Anthropic" not in text, path
+    assert "off on the hosted service" in client.get("/privacy").text.lower()
+    assert "off on the hosted" in client.get("/security").text.lower()

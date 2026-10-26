@@ -227,7 +227,7 @@
           <div class="row head"><div>Question</div><div>Answer</div><div>Status</div></div>
           <div class="row"><div class="k">Is original text saved?</div><div class="v">Not in the database, the audit log, the cache or the logs. It exists in memory while a request is processed.</div><div class="s no">Not stored</div></div>
           <div class="row"><div class="k">What reaches the model provider?</div><div class="v">The redacted text only, sent to the provider you choose.</div><div class="s no">Redacted</div></div>
-          <div class="row"><div class="k">Does anyone else see redacted text?</div><div class="v">Anthropic does, but only if the optional second check is switched on. Each customer can switch it off for their own traffic.</div><div class="s mid">Optional</div></div>
+          <div class="row"><div class="k">Does anyone else see redacted text?</div><div class="v">Only the model provider you choose. The optional second check, a separate model that re-reads redacted text, is off on the hosted service.</div><div class="s no">Provider only</div></div>
           <div class="row"><div class="k">Is detection guaranteed to be complete?</div><div class="v">No. It is strong, and it is measured, but a value can be missed.</div><div class="s yes">Not guaranteed</div></div>
         </div>
       </section>
@@ -253,7 +253,7 @@
             </div>
             <div class="stop optional">
               <h3>Second check (optional)</h3>
-              <p class="what">When switched on, Anthropic reviews the redacted text for anything the first pass missed.</p>
+              <p class="what">Off on the hosted service. A self-hosted deployment can switch it on and run it on its own model.</p>
               <div class="sample tok">Email [PERSON_1] at [EMAIL_ADDRESS_1]</div>
             </div>
             <div class="stop">
@@ -285,7 +285,7 @@
         <p>Jnvoy sends redacted text to other services to do its job. None of them receive the original values from Jnvoy.</p>
         <ul class="plain">
           <li><strong>The model provider you choose</strong> (for example Anthropic or OpenAI) receives the redacted prompt. Its own terms govern what it does with that text.</li>
-          <li><strong>Anthropic, for the second check,</strong> receives the redacted text only when the check is switched on. It adds about a second per request. If that service is unavailable, Jnvoy carries on with the first-pass redaction. A customer can switch the check off for their own traffic, and a self-hosted deployment can run it on a model on its own machine instead.</li>
+          <li><strong>No separate second-check service.</strong> The optional second check is off on the hosted service, so redacted text goes only to the model provider you choose. A self-hosted deployment can run the check on a model on its own machine.</li>
           <li><strong>Render</strong> hosts the Jnvoy service and its database. Request text is processed in the service's memory, and Jnvoy does not write original text to either. The <a href="/security">security page</a> lists every service we use.</li>
         </ul>
       </section>
@@ -307,7 +307,7 @@
           <li><strong>Send text in the request body.</strong> Use <code>POST /v1/scan</code>. The old <code>GET</code> versions put your text in the web address, and web servers commonly record addresses in their logs. They have been removed and now answer with an error.</li>
           <li><strong>Your model provider key travels with each request.</strong> Send it in the <code>x-provider-key</code> header. It is used to make that one call, and is never stored, logged, cached or written to the audit log.</li>
           <li><strong>Keep your API key out of source code.</strong> Keys are checked in constant time, are never written to logs or responses, and can be rate limited.</li>
-          <li><strong>Treat the second check as a choice.</strong> If your data cannot go to a second vendor in any form, set <code>judge</code> to <code>off</code> in your settings, or ask for it to stay off.</li>
+          <li><strong>The second check is off on the hosted service.</strong> Redacted text is not sent to a second vendor. If you self-host and switch it on, run it on a model you control if your data cannot go elsewhere.</li>
         </ul>
         <div class="notice"><strong>This page describes how the software behaves today.</strong> It is not a contract or legal advice. If your organisation needs a data processing agreement, ask before you send real data.</div>
       </section>

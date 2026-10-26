@@ -283,7 +283,7 @@
 
       <section id="dataflow">
         <h2>Where your text goes</h2>
-        <p>The original text reaches Jnvoy, because Jnvoy has to read it to redact it. It does not travel past Jnvoy. Only the redacted text goes to a model provider or the optional second check, and the database holds counts, never text.</p>
+        <p>The original text reaches Jnvoy, because Jnvoy has to read it to redact it. It does not travel past Jnvoy. Only the redacted text goes to the model provider the customer chose (and, in a self-hosted deployment, to the optional second check), and the database holds counts, never text.</p>
         <figure class="dflow">
           <svg viewBox="0 0 960 470" role="img" aria-labelledby="dfT dfD">
             <title id="dfT">Data flow through Jnvoy</title>
@@ -327,10 +327,10 @@
             <!-- Second check -->
             <rect x="740" y="70" width="200" height="108" rx="3" fill="#E3EEE9" stroke="#1E6450" stroke-dasharray="5 4"/>
             <text class="t h" x="756" y="98">Second check</text>
-            <text class="t s" x="756" y="118">Optional. Off unless switched</text>
-            <text class="t s" x="756" y="135">on, and a customer can turn</text>
-            <text class="t s" x="756" y="152">it off. Can run on your own</text>
-            <text class="t s" x="756" y="169">model instead of Anthropic.</text>
+            <text class="t s" x="756" y="118">Optional. Off on the hosted</text>
+            <text class="t s" x="756" y="135">service. Self-hosted setups</text>
+            <text class="t s" x="756" y="152">can switch it on and run it</text>
+            <text class="t s" x="756" y="169">on their own model.</text>
 
             <!-- Model provider -->
             <rect x="740" y="240" width="200" height="108" rx="3" fill="#E3EEE9" stroke="#1E6450"/>
@@ -365,7 +365,7 @@
           </svg>
           <ol class="steps">
             <li><strong>Your application</strong> sends the prompt to Jnvoy over HTTPS. This is the only place the original text travels to.</li>
-            <li><strong>Jnvoy</strong> replaces sensitive values with tokens and sends the redacted prompt to the model provider the customer chose. If the second check is on, the redacted text also goes there.</li>
+            <li><strong>Jnvoy</strong> replaces sensitive values with tokens and sends the redacted prompt to the model provider the customer chose. If a self-hosted deployment has the second check on, the redacted text also goes to the model it runs on.</li>
             <li><strong>The model provider</strong> writes a reply that uses the tokens, and sends it back.</li>
             <li><strong>Jnvoy</strong> scans the reply, puts the real values back, and returns it to your application.</li>
             <li><strong>Jnvoy</strong> writes counts of what it found to the database. It never writes the text.</li>
@@ -381,7 +381,6 @@
           <div class="row head"><div>Service</div><div>What it is used for</div><div>Sees your text?</div></div>
           <div class="row"><div class="k">Render</div><div class="v">Hosts the Jnvoy service and its database (the database runs in Frankfurt). Request text is processed in the service's memory and is not written to the database or the logs.</div><div class="s mid">In memory</div></div>
           <div class="row"><div class="k">The model provider you choose</div><div class="v">Answers the prompt, for example Anthropic or OpenAI. Its own terms apply to what it receives.</div><div class="s no">Redacted only</div></div>
-          <div class="row"><div class="k">Anthropic, second check only</div><div class="v">Optional review of redacted text. Off unless switched on, and a customer can switch it off for their own traffic.</div><div class="s no">Redacted only</div></div>
           <div class="row"><div class="k">UptimeRobot</div><div class="v">Requests the health page every 5 minutes to alert us if the service is down. The health page holds no customer data.</div><div class="s no">No</div></div>
           <div class="row"><div class="k">GitHub</div><div class="v">Holds the source code. No customer data is stored there.</div><div class="s no">No</div></div>
         </div>

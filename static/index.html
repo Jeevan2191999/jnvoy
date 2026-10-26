@@ -876,7 +876,7 @@
       <div class="clause">
         <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="6"/><path d="M16 16l5 5M9 11h4"/></svg>
         <h3>Optional second-pass review</h3>
-        <p>A small language model can re-read text that has already been redacted and flag identifiers the rules missed, such as internal codes. Off by default. Runs locally with Ollama, or through Anthropic, in which case that redacted text goes to Anthropic.</p>
+        <p>A small language model can re-read text that has already been redacted and flag identifiers the rules missed, such as internal codes. Off on the hosted service. Self-hosted deployments can switch it on and run it on a local model with Ollama, so the text never leaves their own machines.</p>
       </div>
 
       <div class="clause">
@@ -927,7 +927,7 @@
         <ul>
           <li>Response cache &amp; intelligent routing</li>
           <li>Compliance report PDF</li>
-          <li>Your own settings: regions, extra data types, second check on or off</li>
+          <li>Your own settings: regions and extra data types</li>
           <li>Reply scanning, with an audit trail of what was found</li>
           <li>API key with rate limiting and rotation on request</li>
           <li>Email support</li>
@@ -962,15 +962,15 @@
       <dl>
         <div><dt>Your own text, redacted live</dt><dd>Paste a sample prompt and see what is found and what replaces it.</dd></div>
         <div><dt>A quote based on your volume</dt><dd>Tell us your calls per month and providers, and leave with a figure.</dd></div>
-        <div><dt>Straight answers on data flow</dt><dd>Where your text goes, hosted or self-hosted, and what the second check changes. The <a href="/privacy">privacy page</a> and <a href="/security">security page</a> have the detail.</dd></div>
+        <div><dt>Straight answers on data flow</dt><dd>Where your text goes, hosted or self-hosted, and what the optional second check changes. The <a href="/privacy">privacy page</a> and <a href="/security">security page</a> have the detail.</dd></div>
       </dl>
     </div>
 
     <div class="addon">
-      <h3>Second check, on any plan</h3>
+      <h3>Second check, when self-hosted</h3>
       <div>
         <p>A second AI review of the already-redacted text, for what pattern rules miss: free-text addresses, unlabelled reference numbers, unusual names.</p>
-        <p>Adds about a second per request, and the redacted text is sent to Anthropic. Ask for it when you get in touch.</p>
+        <p>Not switched on for the hosted service. A self-hosted deployment can run it on a local model, so nothing leaves your machines. Adds about a second per request.</p>
       </div>
     </div>
 
