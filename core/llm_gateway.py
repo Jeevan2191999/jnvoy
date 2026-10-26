@@ -83,6 +83,7 @@ PRICING: dict[str, dict[str, float]] = {
     "claude-sonnet-4-6":        {"input": 3.0,   "output": 15.0},
     "claude-haiku-4-5":         {"input": 0.25,  "output": 1.25},
     "claude-opus-4":            {"input": 15.0,  "output": 75.0},
+    "claude-opus-4-1":          {"input": 15.0,  "output": 75.0},
     # OpenAI
     "gpt-4o":                   {"input": 2.5,   "output": 10.0},
     "gpt-4o-mini":              {"input": 0.15,  "output": 0.6},

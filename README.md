@@ -2,7 +2,7 @@
 
 **A privacy and security gateway for LLM traffic.**
 
-Jnvoy sits between your application and any LLM. It finds personal data in prompts, replaces each value with a token before the prompt leaves, puts the real values back into the reply, blocks prompt injection, scans MCP tool traffic, and keeps an audit log of what was found, never the original text.
+Jnvoy sits between your application and a model provider (Anthropic or OpenAI). It finds personal data in prompts, replaces each value with a token before the prompt leaves, puts the real values back into the reply, blocks prompt injection, scans MCP tool traffic, and keeps an audit log of what was found, never the original text.
 
 [Website](https://www.jnvoy.com) | [API docs](https://www.jnvoy.com/docs) | [Privacy and data handling](https://www.jnvoy.com/privacy)
 
@@ -24,7 +24,7 @@ The model answers using the tokens, and Jnvoy swaps the real values back in befo
 
 ## Try it
 
-API keys come from whoever runs the deployment. For the hosted service, get in touch through [jnvoy.com](https://www.jnvoy.com).
+Hosted keys are issued on request: email j.nagaraj2109@gmail.com or use the "Request a free key" link on [jnvoy.com](https://www.jnvoy.com). If you run Jnvoy yourself, you create your own keys (see below).
 
 ```bash
 curl -X POST https://www.jnvoy.com/v1/scan \
@@ -32,11 +32,12 @@ curl -X POST https://www.jnvoy.com/v1/scan \
   -d '{"text": "My name is John Smith and my NI number is AB123456C"}'
 ```
 
-Send a protected request to a model:
+Send a protected request to a model. The hosted service needs two headers: your Jnvoy key, and your own key from the model provider. Jnvoy uses the provider key for that one request and never stores or logs it. The request format is Jnvoy's own (not the Anthropic or OpenAI SDK format), and replies are not streamed.
 
 ```bash
 curl -X POST https://www.jnvoy.com/v1/proxy \
-  -H "x-api-key: YOUR_KEY" -H "Content-Type: application/json" \
+  -H "x-api-key: YOUR_JNVOY_KEY" -H "x-provider-key: YOUR_ANTHROPIC_KEY" \
+  -H "Content-Type: application/json" \
   -d '{"model": "claude-haiku-4-5-20251001", "provider": "anthropic",
        "messages": [{"role": "user", "content": "My email is john@example.com. Say hello."}]}'
 ```
@@ -54,7 +55,19 @@ docker-compose up
 
 Generate a key with `python3 -c "import secrets; print(secrets.token_urlsafe(32))"`. Without at least one key in `JNVOY_API_KEYS`, every `/v1` route answers 503 on purpose.
 
+The first build downloads the language models Jnvoy uses for names and places, so it takes several minutes.
+
 Without Docker: `pip install -r requirements.txt`, then `uvicorn api.proxy_v2:app --port 8000`.
+
+Try your own copy at `http://localhost:8000`, with the key you put in `JNVOY_API_KEYS`:
+
+```bash
+curl -X POST http://localhost:8000/v1/scan \
+  -H "x-api-key: YOUR_KEY" -H "Content-Type: application/json" \
+  -d '{"text": "My name is John Smith and my NI number is AB123456C"}'
+```
+
+Keys in `JNVOY_API_KEYS` are operator keys: the model calls use the provider keys in your `.env` and are not metered.
 
 ## What it detects
 
@@ -115,7 +128,6 @@ All `/v1` routes need an `x-api-key` header. Routes marked admin need an admin k
 | `POST/GET /v1/admin/tenants`, `GET/PATCH/DELETE /v1/admin/tenants/{id}`, `POST /v1/admin/tenants/{id}/rotate-key` | Create and manage customers and their keys | admin |
 | `GET /v1/audit`, `GET /v1/audit/summary` | Read any customer's audit log (`?tenant_id=`) | admin |
 | `GET /v1/report/compliance` | Compliance report (PDF) | admin |
-| `GET /v1/report/eu-ai-act` | EU AI Act report (PDF) | admin |
 | `GET /v1/cache/stats`, `DELETE /v1/cache` | Response cache statistics and reset | admin |
 | `GET /v1/providers/health` | Model provider health | admin |
 
@@ -157,6 +169,7 @@ Full request and response details, with an Authorize button for trying calls, ar
 | `JNVOY_API_KEYS` | Client keys, comma separated, at least 24 characters each |
 | `JNVOY_ADMIN_KEYS` | Admin keys, comma separated |
 | `JNVOY_RATE_LIMIT_PER_MIN` | Requests per key per minute. Default 60, `0` for no limit |
+| `JNVOY_MAX_BODY_BYTES` | Largest request body accepted, in bytes. Default 262144 (about 256 KB) |
 | `JNVOY_AUTH=off` | Switches authentication off. Local development only |
 | `JNVOY_REGIONS` | National identifier packs: `all` (default), `none`, `eu`, or country codes such as `in,au,sg` |
 | `JNVOY_REDACT_EXTRA` | `ORGANIZATION`, `LOCATION`, `DATE_TIME`, `NRP`, or `all` |
@@ -177,7 +190,8 @@ from langchain_core.messages import HumanMessage
 
 chat = JnvoyChat(
     jnvoy_url="https://www.jnvoy.com",
-    api_key="YOUR_KEY",          # or set JNVOY_API_KEY
+    api_key="YOUR_JNVOY_KEY",     # or set JNVOY_API_KEY
+    provider_key="YOUR_PROVIDER_KEY",  # or set ANTHROPIC_API_KEY / OPENAI_API_KEY
     provider="anthropic",
     model="claude-haiku-4-5-20251001",
 )
@@ -186,11 +200,11 @@ print(chat.invoke([HumanMessage(content="My email is john@example.com. Say hello
 
 ## Providers
 
-Anthropic Claude, OpenAI, Google Gemini, Mistral, Azure OpenAI, and local models through Ollama. If a provider is down, requests can fail over to another.
+`/v1/proxy` supports Anthropic and OpenAI. Optional model routing (`use_routing: true`, off by default) can switch between models of the provider you chose. The scan, reply-scan and MCP routes call no provider.
 
 ## Other pieces
 
-A Slack connector in [`connectors/`](connectors/) protects messages to AI bots in a Slack workspace. A Docker stack starts the API and PostgreSQL together. [`RUNBOOK.md`](RUNBOOK.md) covers day-to-day operation: customers, keys, backups, deploys and what to do when something is wrong.
+A Docker stack starts the API and PostgreSQL together. [`RUNBOOK.md`](RUNBOOK.md) covers day-to-day operation: customers, keys, backups, deploys and what to do when something is wrong.
 
 ## Tests
 
@@ -206,4 +220,4 @@ To report a vulnerability, email j.nagaraj2109@gmail.com. Please do not open a p
 
 Built by Jeevan Nagaraj. Operated by JNVOY LIMITED, registered in England and Wales, company number 17536574.
 
-Licensed under the Business Source License 1.1. See [LICENSE](LICENSE). It converts to Apache 2.0 after four years.
+Jnvoy is source-available, not open source. It is licensed under the Business Source License 1.1 (see [LICENSE](LICENSE)). In plain terms: you may read, modify and self-host it, including in production inside your own business, at no charge. You may not sell it as a hosted service that competes with Jnvoy's own. Each version converts to Apache 2.0 after four years.

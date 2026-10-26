@@ -87,7 +87,7 @@ def test_route_classification():
     assert not is_protected("/static/app.js") and not is_protected("/v10")
     assert is_protected("/v1/proxy") and is_protected("/v1/scan") and is_protected("/v1")
     for p in ["/v1/cache", "/v1/cache/", "/v1/cache/stats", "/v1/audit", "/v1/audit/summary",
-              "/v1/report/compliance", "/v1/report/eu-ai-act", "/v1/providers/health"]:
+              "/v1/report/compliance", "/v1/providers/health"]:
         assert is_admin_route(p), p
     for p in ["/v1/proxy", "/v1/scan", "/v1/scan/injection", "/v1/mcp/scan"]:
         assert not is_admin_route(p), p

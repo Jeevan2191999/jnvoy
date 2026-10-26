@@ -35,6 +35,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, Response
 from fastapi.staticfiles import StaticFiles
 from starlette.concurrency import run_in_threadpool
+from starlette.background import BackgroundTask
+import logging
 from pydantic import BaseModel
 
 import sys
@@ -46,6 +48,7 @@ from core.auth import install_api_key_auth
 from core.policy import PolicyDetectors, output_scan_mode
 from core.output_scan import OutputScanner
 from core.tenancy import Caller, DEFAULT_TENANT
+logger = logging.getLogger("jnvoy")
 from api.docs_config import API_DESCRIPTION, OPENAPI_TAGS, VERSION, apply_docs
 from core.pii_judge import JudgeError
 from core.intelligence import semantic_cache, intelligent_router, outage_detector
@@ -95,6 +98,11 @@ if os.path.exists(_static_dir):
 
 # Every /v1/... route needs a valid x-api-key. The homepage, /health and docs stay open.
 install_api_key_auth(app)
+
+# Outermost: refuse oversized bodies before auth or scanning, and add basic security headers.
+from core.http_limits import BodySizeLimit, SecurityHeaders  # noqa: E402
+app.add_middleware(BodySizeLimit)
+app.add_middleware(SecurityHeaders)
 
 
 @app.get("/", include_in_schema=False)
@@ -180,7 +188,7 @@ class ProxyRequest(BaseModel):
     provider: Optional[str] = "anthropic"
     stream: Optional[bool] = False
     use_cache: Optional[bool] = True
-    use_routing: Optional[bool] = True
+    use_routing: Optional[bool] = False
 
 class PIISummary(BaseModel):
     types_detected: dict[str, int]
@@ -409,11 +417,25 @@ async def run_proxy_pipeline(request: ProxyRequest, tenant: str = "anonymous",
     original_model = request.model
     routed_model = request.model
 
+    # Routing is opt-in. It only ever swaps to a model from the same provider the
+    # caller chose, so an OpenAI request never turns into a Claude model name.
     if request.use_routing and not cache_hit:
         routing_decision = intelligent_router.route(cache_query)
-        if (routing_decision.recommended_model != request.model and
-                outage_detector.is_healthy(request.provider or "anthropic")):
-            routed_model = routing_decision.recommended_model
+        routing_provider = (request.provider or "anthropic").lower()
+        candidate = None
+        if routing_provider == "anthropic":
+            for m in (routing_decision.recommended_model, routing_decision.fallback_model):
+                if m.startswith("claude"):
+                    candidate = m
+                    break
+        elif routing_provider == "openai":
+            for m in (routing_decision.recommended_model, routing_decision.fallback_model):
+                if m.startswith("gpt"):
+                    candidate = m
+                    break
+        if (candidate and candidate != request.model and
+                outage_detector.is_healthy(routing_provider)):
+            routed_model = candidate
 
     # Step 5: Get response from cache or LLM
     estimated_cost = 0.0
@@ -711,7 +733,7 @@ def audit_summary(tenant_id: str) -> dict:
         "cache_hit_rate_percent": round(cache_hits / total * 100, 1),
         "average_latency_ms": round(sum(e["latency_ms"] for e in mine) / total, 2),
         "sensitive_data_transmitted_to_llm": False,
-        "compliance_statement": "Zero sensitive data was transmitted to any LLM API during this period.",
+        "compliance_statement": "Jnvoy replaces the sensitive values it detects before text is sent to a model provider. Values it does not detect are not counted.",
         "generated_at": datetime.now(timezone.utc).isoformat()
     }
 
@@ -786,6 +808,13 @@ from fastapi.responses import FileResponse, Response
 import tempfile
 import os
 
+def _remove_quietly(path: str) -> None:
+    try:
+        os.unlink(path)
+    except OSError:
+        pass
+
+
 @app.get("/v1/report/compliance")
 async def download_compliance_report(
     company_name: str = "Your Company",
@@ -793,16 +822,15 @@ async def download_compliance_report(
     x_api_key: Optional[str] = Header(None)
 ):
     """
-    Generate and download a PDF compliance report.
-    This is the endpoint that closes enterprise deals.
-    Shows everything that happened: PII detected, redacted, never transmitted.
+    Generate and download a PDF data protection activity report.
+    It records what Jnvoy detected and redacted. It is not a compliance determination.
     """
     try:
         from core.report import generate_compliance_report
 
         # Get compliance summary from database
         if _db_available:
-            summary = get_compliance_summary(tenant_id=tenant_id)
+            summary = await run_in_threadpool(get_compliance_summary, tenant_id=tenant_id)
         else:
             summary = {
                 "period_start": "N/A",
@@ -815,7 +843,7 @@ async def download_compliance_report(
                 "cache_hit_rate_percent": 0.0,
                 "average_latency_ms": 0.0,
                 "sensitive_data_transmitted_to_llm": False,
-                "compliance_statement": "Zero sensitive data was transmitted to any LLM API."
+                "compliance_statement": "Jnvoy replaces the sensitive values it detects before text is sent to a model provider. Values it does not detect are not counted."
             }
 
         # Generate PDF to a temp file
@@ -825,11 +853,12 @@ async def download_compliance_report(
         )
         tmp.close()
 
-        generate_compliance_report(
+        await run_in_threadpool(
+            generate_compliance_report,
             summary=summary,
             output_path=tmp.name,
             company_name=company_name,
-            tenant_id=tenant_id
+            tenant_id=tenant_id,
         )
 
         filename = f"jnvoy_compliance_{datetime.now(timezone.utc).strftime('%Y%m%d')}.pdf"
@@ -838,11 +867,14 @@ async def download_compliance_report(
             path=tmp.name,
             media_type="application/pdf",
             filename=filename,
-            background=None
+            background=BackgroundTask(_remove_quietly, tmp.name),
         )
 
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Report generation failed: {e}")
+    except HTTPException:
+        raise
+    except Exception:
+        logger.exception("report generation failed")
+        raise HTTPException(status_code=500, detail="Report generation failed.")
 
 
 @app.post("/v1/mcp/scan")
@@ -898,55 +930,6 @@ async def scan_tool_description(tool_name: str, description: str):
         "threats": result.threat_summary,
         "detection_time_ms": result.detection_time_ms,
     }
-
-
-@app.get("/v1/report/eu-ai-act")
-async def download_eu_ai_act_report(
-    company_name: str = "Your Company",
-    system_name: str = "AI Assistant",
-    risk_classification: str = "Limited Risk",
-    tenant_id: str = DEFAULT_TENANT,
-    x_api_key: Optional[str] = Header(None)
-):
-    """
-    Generate and download an EU AI Act Article 50 compliance report.
-    Covers transparency obligations effective August 2, 2026.
-    """
-    try:
-        from core.report import generate_eu_ai_act_report
-        import tempfile
-
-        if _db_available:
-            summary = get_compliance_summary(tenant_id=tenant_id)
-        else:
-            summary = {
-                "period_start": "N/A", "period_end": "N/A",
-                "total_api_calls": len(_mine(tenant_id)),
-                "total_pii_instances_detected_and_redacted": sum(
-                    e["total_pii_instances"] for e in _mine(tenant_id)),
-                "pii_types_breakdown": {},
-                "cache_hit_rate_percent": 0.0,
-                "average_latency_ms": 0.0,
-                "sensitive_data_transmitted_to_llm": False,
-            }
-
-        tmp = tempfile.NamedTemporaryFile(suffix=".pdf", delete=False, prefix="jnvoy_eu_")
-        tmp.close()
-
-        generate_eu_ai_act_report(
-            summary=summary,
-            output_path=tmp.name,
-            company_name=company_name,
-            system_name=system_name,
-            risk_classification=risk_classification,
-            tenant_id=tenant_id
-        )
-
-        filename = f"jnvoy_eu_ai_act_{datetime.now(timezone.utc).strftime('%Y%m%d')}.pdf"
-        return FileResponse(path=tmp.name, media_type="application/pdf", filename=filename)
-
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Report generation failed: {e}")
 
 
 from api.account_routes import router as account_router  # noqa: E402

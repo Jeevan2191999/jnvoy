@@ -79,7 +79,6 @@ ROUTE_DOCS = {
     ("GET", "/v1/audit"): (ADMIN, "Read any customer's audit log"),
     ("GET", "/v1/audit/summary"): (ADMIN, "Summarise any customer's audit log"),
     ("GET", "/v1/report/compliance"): (ADMIN, "Download the compliance report (PDF)"),
-    ("GET", "/v1/report/eu-ai-act"): (ADMIN, "Download the EU AI Act report (PDF)"),
 }
 
 _SECURITY_SCHEMES = {

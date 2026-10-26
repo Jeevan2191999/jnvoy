@@ -319,7 +319,7 @@ async def get_audit_summary():
         "pii_types_breakdown": pii_type_totals,
         "average_latency_ms": round(avg_latency, 2),
         "sensitive_data_transmitted_to_llm": False,
-        "compliance_statement": "Zero sensitive data was transmitted to any LLM API during this period.",
+        "compliance_statement": "Jnvoy replaces the sensitive values it detects before text is sent to a model provider. Values it does not detect are not counted.",
         "generated_at": datetime.now(timezone.utc).isoformat()
     }
 

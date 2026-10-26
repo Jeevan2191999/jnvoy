@@ -31,6 +31,7 @@ AI system. No code changes required in the customer's application.
 import asyncio
 import hashlib
 import json
+import re
 import time
 from dataclasses import dataclass, field
 from enum import Enum
@@ -70,7 +71,7 @@ MODEL_TIERS: dict[QueryComplexity, dict[str, str]] = {
         "reason": "Complex queries need capable models"
     },
     QueryComplexity.CRITICAL: {
-        "primary": "claude-opus-4",
+        "primary": "claude-opus-4-1",
         "fallback": "gpt-4o",
         "local": "llama3",
         "reason": "Critical queries need the best models regardless of cost"
@@ -100,23 +101,35 @@ CRITICAL_SIGNALS = [
 ]
 
 
+def _signal_pattern(signals: list[str]) -> "re.Pattern[str]":
+    """Match whole words or phrases only, so "sec" does not match "section"."""
+    alternatives = "|".join(re.escape(s) for s in signals)
+    return re.compile(r"(?<![a-z0-9])(?:" + alternatives + r")(?![a-z0-9])")
+
+
+_CRITICAL_RE = _signal_pattern(CRITICAL_SIGNALS)
+_COMPLEX_RE = _signal_pattern(COMPLEX_SIGNALS)
+_SIMPLE_RE = _signal_pattern(SIMPLE_SIGNALS)
+
+
 def classify_query(text: str) -> QueryComplexity:
     """
     Classify query complexity to route to the right model.
     Simple heuristic approach — fast, zero cost, no LLM needed.
+    Signals match whole words only.
     """
     text_lower = text.lower()
 
     # Check for critical signals first (highest priority)
-    if any(signal in text_lower for signal in CRITICAL_SIGNALS):
+    if _CRITICAL_RE.search(text_lower):
         return QueryComplexity.CRITICAL
 
     # Check for complex signals
-    if any(signal in text_lower for signal in COMPLEX_SIGNALS):
+    if _COMPLEX_RE.search(text_lower):
         return QueryComplexity.COMPLEX
 
     # Check for simple signals
-    if any(signal in text_lower for signal in SIMPLE_SIGNALS):
+    if _SIMPLE_RE.search(text_lower):
         return QueryComplexity.SIMPLE
 
     # Word count as a proxy for complexity

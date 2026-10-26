@@ -40,7 +40,7 @@ SECRET_PATTERNS = [
     Pattern("pypi", r"\bpypi-[A-Za-z0-9_\-]{40,}", 0.95),
     Pattern("sendgrid", r"\bSG\.[A-Za-z0-9_\-]{16,}\.[A-Za-z0-9_\-]{16,}", 0.95),
     Pattern("twilio", r"\bSK[0-9a-f]{32}\b", 0.9),
-    Pattern("private_key", r"-----BEGIN [A-Z ]*PRIVATE KEY-----[\s\S]+?-----END [A-Z ]*PRIVATE KEY-----", 0.99),
+    Pattern("private_key", r"-----BEGIN [A-Z ]*PRIVATE KEY-----[\s\S]{1,8000}?-----END [A-Z ]*PRIVATE KEY-----", 0.99),
 ]
 
 

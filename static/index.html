@@ -597,9 +597,9 @@
   <div class="wrap hero-grid">
     <div>
       <h1>Your AI reads everything<br>you send it.<br><span class="soft">Jnvoy decides what it's allowed to see.</span></h1>
-      <p class="lede">A proxy that sits between your application and any LLM. Sensitive data is detected and replaced before it leaves your system. Claude and GPT-4o never see the raw values. Change one URL and add your key.</p>
+      <p class="lede">A proxy that sits between your application and any LLM. Sensitive data is detected and replaced before it leaves your system. Claude and GPT-4o receive the redacted text, not the original values Jnvoy found. Point your calls at Jnvoy with your Jnvoy key and your own provider key.</p>
       <div class="hero-ctas">
-        <a href="/docs" class="btn btn-primary">Try the live API</a>
+        <a href="mailto:j.nagaraj2109@gmail.com?subject=Jnvoy%20free%20API%20key&body=Hi%20Jeevan%2C%0A%0AI%27d%20like%20a%20free%20Jnvoy%20API%20key.%0A%0A1.%20What%20we%20are%20building%3A%0A2.%20Model%20provider%20we%20use%20%28Anthropic%20or%20OpenAI%29%3A%0A3.%20Kinds%20of%20data%20we%20need%20to%20protect%3A%0A%0AThanks%2C%0A" class="btn btn-primary">Request a free key</a>
         <a href="https://github.com/Jeevan2191999/jnvoy" class="btn btn-ghost">View source on GitHub</a>
       </div>
       <div class="hero-meta"><span class="dot"></span>Live at www.jnvoy.com</div>
@@ -629,7 +629,7 @@
 <div class="stats">
   <div class="wrap stats-row">
     <div class="stat"><div class="n">50</div><div class="d">identifier types, 21 countries</div></div>
-    <div class="stat"><div class="n">400+</div><div class="d">automated tests</div></div>
+    <div class="stat"><div class="n">500+</div><div class="d">automated tests</div></div>
     <div class="stat"><div class="n">2</div><div class="d">LLM providers supported</div></div>
   </div>
 </div>
@@ -637,8 +637,8 @@
 <section id="how">
   <div class="wrap">
     <div class="shead">
-      <h2>One proxy. Every LLM. Always private.</h2>
-      <p>Jnvoy intercepts every LLM call before it leaves your system. Sensitive data is detected, replaced with tokens, and restored in the response. Nothing sensitive ever travels.</p>
+      <h2>One proxy between your app and the model.</h2>
+      <p>Jnvoy intercepts every LLM call before it leaves your system. Sensitive data is detected, replaced with tokens, and restored in the response. Detected sensitive values stay inside your system.</p>
     </div>
     <div class="pipeline">
       <div class="step">
@@ -650,7 +650,7 @@
       <div class="step">
         <div class="num">02</div>
         <h3>Jnvoy scans for PII</h3>
-        <p>Presidio detects 20+ sensitive entity types locally.</p>
+        <p>Presidio and Jnvoy's own rules look for 50 identifier types, locally.</p>
         <div class="who">jnvoy, in process</div>
       </div>
       <div class="step">
@@ -662,7 +662,7 @@
       <div class="step">
         <div class="num">04</div>
         <h3>LLM sees clean data</h3>
-        <p>Claude or GPT-4o never sees raw sensitive data.</p>
+        <p>The model receives the redacted text, not the values that were found.</p>
         <div class="who">claude / gpt-4o</div>
       </div>
       <div class="step">
@@ -828,7 +828,7 @@
       <div class="clause">
         <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 010 18"/></svg>
         <h3>Intelligent routing</h3>
-        <p>Assigns the cheapest capable model to each query automatically. Simple questions go to Haiku. Complex ones go to Sonnet.</p>
+        <p>Optional. When you switch it on, simple questions go to a cheaper model and harder ones to a stronger model from the same provider you chose. Off by default, so your request always uses the model you named.</p>
       </div>
 
       <div class="clause">
@@ -855,11 +855,6 @@
         <p>An outage detector tracks each provider's successes and failures and shows them on a health endpoint, so you see a provider degrade before your users do.</p>
       </div>
 
-      <div class="clause">
-        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 5h16v10H9l-5 4V5z"/></svg>
-        <h3>Slack connector</h3>
-        <p>Protects every message sent to any AI bot in your Slack workspace. Posts a compliance note showing what was detected.</p>
-      </div>
 
       <div class="clause">
         <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 8l8-5 8 5v8l-8 5-8-5V8z"/><path d="M4 8l8 5 8-5M12 13v8"/></svg>
@@ -898,7 +893,7 @@
 
     <div class="included">
       <b>Every plan includes</b>
-      <span>20+ PII entity types</span>
+      <span>50 identifier types</span>
       <span>Prompt injection detection</span>
       <span>Audit logging of what was detected</span>
       <span>Reversible tokens</span>
@@ -913,9 +908,9 @@
         <p class="outcome">Try it on real prompts and see exactly what gets redacted.</p>
         <ul>
           <li>Community support</li>
-          <li>Self-serve from the API docs</li>
+          <li>Key issued on request</li>
         </ul>
-        <a href="/docs" class="btn btn-ghost">Start free</a>
+        <a href="mailto:j.nagaraj2109@gmail.com?subject=Jnvoy%20free%20API%20key&body=Hi%20Jeevan%2C%0A%0AI%27d%20like%20a%20free%20Jnvoy%20API%20key.%0A%0A1.%20What%20we%20are%20building%3A%0A2.%20Model%20provider%20we%20use%20%28Anthropic%20or%20OpenAI%29%3A%0A3.%20Kinds%20of%20data%20we%20need%20to%20protect%3A%0A%0AThanks%2C%0A" class="btn btn-ghost">Request a free key</a>
       </div>
 
       <div class="price-card featured">
@@ -987,8 +982,8 @@
 <section id="integration">
   <div class="wrap">
     <div class="shead">
-      <h2>Change one URL. Add one header.</h2>
-      <p>No SDK to install. No configuration to learn. No architectural changes. Point your existing LLM calls at Jnvoy with your Jnvoy key and every request is automatically protected.</p>
+      <h2>Point your calls at Jnvoy.</h2>
+      <p>No SDK to install. Send your messages to the <code>/v1/proxy</code> endpoint with two headers: your Jnvoy key and your own model provider key. Replies come back with the original values restored. Responses are not streamed yet.</p>
     </div>
     <div class="providers">
       <span class="chip">Anthropic Claude</span>
@@ -1014,12 +1009,15 @@ response = client.messages.create(
       </div>
       <div class="code-panel clean">
         <div class="hd"><span>after.py</span><span>protected</span></div>
-        <pre><span class="c1"># through jnvoy: new URL, plus your jnvoy key</span>
+        <pre><span class="c1"># through jnvoy: new URL, your jnvoy key, your own provider key</span>
 <span class="c1">import</span> httpx
 
 response = httpx.post(
   <span class="mark">"https://www.jnvoy.com/v1/proxy"</span>,
-  headers={"x-api-key": JNVOY_API_KEY},
+  headers={
+    "x-api-key": JNVOY_API_KEY,
+    "x-provider-key": ANTHROPIC_API_KEY,
+  },
   json={
     "model": "claude-haiku-4-5",
     "provider": "anthropic",
@@ -1064,41 +1062,31 @@ response = httpx.post(
     <div class="cert">
       <div class="cert-top">
         <div>
-          <h4>Compliance audit report</h4>
-          <div class="ref">JNVOY-E7377E46 · Acme Financial Ltd</div>
+          <h4>Data protection activity report (sample)</h4>
+          <div class="ref">Example figures · Example Ltd</div>
         </div>
-        <div class="stamp">AUDIT<br>RECORD</div>
+        <div class="stamp">SAMPLE<br>DATA</div>
       </div>
       <div class="cert-rows">
         <div class="cert-row"><span class="k">Audit period</span><span class="v">Sep 1 to Oct 1 2026</span></div>
         <div class="cert-row"><span class="k">Total API calls</span><span class="v">1,250</span></div>
         <div class="cert-row"><span class="k">PII instances redacted</span><span class="v">847</span></div>
         <div class="cert-row"><span class="k">Cache hit rate</span><span class="v">34.2%</span></div>
-        <div class="cert-row"><span class="k">Detected PII sent unredacted</span><span class="v zero">ZERO</span></div>
+        <div class="cert-row"><span class="k">Detected values sent unredacted</span><span class="v zero">None</span></div>
       </div>
       <div class="cert-quote">
-        "No PII detected by Jnvoy was transmitted to any LLM API during the audit period."
+        "Jnvoy replaces the sensitive values it detects before text is sent to a model provider. Values it does not detect are not counted."
       </div>
     </div>
   </div>
 </section>
 
-<div class="testimonial">
-  <div class="wrap tgrid">
-    <div class="mark">unsolicited<br>feedback</div>
-    <div>
-      <blockquote>"We built PII stripping internally and it took weeks. The problem is real. The larger enterprise partners always ask about it before signing."</blockquote>
-      <div class="cite"><b>Co-founder</b>, Series A fintech startup</div>
-    </div>
-  </div>
-</div>
-
 <div class="closer">
   <div class="wrap">
     <h2>Your AI is live. Is your data protected?</h2>
-    <p class="lede">Source-available. Self-hostable. Works with every major LLM.</p>
+    <p class="lede">Source-available. Self-hostable. Works with Anthropic and OpenAI.</p>
     <div class="closer-ctas">
-      <a href="/docs" class="btn btn-primary">Try the live API</a>
+      <a href="mailto:j.nagaraj2109@gmail.com?subject=Jnvoy%20free%20API%20key&body=Hi%20Jeevan%2C%0A%0AI%27d%20like%20a%20free%20Jnvoy%20API%20key.%0A%0A1.%20What%20we%20are%20building%3A%0A2.%20Model%20provider%20we%20use%20%28Anthropic%20or%20OpenAI%29%3A%0A3.%20Kinds%20of%20data%20we%20need%20to%20protect%3A%0A%0AThanks%2C%0A" class="btn btn-primary">Request a free key</a>
       <a href="https://github.com/Jeevan2191999/jnvoy" class="btn btn-ghost">View source on GitHub</a>
     </div>
   </div>
@@ -1110,7 +1098,7 @@ response = httpx.post(
     <div class="flinks">
       <a href="/docs">API docs</a>
       <a href="https://github.com/Jeevan2191999/jnvoy">GitHub</a>
-      <a href="/v1/report/compliance">Sample report</a>
+      <a href="/static/sample-report.pdf">Sample report</a>
       <a href="/privacy">Privacy</a>
       <a href="/security">Security</a>
     </div>

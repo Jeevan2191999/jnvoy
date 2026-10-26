@@ -58,15 +58,15 @@ SECRET_PATTERNS = [
     (r"-----BEGIN\s+EC\s+PRIVATE\s+KEY-----", "EC_PRIVATE_KEY", "critical"),
 
     # Database connection strings
-    (r"(postgresql|mysql|mongodb|redis)://[^@]+@[^\s]+", "DB_CONNECTION_STRING", "critical"),
-    (r"(Server|Data Source)=[^;]+;.*Password=[^;]+", "DB_CONNECTION_STRING", "critical"),
+    (r"(postgresql|mysql|mongodb|redis)://[^@\s]{1,200}@[^\s]{1,300}", "DB_CONNECTION_STRING", "critical"),
+    (r"(Server|Data Source)=[^;]{1,200};[^\n]{0,300}?Password=[^;]{1,200}", "DB_CONNECTION_STRING", "critical"),
 ]
 
 # Tool poisoning patterns in tool descriptions
 TOOL_POISONING_PATTERNS = [
     (r"ignore\s+(all\s+)?(previous|prior)?\s*instructions?", "INSTRUCTION_OVERRIDE", "critical"),
-    (r"before\s+(executing|calling|running)\s+this\s+tool.*read", "DATA_EXFILTRATION_SETUP", "critical"),
-    (r"include\s+.*(ssh|private\s+key|credentials?|password)\s+in\s+(the\s+)?(tool\s+)?parameters?", "CREDENTIAL_EXFILTRATION", "critical"),
+    (r"before\s+(executing|calling|running)\s+this\s+tool.{0,300}read", "DATA_EXFILTRATION_SETUP", "critical"),
+    (r"include\s+.{0,300}(ssh|private\s+key|credentials?|password)\s+in\s+(the\s+)?(tool\s+)?parameters?", "CREDENTIAL_EXFILTRATION", "critical"),
     (r"(exfiltrate|send|transmit|leak)\s+(all\s+)?(data|files?|contents?)", "DATA_EXFILTRATION", "critical"),
     (r"\[SYSTEM\]|\[ADMIN\]|\[OVERRIDE\]", "FAKE_SYSTEM_TAG", "critical"),
     (r"<\s*system\s*>|<\s*admin\s*>|<\s*override\s*>", "FAKE_XML_TAG", "critical"),

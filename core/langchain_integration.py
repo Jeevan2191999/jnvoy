@@ -67,16 +67,21 @@ class JnvoyClient:
         self,
         jnvoy_url: str = "https://jnvoy.onrender.com",
         api_key: Optional[str] = None,
+        provider_key: Optional[str] = None,
         provider: str = "anthropic",
         model: str = "claude-haiku-4-5-20251001",
         max_tokens: int = 1000,
         temperature: float = 0.7,
         use_cache: bool = True,
-        use_routing: bool = True,
+        use_routing: bool = False,
         timeout: float = 60.0,
     ):
         self.jnvoy_url = jnvoy_url.rstrip("/")
         self.api_key = api_key or os.getenv("JNVOY_API_KEY")
+        # Your own model provider key. The hosted service requires it, uses it for that
+        # one request, and never stores it.
+        env_name = {"anthropic": "ANTHROPIC_API_KEY", "openai": "OPENAI_API_KEY"}.get(provider)
+        self.provider_key = provider_key or (os.getenv(env_name) if env_name else None)
         self.provider = provider
         self.model = model
         self.max_tokens = max_tokens
@@ -89,6 +94,8 @@ class JnvoyClient:
         headers = {"Content-Type": "application/json"}
         if self.api_key:
             headers["x-api-key"] = self.api_key
+        if self.provider_key:
+            headers["x-provider-key"] = self.provider_key
         return headers
 
     def call(self, messages: list[dict]) -> dict:
@@ -196,12 +203,13 @@ if LANGCHAIN_AVAILABLE:
 
         jnvoy_url: str = "https://jnvoy.onrender.com"
         jnvoy_api_key: Optional[str] = None
+        provider_key: Optional[str] = None
         provider: str = "anthropic"
         model: str = "claude-haiku-4-5-20251001"
         max_tokens: int = 1000
         temperature: float = 0.7
         use_cache: bool = True
-        use_routing: bool = True
+        use_routing: bool = False
         timeout: float = 60.0
 
         @property
@@ -213,6 +221,7 @@ if LANGCHAIN_AVAILABLE:
             return JnvoyClient(
                 jnvoy_url=self.jnvoy_url,
                 api_key=self.jnvoy_api_key,
+                provider_key=self.provider_key,
                 provider=self.provider,
                 model=self.model,
                 max_tokens=self.max_tokens,
@@ -260,12 +269,13 @@ if LANGCHAIN_AVAILABLE:
 
         jnvoy_url: str = "https://jnvoy.onrender.com"
         jnvoy_api_key: Optional[str] = None
+        provider_key: Optional[str] = None
         provider: str = "anthropic"
         model: str = "claude-haiku-4-5-20251001"
         max_tokens: int = 1000
         temperature: float = 0.7
         use_cache: bool = True
-        use_routing: bool = True
+        use_routing: bool = False
         timeout: float = 60.0
 
         @property
@@ -277,6 +287,7 @@ if LANGCHAIN_AVAILABLE:
             return JnvoyClient(
                 jnvoy_url=self.jnvoy_url,
                 api_key=self.jnvoy_api_key,
+                provider_key=self.provider_key,
                 provider=self.provider,
                 model=self.model,
                 max_tokens=self.max_tokens,
