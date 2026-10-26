@@ -2,6 +2,7 @@ Business Source License 1.1
 
 Licensor:             Jeevan Nagaraj
 Licensed Work:        Jnvoy (the version of the software this license accompanies)
+                      The Licensed Work is (c) 2026 Jeevan Nagaraj.
 Additional Use Grant: You may use, copy, modify, and self-host the Licensed
                        Work for any purpose, including internal production
                        use, at no charge. You may not offer the Licensed
@@ -9,7 +10,9 @@ Additional Use Grant: You may use, copy, modify, and self-host the Licensed
                        as a hosted or managed service to third parties where
                        that service competes with the Licensor's own hosted
                        offering, without a separate commercial license from
-                       the Licensor.
+                       the Licensor. Using the Licensed Work to protect the
+                       traffic of your own applications and systems is not
+                       offering it as a service to third parties.
 
 Change Date:          Four years from the date each version of the Licensed
                        Work is published.

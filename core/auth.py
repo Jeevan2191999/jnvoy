@@ -42,6 +42,13 @@ MIN_KEY_LENGTH = 24
 DEFAULT_RATE_PER_MIN = 60
 FAILED_AUTH_PER_MIN = 30          # unauthenticated requests tolerated per client address
 MAX_TRACKED_ADDRESSES = 5000
+CUSTOMER_KEY_PREFIX = "jnvoy_"      # customer keys are jnvoy_prod_... and about 43 characters
+MAX_CONCURRENT_LOOKUPS = 4          # database lookups for unknown keys that may run at once
+
+
+def looks_like_customer_key(api_key: str) -> bool:
+    """Cheap shape check, so random strings never cost a database lookup."""
+    return api_key.startswith(CUSTOMER_KEY_PREFIX) and 20 <= len(api_key) <= 128
 
 ADMIN_EXACT = {"/v1/cache", "/v1/cache/stats", "/v1/providers/health"}
 ADMIN_PREFIXES = ("/v1/audit", "/v1/report/", "/v1/admin")
@@ -104,6 +111,10 @@ def _parse_keys(raw: str, name: str):
 def parse_config(env) -> _Config:
     cfg = _Config()
     if str(env.get("JNVOY_AUTH", "")).strip().lower() == "off":
+        if str(env.get("RENDER", "")).strip():
+            # Switching auth off on the hosted service would open every admin route.
+            cfg.error = "JNVOY_AUTH=off is refused on a hosted deployment"
+            return cfg
         cfg.off = True
         return cfg
     clients, p1 = _parse_keys(env.get("JNVOY_API_KEYS", ""), "JNVOY_API_KEYS")
@@ -169,6 +180,16 @@ class AuthGate:
         q.append(now)
         return None
 
+    def failures_exhausted(self, client: str) -> bool:
+        """True when this address has already used up its failed-key allowance. Records nothing."""
+        q = self._failures.get(client)
+        if not q:
+            return False
+        now = self._clock()
+        while q and now - q[0] >= 60:
+            q.popleft()
+        return len(q) >= FAILED_AUTH_PER_MIN
+
     def env_role(self, api_key: Optional[str]) -> Optional[str]:
         """Role of an environment key ("client" or "admin"), or None. Never touches the database."""
         cfg = self._config()
@@ -225,6 +246,7 @@ class ApiKeyAuthMiddleware:
             resolver = shared_resolver
         self.resolver = resolver
         self._record_usage = record_usage
+        self._lookup_slots = asyncio.Semaphore(MAX_CONCURRENT_LOOKUPS)
 
     def _usage(self):
         if self._record_usage is not None:
@@ -245,8 +267,11 @@ class ApiKeyAuthMiddleware:
         loop = asyncio.get_running_loop()
 
         tenant = None
-        if api_key and is_protected(path) and self.gate.env_role(api_key) is None:
-            tenant = await loop.run_in_executor(None, self.resolver.resolve, api_key)
+        if (api_key and is_protected(path) and looks_like_customer_key(api_key)
+                and self.gate.env_role(api_key) is None
+                and not self.gate.failures_exhausted(client)):
+            async with self._lookup_slots:
+                tenant = await loop.run_in_executor(None, self.resolver.resolve, api_key)
 
         decision = self.gate.check(method, path, api_key, client, tenant=tenant)
         if not decision.allowed:

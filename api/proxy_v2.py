@@ -142,8 +142,57 @@ async def security_txt():
     return Response(SECURITY_TXT, media_type="text/plain; charset=utf-8")
 
 
-# In-memory fallback audit log used when database is unavailable
+ROBOTS_TXT = (
+    "User-agent: *\n"
+    "Allow: /\n"
+    "Disallow: /v1/\n"
+    "Sitemap: https://www.jnvoy.com/sitemap.xml\n"
+)
+
+SITEMAP_XML = (
+    '<?xml version="1.0" encoding="UTF-8"?>\n'
+    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+    "  <url><loc>https://www.jnvoy.com/</loc></url>\n"
+    "  <url><loc>https://www.jnvoy.com/security</loc></url>\n"
+    "  <url><loc>https://www.jnvoy.com/privacy</loc></url>\n"
+    "  <url><loc>https://www.jnvoy.com/docs</loc></url>\n"
+    "</urlset>\n"
+)
+
+
+@app.get("/robots.txt", include_in_schema=False)
+async def robots_txt():
+    return Response(ROBOTS_TXT, media_type="text/plain; charset=utf-8")
+
+
+@app.get("/sitemap.xml", include_in_schema=False)
+async def sitemap_xml():
+    return Response(SITEMAP_XML, media_type="application/xml")
+
+
+@app.get("/favicon.ico", include_in_schema=False)
+async def favicon_ico():
+    from fastapi.responses import RedirectResponse
+    return RedirectResponse("/static/favicon.svg", status_code=308)
+
+
+# In-memory fallback audit log used when database is unavailable. It is a short-lived spool:
+# a background task writes its rows to the database as soon as the database is back, and it
+# is capped so a long outage cannot use all the memory.
 audit_log: list[dict] = []
+MAX_SPOOLED_AUDIT_ROWS = 10_000
+DB_RETRY_SECONDS = 30
+
+# Keeps background tasks referenced until they finish, so they are not garbage collected.
+_background_tasks: set = set()
+_maintenance_task = None
+
+
+def _spawn(coro):
+    task = asyncio.create_task(coro)
+    _background_tasks.add(task)
+    task.add_done_callback(_background_tasks.discard)
+    return task
 
 # Database availability flag
 _db_available = False
@@ -165,11 +214,61 @@ async def startup():
     except Exception as e:
         _db_available = False
         print(f"Database unavailable, using in-memory fallback: {e}")
+    global _maintenance_task
+    _maintenance_task = _spawn(_db_maintenance())
+
+
+def _try_connect() -> bool:
+    """Connect to the database if it has come back. Safe to call from a worker thread."""
+    global _db_available
+    try:
+        init_pool()
+        init_schema()
+        from core.tenants import init_tenant_schema
+        init_tenant_schema()
+        _db_available = True
+        return True
+    except Exception:
+        return False
+
+
+async def _flush_spool() -> int:
+    """Write spooled audit rows to the database. Returns how many were written."""
+    written = 0
+    while audit_log and _db_available:
+        row = audit_log[0]
+        entry = AuditEntry(
+            audit_id=row["audit_id"], request_hash=row["audit_id"][:16],
+            pii_detected=row["pii_detected"], provider=row["provider"], model=row["model"],
+            latency_ms=row["latency_ms"], cache_hit=row["cache_hit"],
+            api_key_hash=row["api_key_hash"], tenant_id=row["tenant_id"],
+            output_detected=row.get("output_detected") or {},
+        )
+        if not await write_audit_entry_async(entry):
+            break
+        audit_log.pop(0)
+        written += 1
+    return written
+
+
+async def _db_maintenance():
+    """Every 30 seconds: reconnect if the database was down, then flush spooled audit rows."""
+    while True:
+        await asyncio.sleep(DB_RETRY_SECONDS)
+        try:
+            if not _db_available:
+                await run_in_threadpool(_try_connect)
+            if _db_available and audit_log:
+                await _flush_spool()
+        except Exception:
+            logger.exception("database maintenance failed")
 
 
 @app.on_event("shutdown")
 async def shutdown():
     """Close database connection pool on shutdown."""
+    if _maintenance_task is not None:
+        _maintenance_task.cancel()
     from core.database import close_pool
     close_pool()
 
@@ -556,7 +655,7 @@ async def proxy_request(
     result = await run_proxy_pipeline(request, tenant=tenant, policy=caller.policy,
                                       provider_key=provider_key)
 
-    asyncio.create_task(_write_audit(
+    _spawn(_write_audit(
         audit_id=audit_id,
         pii_summary=result["pii_summary"],
         provider=request.provider or "anthropic",
@@ -694,7 +793,10 @@ def audit_entries(tenant_id: str, limit: int = 50, offset: int = 0) -> dict:
         try:
             return query_audit_log(tenant_id=tenant_id, limit=limit, offset=offset)
         except Exception:
-            pass
+            logger.exception("audit read failed")
+            raise HTTPException(status_code=503, detail={
+                "error": "audit_unavailable",
+                "message": "The audit log could not be read right now. Try again shortly."})
     mine = [e for e in audit_log if e.get("tenant_id", DEFAULT_TENANT) == tenant_id]
     newest_first = list(reversed(mine))
     return {
@@ -710,7 +812,10 @@ def audit_summary(tenant_id: str) -> dict:
         try:
             return get_compliance_summary(tenant_id=tenant_id)
         except Exception:
-            pass
+            logger.exception("audit summary failed")
+            raise HTTPException(status_code=503, detail={
+                "error": "audit_unavailable",
+                "message": "The audit summary could not be read right now. Try again shortly."})
 
     mine = [e for e in audit_log if e.get("tenant_id", DEFAULT_TENANT) == tenant_id]
     if not mine:
@@ -785,7 +890,10 @@ async def _write_audit(
         if success:
             return
 
-    # Fallback to in-memory
+    # Fallback to in-memory spool, flushed to the database when it is available again
+    if len(audit_log) >= MAX_SPOOLED_AUDIT_ROWS:
+        del audit_log[0]
+        logger.error("audit spool is full: the oldest row was dropped")
     audit_log.append({
         "audit_id": audit_id,
         "timestamp": datetime.now(timezone.utc).isoformat(),
@@ -915,13 +1023,19 @@ async def scan_tool_response(tool_name: str, payload: dict):
     }
 
 
+class ToolDescriptionRequest(BaseModel):
+    tool_name: str
+    description: str
+
+
 @app.post("/v1/mcp/scan/tool-description")
-async def scan_tool_description(tool_name: str, description: str):
+async def scan_tool_description(body: ToolDescriptionRequest):
     """
     Scan a tool description for tool poisoning attempts.
     Detects hidden instructions injected into tool metadata.
+    Send the name and description in the request body, never in the web address.
     """
-    result = mcp_scanner.scan_tool_description(tool_name, description)
+    result = mcp_scanner.scan_tool_description(body.tool_name, body.description)
     return {
         "threat_detected": result.threat_detected,
         "blocked": result.blocked,

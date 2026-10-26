@@ -46,7 +46,7 @@ INJECTION_PATTERNS = [
 
     # Jailbreak attempts
     (r"(you\s+are\s+now|act\s+as|pretend\s+to\s+be|roleplay\s+as)\s+(dan|jailbreak|uncensored|unrestricted|evil|bad|malicious)", "JAILBREAK", "critical", "Attempts to jailbreak via persona"),
-    (r"dan\s*(mode|jailbreak|\d)", "JAILBREAK", "critical", "DAN jailbreak attempt"),
+    (r"\bdan\s+(mode|jailbreak)\b|\bdo\s+anything\s+now\b", "JAILBREAK", "critical", "DAN jailbreak attempt"),
     (r"developer\s+mode\s+(enabled|activated|on)", "JAILBREAK", "critical", "Developer mode jailbreak"),
     (r"jailbreak", "JAILBREAK", "high", "Explicit jailbreak keyword"),
     (r"(remove|disable|bypass|circumvent)\s+(your\s+)?(safety|content|filter|restriction|limitation|guardrail)", "JAILBREAK", "critical", "Attempts to bypass safety measures"),
@@ -73,7 +73,7 @@ INJECTION_PATTERNS = [
 
     # Data exfiltration
     (r"(send|transmit|exfiltrate|leak|extract)\s+(all\s+)?(user\s+data|database|records|training\s+data)", "DATA_EXFILTRATION", "critical", "Attempts to exfiltrate data"),
-    (r"(list|show|dump|print)\s+(all\s+)?(users?|records?|entries|data\s+in\s+(the\s+)?database)", "DATA_EXFILTRATION", "high", "Attempts to dump database"),
+    (r"\b(list|show|dump|print)\s+all\s+(users?|records?|entries)\b|\b(dump|print)\s+(the\s+)?(users?|records?|entries)\s+(table|data)\b|\bdata\s+in\s+(the\s+)?database\b", "DATA_EXFILTRATION", "high", "Attempts to dump database"),
 
     # Encoding and obfuscation attacks
     (r"base64\s*(decode|encoded|:)", "OBFUSCATION", "medium", "Base64 encoding used to obfuscate attack"),

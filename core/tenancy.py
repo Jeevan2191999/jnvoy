@@ -79,10 +79,20 @@ class TenantResolver:
             self._cache[digest] = (now + 5, None)   # brief, so a bad-key flood cannot hammer it
             return None
         if len(self._cache) >= MAX_CACHED:
-            self._cache.clear()
+            self._make_room(now)
         ttl = CACHE_SECONDS if tenant else NEGATIVE_CACHE_SECONDS
         self._cache[digest] = (now + ttl, tenant)
         return tenant
+
+    def _make_room(self, now: float) -> None:
+        """Free space without evicting real customers to make room for bad keys."""
+        for digest in [d for d, (expires, _) in self._cache.items() if expires <= now]:
+            del self._cache[digest]
+        if len(self._cache) >= MAX_CACHED:
+            for digest in [d for d, (_, tenant) in self._cache.items() if tenant is None]:
+                del self._cache[digest]
+        if len(self._cache) >= MAX_CACHED:
+            self._cache.clear()
 
     def invalidate(self) -> None:
         self._cache.clear()

@@ -1,5 +1,3 @@
-version: '3.9'
-
 # Jnvoy privacy and security gateway - Full Stack
 # Starts: API + PostgreSQL in one command
 # Setup:  cp .env.example .env, set your keys in .env, then run: docker-compose up
@@ -12,11 +10,12 @@ services:
     container_name: jnvoy-api
     ports:
       - "8000:8000"
+    # Every setting in .env (regions, second check, rate limit, body size) reaches the container;
+    # the lines below take priority for the ones the stack must control.
+    env_file: .env
     environment:
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
       - OPENAI_API_KEY=${OPENAI_API_KEY}
-      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
-      - MISTRAL_API_KEY=${MISTRAL_API_KEY}
       - JNVOY_API_KEYS=${JNVOY_API_KEYS:?Set JNVOY_API_KEYS in your .env file (see .env.example)}
       - JNVOY_ADMIN_KEYS=${JNVOY_ADMIN_KEYS:-}
       - DATABASE_URL=postgresql://jnvoy:jnvoy@postgres:5432/jnvoy

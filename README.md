@@ -176,7 +176,7 @@ Full request and response details, with an Authorize button for trying calls, ar
 | `JNVOY_JUDGE_BACKEND` | Second check: `none` (default), `ollama` or `anthropic` |
 | `JNVOY_JUDGE_FAIL_MODE` | If the second check fails: `open` (default) keeps first-pass redaction, `closed` rejects the request |
 | `DATABASE_URL` | PostgreSQL for the audit log. Without it, an in-memory log is used |
-| `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `GOOGLE_API_KEY`, `MISTRAL_API_KEY` | Provider keys for the models you use. These belong to whoever runs Jnvoy and are used only for the operator's own keys. A hosted customer sends their own, see below |
+| `ANTHROPIC_API_KEY`, `OPENAI_API_KEY` | Provider keys for the models you use. These belong to whoever runs Jnvoy and are used only for the operator's own keys. A hosted customer sends their own, see below |
 
 ## Python and LangChain
 

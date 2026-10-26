@@ -106,3 +106,14 @@ def test_pages_say_the_second_check_is_off_on_the_hosted_service():
         assert "sent to Anthropic" not in text, path
     assert "off on the hosted service" in client.get("/privacy").text.lower()
     assert "off on the hosted" in client.get("/security").text.lower()
+
+
+def test_site_has_discovery_files_and_social_tags():
+    assert "Disallow: /v1/" in client.get("/robots.txt").text
+    assert "https://www.jnvoy.com/security" in client.get("/sitemap.xml").text
+    assert client.get("/static/favicon.svg").status_code == 200
+    assert client.get("/static/og-image.png").status_code == 200
+    for path in ("/", "/privacy", "/security"):
+        html = client.get(path).text
+        for tag in ('rel="canonical"', 'property="og:title"', 'property="og:image"', 'name="twitter:card"'):
+            assert tag in html, (path, tag)
