@@ -64,24 +64,33 @@ latency, the customer id and a short key fingerprint. Never prompt text, never r
 `/privacy`. The tenants table holds customer names, contact emails, plans and hashed keys.
 
 Backups are the database host's job. In the Render dashboard, open the Postgres instance and its
-Recovery tab. Two things are available: point-in-time recovery (the last 3 days on the current
-plan) and logical backups (kept 7 days). Check both are listed after any plan change.
+Recovery tab. Point-in-time recovery covers the last 3 days on the current plan. Logical exports
+are made on demand ("Create export"); Render keeps each one for at least 7 days. Nothing is
+exported automatically, so make one before any risky change.
 
 The database accepts connections only from the Jnvoy service, on Render's private network, so
 `pg_dump` from your laptop cannot reach it. That is deliberate. Use the dashboard instead.
 
-**Practise a restore once, before a customer relies on it.** This uses a logical backup and your
-own machine, and changes nothing in production:
+**Practise a restore once, before a customer relies on it.** This was last done on 26 October 2026
+and worked: the data came back with the expected row counts. It uses an export and your own
+machine, and changes nothing in production:
 
-1. Render dashboard, the Postgres instance, Recovery tab, Logical backups: download the latest.
-2. On your machine, with PostgreSQL installed:
+1. Render dashboard, the Postgres instance, Recovery tab, Export: "Create export", then download
+   the file (it is a `.dir.tar.gz`).
+2. Unpack it into a new folder and restore it into a scratch database, with PostgreSQL installed
+   (Postgres.app on a Mac; add its `bin` folder to your PATH):
 
+       mkdir -p ~/restore_test && tar -xzf ~/Downloads/THE_FILE.dir.tar.gz -C ~/restore_test
+       ls -R ~/restore_test
        createdb jnvoy_restore_test
-       pg_restore --no-owner -d jnvoy_restore_test path/to/the_download.dump
+       pg_restore --no-owner -d jnvoy_restore_test ~/restore_test/THE_FOLDER/jnvoy
 
-3. Check it: `psql jnvoy_restore_test -c "select count(*) from audit_log;"` and
-   `psql jnvoy_restore_test -c "select count(*) from tenants;"`. Counts should look right.
-4. Drop it: `dropdb jnvoy_restore_test`.
+3. Check it: `psql jnvoy_restore_test -c "select count(*) from audit_log;"` and the same for
+   `tenants` and `api_key_usage`. Counts should look right.
+4. Clean up, because the export holds customer details:
+
+       dropdb jnvoy_restore_test
+       rm -rf ~/restore_test ~/Downloads/THE_FILE.dir.tar.gz
 
 For a real incident, "Restore" in the Recovery tab creates a new database from a chosen time.
 Point `DATABASE_URL` in Render at the new one (use its internal hostname), save, and wait for the
