@@ -19,7 +19,7 @@ Tiers:
 - free:     10,000 API calls/month, basic audit log
 - pro:      100,000 API calls/month, full compliance reports
 - business: 1,000,000 API calls/month, custom PII rules, priority support
-- enterprise: unlimited, dedicated infrastructure, SLA
+- enterprise: unlimited, scoped with the customer (self-hosted option, SLA)
 """
 
 import hashlib
