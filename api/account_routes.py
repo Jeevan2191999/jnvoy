@@ -102,13 +102,14 @@ async def my_audit_log(request: Request, limit: int = 50, offset: int = 0, forma
     out = io.StringIO()
     writer = csv.writer(out)
     writer.writerow(["audit_id", "timestamp", "provider", "model", "latency_ms", "cache_hit",
-                     "total_pii", "pii_detected", "sensitive_data_transmitted"])
+                     "total_pii", "pii_detected", "reply_findings", "sensitive_data_transmitted"])
     for e in data["entries"]:
         writer.writerow([
             e.get("audit_id"), e.get("timestamp"), e.get("provider"), e.get("model"),
             e.get("latency_ms"), e.get("cache_hit"),
             e.get("total_pii", e.get("total_pii_instances", 0)),
             json.dumps(e.get("pii_detected", {}), sort_keys=True),
+            json.dumps(e.get("output_detected", {}), sort_keys=True),
             e.get("sensitive_data_transmitted", False),
         ])
     return Response(

@@ -119,6 +119,10 @@ All `/v1` routes need an `x-api-key` header. Routes marked admin need an admin k
 | `GET /v1/cache/stats`, `DELETE /v1/cache` | Response cache statistics and reset | admin |
 | `GET /v1/providers/health` | Model provider health | admin |
 
+### Scanning the model's reply
+
+Jnvoy also checks what the model sends back, before your values are put back in. It looks for credentials, payment cards, bank identifiers and national ID numbers (the same checksum rules as the request side), and for injection-style instructions aimed at whatever reads the reply next. Names, URLs, emails and phone numbers are not checked in replies, because models write them legitimately. With `output_scan: flag` (the default) the reply is left alone and the response carries an `output_scan` object listing what was found. With `redact`, secrets and identifiers are replaced by `[REDACTED_TYPE]`. Injection-style text is only ever reported, never removed. The audit log keeps counts by type, never the text.
+
 ### Customers
 
 Each customer gets its own key, plan, monthly allowance, settings, audit log and report. Create one with an admin key:
@@ -130,7 +134,7 @@ curl -X POST https://your-host/v1/admin/tenants -H "x-api-key: $ADMIN_KEY" -H "C
 
 The response holds the customer's key once. Plans are `free` (10,000 calls a month), `production` (100,000), `business` and `enterprise`; set `monthly_limit` to agree a custom allowance. A customer who reaches the allowance gets `429 monthly_limit_reached`, and every metered response carries `X-Jnvoy-Monthly-Limit` and `X-Jnvoy-Monthly-Remaining`. Usage is counted per calendar month, so nothing needs resetting.
 
-Settings (`policy`) per customer: `regions`, `redact_extra`, `judge` (`default`, `on`, `off`) and `judge_fail_mode`. `judge: off` means no text, not even redacted text, goes to a second provider. Keys from `JNVOY_API_KEYS` and `JNVOY_ADMIN_KEYS` are the operator's own and are not metered. Customers need the database (`DATABASE_URL`).
+Settings (`policy`) per customer: `regions`, `redact_extra`, `judge` (`default`, `on`, `off`), `judge_fail_mode` and `output_scan` (`flag` by default, `redact`, or `off`). `judge: off` means no text, not even redacted text, goes to a second provider. Keys from `JNVOY_API_KEYS` and `JNVOY_ADMIN_KEYS` are the operator's own and are not metered. Customers need the database (`DATABASE_URL`).
 
 Full request and response details, with an Authorize button for trying calls, are at [/docs](https://www.jnvoy.com/docs).
 

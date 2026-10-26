@@ -42,7 +42,8 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from core.detector_v2 import PIIDetectorV2
 from core.judged_detector import JudgedPIIDetector
 from core.auth import install_api_key_auth
-from core.policy import PolicyDetectors
+from core.policy import PolicyDetectors, output_scan_mode
+from core.output_scan import OutputScanner
 from core.tenancy import Caller, DEFAULT_TENANT
 from api.docs_config import API_DESCRIPTION, OPENAPI_TAGS, VERSION, apply_docs
 from core.pii_judge import JudgeError
@@ -79,6 +80,9 @@ detectors = PolicyDetectors(detector)
 
 # Injection detector — scans every request before it reaches the LLM
 injection_detector = InjectionDetector(action="block", confidence_threshold=0.6)
+
+# Checks the model's reply for secrets and identifiers before the customer's values go back in
+output_scanner = OutputScanner(injection_detector)
 
 # MCP security scanner — protects tool calls in both directions
 mcp_scanner = MCPSecurityScanner(action="block", confidence_threshold=0.6)
@@ -167,6 +171,13 @@ class IntelligenceSummary(BaseModel):
     estimated_cost_usd: float
     cost_saved_usd: float
 
+class OutputScanSummary(BaseModel):
+    mode: str
+    flagged: bool
+    findings: dict[str, int]
+    injection: dict[str, int]
+    redacted: bool
+
 class ProxyResponse(BaseModel):
     id: str
     content: str
@@ -176,6 +187,7 @@ class ProxyResponse(BaseModel):
     intelligence: IntelligenceSummary
     latency_ms: float
     audit_id: str
+    output_scan: Optional[OutputScanSummary] = None
 
 
 # ── LLM Callers ───────────────────────────────────────────────────────────────
@@ -354,9 +366,14 @@ async def run_proxy_pipeline(request: ProxyRequest, tenant: str = "anonymous",
     estimated_cost = 0.0
     cost_saved = 0.0
 
+    scan_mode = output_scan_mode(policy)
+    out_scan = None
+
     if cache_hit and cached_entry:
         llm_response_raw = cached_entry.response_text
         cost_saved = cached_entry.cost_saved_usd
+        out_scan = output_scanner.scan(llm_response_raw, scan_mode, policy)
+        llm_response_raw = out_scan.text
     else:
         provider = (request.provider or "anthropic").lower()
         if provider == "anthropic":
@@ -377,6 +394,10 @@ async def run_proxy_pipeline(request: ProxyRequest, tenant: str = "anonymous",
             len(cache_query.split()) * 2,
             len(llm_response_raw.split()) * 2
         )
+
+        # Check the reply before it is cached or the customer's values are put back.
+        out_scan = output_scanner.scan(llm_response_raw, scan_mode, policy)
+        llm_response_raw = out_scan.text
 
         if request.use_cache and cache_key:
             semantic_cache.set(
@@ -401,6 +422,7 @@ async def run_proxy_pipeline(request: ProxyRequest, tenant: str = "anonymous",
         "estimated_cost_usd": estimated_cost,
         "cost_saved_usd": cost_saved,
         "latency_ms": round(latency_ms, 2),
+        "output_scan": out_scan,
     }
 
 
@@ -447,6 +469,7 @@ async def proxy_request(
         cache_hit=result["cache_hit"],
         api_key_hash=key_hash[:8],
         tenant_id=caller.tenant_id,
+        output_detected=result["output_scan"].audit_counts() if result["output_scan"] else {},
     ))
 
     return ProxyResponse(
@@ -467,7 +490,8 @@ async def proxy_request(
             cost_saved_usd=result["cost_saved_usd"],
         ),
         latency_ms=result["latency_ms"],
-        audit_id=audit_id
+        audit_id=audit_id,
+        output_scan=_output_summary(result["output_scan"]),
     )
 
 
@@ -542,9 +566,26 @@ async def providers_health():
     return outage_detector.get_dashboard()
 
 
+def _output_summary(scan) -> Optional[OutputScanSummary]:
+    if scan is None or scan.mode == "off":
+        return None
+    return OutputScanSummary(
+        mode=scan.mode, flagged=scan.flagged, findings=scan.findings,
+        injection=scan.injection, redacted=scan.redacted,
+    )
+
+
 def _caller(http_request: Request) -> Caller:
     """Who is calling, as decided by the auth middleware."""
     return getattr(http_request.state, "caller", None) or Caller(role="open")
+
+
+def _sum_counts(dicts) -> dict:
+    total: dict[str, int] = {}
+    for d in dicts:
+        for k, v in d.items():
+            total[k] = total.get(k, 0) + v
+    return total
 
 
 def _mine(tenant_id: str) -> list:
@@ -592,6 +633,7 @@ def audit_summary(tenant_id: str) -> dict:
         "total_api_calls": total,
         "total_pii_instances_detected_and_redacted": total_pii,
         "pii_types_breakdown": pii_types,
+        "reply_findings_breakdown": _sum_counts(e.get("output_detected", {}) for e in mine),
         "cache_hit_rate_percent": round(cache_hits / total * 100, 1),
         "average_latency_ms": round(sum(e["latency_ms"] for e in mine) / total, 2),
         "sensitive_data_transmitted_to_llm": False,
@@ -624,6 +666,7 @@ async def _write_audit(
     cache_hit: bool,
     api_key_hash: str,
     tenant_id: str = DEFAULT_TENANT,
+    output_detected: Optional[dict] = None,
 ):
     """
     Write audit entry to PostgreSQL with in-memory fallback.
@@ -640,6 +683,7 @@ async def _write_audit(
             cache_hit=cache_hit,
             api_key_hash=api_key_hash,
             tenant_id=tenant_id,
+            output_detected=output_detected or {},
         )
         success = await write_audit_entry_async(entry)
         if success:
@@ -657,6 +701,7 @@ async def _write_audit(
         "cache_hit": cache_hit,
         "api_key_hash": api_key_hash,
         "tenant_id": tenant_id,
+        "output_detected": output_detected or {},
         "sensitive_data_transmitted": False
     })
 

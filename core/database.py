@@ -19,7 +19,7 @@ import json
 import os
 import time
 from contextlib import asynccontextmanager
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Optional
 
@@ -122,6 +122,9 @@ CREATE INDEX IF NOT EXISTS idx_audit_api_key
 
 CREATE INDEX IF NOT EXISTS idx_audit_provider
     ON audit_log(provider);
+
+-- What was found in the model's reply (counts by type, never the text).
+ALTER TABLE audit_log ADD COLUMN IF NOT EXISTS output_detected JSONB NOT NULL DEFAULT '{}';
 """
 
 
@@ -154,6 +157,7 @@ class AuditEntry:
     api_key_hash: str
     tenant_id: str = "default"
     sensitive_data_transmitted: bool = False
+    output_detected: dict = field(default_factory=dict)
 
 
 def write_audit_entry(entry: AuditEntry) -> bool:
@@ -171,11 +175,13 @@ def write_audit_entry(entry: AuditEntry) -> bool:
                 INSERT INTO audit_log (
                     audit_id, request_hash, api_key_hash, tenant_id,
                     provider, model, latency_ms, cache_hit,
-                    pii_detected, total_pii, sensitive_data_transmitted
+                    pii_detected, total_pii, sensitive_data_transmitted,
+                    output_detected
                 ) VALUES (
                     %s, %s, %s, %s,
                     %s, %s, %s, %s,
-                    %s, %s, %s
+                    %s, %s, %s,
+                    %s
                 )
                 ON CONFLICT (audit_id) DO NOTHING
             """, (
@@ -190,6 +196,7 @@ def write_audit_entry(entry: AuditEntry) -> bool:
                 json.dumps(entry.pii_detected),
                 sum(entry.pii_detected.values()),
                 entry.sensitive_data_transmitted,
+                json.dumps(entry.output_detected or {}),
             ))
         conn.commit()
         return True
@@ -258,7 +265,7 @@ def query_audit_log(
                 SELECT
                     audit_id, timestamp, provider, model,
                     latency_ms, cache_hit, pii_detected,
-                    total_pii, sensitive_data_transmitted
+                    total_pii, sensitive_data_transmitted, output_detected
                 FROM audit_log
                 WHERE {where}
                 ORDER BY timestamp DESC
@@ -333,6 +340,17 @@ def get_compliance_summary(
                 for pii_type, count in row["pii_detected"].items():
                     pii_totals[pii_type] = pii_totals.get(pii_type, 0) + count
 
+            # What was found in the model's replies
+            cur.execute(f"""
+                SELECT output_detected
+                FROM audit_log
+                WHERE {where} AND output_detected <> '{{}}'::jsonb
+            """, params)
+            output_totals = {}
+            for row in cur.fetchall():
+                for kind, count in row["output_detected"].items():
+                    output_totals[kind] = output_totals.get(kind, 0) + count
+
         total = summary["total_calls"] or 0
         cache_hits = summary["cache_hits"] or 0
         cache_rate = round((cache_hits / total * 100), 1) if total > 0 else 0.0
@@ -344,6 +362,7 @@ def get_compliance_summary(
             "total_api_calls": total,
             "total_pii_instances_detected_and_redacted": int(summary["total_pii_redacted"] or 0),
             "pii_types_breakdown": pii_totals,
+            "reply_findings_breakdown": output_totals,
             "cache_hit_rate_percent": cache_rate,
             "average_latency_ms": float(summary["avg_latency_ms"] or 0),
             "sensitive_data_transmitted_to_llm": bool(summary["any_sensitive_transmitted"]),

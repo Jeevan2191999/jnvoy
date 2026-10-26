@@ -295,3 +295,32 @@ def test_in_memory_audit_is_also_separated_by_customer(monkeypatch):
     assert [e["audit_id"] for e in app_module.audit_entries("t1")["entries"]] == ["1"]
     assert app_module.audit_summary("t2")["total_pii_instances_detected_and_redacted"] == 5
     assert app_module.audit_summary("nobody") == {"message": "No audit entries yet"}
+
+
+def test_reply_findings_are_audited_per_customer_as_counts_only(client, monkeypatch):
+    import time as _time
+    import api.proxy_v2 as app_module
+    secret = "sk-ant-api03-" + "AbCdEfGh1234567890" * 3
+
+    async def fake_anthropic(messages, model, max_tokens):
+        return f"Use {secret}"
+
+    monkeypatch.setattr(app_module, "call_anthropic", fake_anthropic)
+    t = make_tenant(client, policy={"output_scan": "redact"})
+    key = {"x-api-key": t["api_key"]}
+    r = client.post("/v1/proxy", headers=key, json={
+        "model": "claude-haiku-4-5", "messages": [{"role": "user", "content": "give me a key"}],
+        "use_cache": False, "use_routing": False})
+    assert r.status_code == 200
+    assert secret not in r.text and r.json()["output_scan"]["redacted"] is True
+
+    for _ in range(50):
+        listing = client.get("/v1/me/audit", headers=key).json()
+        if listing["total"]:
+            break
+        _time.sleep(0.1)
+    assert listing["entries"][0]["output_detected"] == {"API_KEY": 1}
+    assert secret not in json.dumps(listing)
+    summary = client.get("/v1/me/audit/summary", headers=key).json()
+    assert summary["reply_findings_breakdown"] == {"API_KEY": 1}
+    assert "reply_findings" in client.get("/v1/me/audit?format=csv", headers=key).text
