@@ -43,22 +43,43 @@ def get_database_url() -> str:
 
 class WaitingPool(ThreadedConnectionPool):
     """
-    A connection pool that waits a few seconds for a free connection instead of failing at
-    once. Under load, several requests can reach the database together; the plain pool raises
-    "connection pool exhausted" for the one that arrives first after the limit.
+    A connection pool that is safe to leave running for weeks.
+
+    * It waits a few seconds for a free connection instead of failing at once. Under load,
+      several requests can reach the database together; the plain pool raises "connection
+      pool exhausted" for the one that arrives first after the limit.
+    * It checks a connection before handing it out and replaces it if it is dead. When the
+      database restarts, is upgraded or fails over, every connection the pool held is dead; the
+      plain pool keeps handing them out and every request fails until the service restarts.
     """
 
     WAIT_SECONDS = 5.0
+
+    @staticmethod
+    def _alive(conn) -> bool:
+        if conn.closed:
+            return False
+        try:
+            with conn.cursor() as cur:
+                cur.execute("SELECT 1")
+            conn.rollback()           # leave it clean for whoever uses it next
+            return True
+        except Exception:
+            return False
 
     def getconn(self, key=None):
         deadline = time.monotonic() + self.WAIT_SECONDS
         while True:
             try:
-                return super().getconn(key)
+                conn = super().getconn(key)
             except psycopg2.pool.PoolError:
                 if time.monotonic() >= deadline:
                     raise
                 time.sleep(0.01)
+                continue
+            if self._alive(conn):
+                return conn
+            super().putconn(conn, key, close=True)   # drop the dead one; the next call opens a new one
 
 
 def init_pool(min_conn: int = 2, max_conn: int = 10) -> ThreadedConnectionPool:
