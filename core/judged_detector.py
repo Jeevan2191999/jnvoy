@@ -74,7 +74,9 @@ class JudgedPIIDetector(PIIDetectorV2):
     # ── public async API ──────────────────────────────────────────────────────
 
     async def detect_async(self, text: str) -> JudgedDetectionResult:
-        base = self.detect(text)  # sync: the shared token counter is never held across an await
+        # Detection is CPU work, so it runs on a worker thread and the server keeps answering
+        # other requests meanwhile. Token numbering is per thread (see detector_v2).
+        base = await asyncio.to_thread(self.detect, text)
         return await self._apply_judge(base)
 
     async def detect_conversation_async(self, texts: list) -> list:
@@ -83,7 +85,8 @@ class JudgedPIIDetector(PIIDetectorV2):
         whole conversation. Returns one result per message, in order. Each result's
         token_map holds the tokens used in that message; merge them with dict.update.
         """
-        bases = [self.detect(t) for t in texts]  # sync and in order
+        # All messages in order on one worker thread, so numbering stays in reading order.
+        bases = await asyncio.to_thread(lambda: [self.detect(t) for t in texts])
         settled = await asyncio.gather(
             *(self._apply_judge(b) for b in bases), return_exceptions=True
         )

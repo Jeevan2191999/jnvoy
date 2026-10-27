@@ -1,32 +1,42 @@
 # Jnvoy privacy and security gateway
-# Production Dockerfile
+# Production Dockerfile, in two stages: the first installs everything (it needs a compiler to
+# be safe against packages without a ready-made build), the second copies only the result.
+# The image that runs has no compiler, no pip cache and no build tools.
 
-FROM python:3.12-slim
+# ── Stage 1: install ──────────────────────────────────────────────────────────
+FROM python:3.12-slim AS builder
 
-# Set working directory
-WORKDIR /app
-
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    curl \
+ENV PIP_NO_CACHE_DIR=1 PIP_DISABLE_PIP_VERSION_CHECK=1
+RUN apt-get update && apt-get install -y --no-install-recommends build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements first for better layer caching
-COPY requirements.txt .
+RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
 
-# Install Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+# Requirements first, so this layer is reused until a dependency changes
+WORKDIR /build
+COPY requirements.txt constraints.txt ./
+RUN pip install -r requirements.txt
 
 # Download spaCy models
-RUN python -m spacy download en_core_web_lg
-RUN python -m spacy download en_core_web_sm
+RUN python -m spacy download en_core_web_lg && python -m spacy download en_core_web_sm
 
-# Copy application code
-COPY . .
+# ── Stage 2: run ──────────────────────────────────────────────────────────────
+FROM python:3.12-slim
 
-# Create non-root user for security
-RUN useradd -m -u 1000 jnvoy && chown -R jnvoy:jnvoy /app
+ENV PATH="/opt/venv/bin:$PATH" PYTHONUNBUFFERED=1 PYTHONDONTWRITEBYTECODE=1
+
+# curl is only for the health check below
+RUN apt-get update && apt-get install -y --no-install-recommends curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Non-root user for security
+RUN useradd -m -u 1000 jnvoy
+
+COPY --from=builder /opt/venv /opt/venv
+
+WORKDIR /app
+COPY --chown=jnvoy:jnvoy . .
 USER jnvoy
 
 # Expose port

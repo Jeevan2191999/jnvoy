@@ -33,3 +33,27 @@ jobs:
       - run: pip install -r requirements.txt -r requirements-dev.txt
       - run: python -m spacy download en_core_web_lg && python -m spacy download en_core_web_sm
       - run: pytest -q
+
+  # Builds the Docker image and starts it, so a broken Dockerfile or a missing file is found
+  # here and not after a deploy.
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -t jnvoy-ci .
+      - name: Start it and check it answers
+        run: |
+          docker run -d --name jnvoy -p 8000:8000 \
+            -e JNVOY_API_KEYS=ci-key-ci-key-ci-key-ci-key-ci-key \
+            jnvoy-ci
+          for i in $(seq 1 40); do
+            if curl -fs http://localhost:8000/health | grep -q healthy; then echo "up after $i tries"; exit 0; fi
+            sleep 3
+          done
+          docker logs jnvoy
+          exit 1
+      - name: A scan works inside the container
+        run: |
+          curl -fs -X POST http://localhost:8000/v1/scan \
+            -H "x-api-key: ci-key-ci-key-ci-key-ci-key-ci-key" -H "content-type: application/json" \
+            -d '{"text":"Email anna.lee@example.com"}' | grep -q EMAIL_ADDRESS

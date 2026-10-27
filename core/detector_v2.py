@@ -20,6 +20,7 @@ Supported PII types:
 """
 
 import re
+import threading
 import time
 from dataclasses import dataclass, field
 from typing import Optional
@@ -282,7 +283,23 @@ class PIIDetectorV2:
         self.confidence_threshold = confidence_threshold
         self.entities = resolve_entities(entities)
         self.languages = languages or ["en"]
-        self._token_counter: dict[str, int] = {}
+        self._local = threading.local()
+
+    @property
+    def _token_counter(self) -> dict:
+        """
+        Token numbering is per thread. Detection can run on worker threads (so a large text does
+        not stall the server), and two threads sharing one counter would hand out the same token
+        for different values.
+        """
+        counter = getattr(self._local, "counter", None)
+        if counter is None:
+            counter = self._local.counter = {}
+        return counter
+
+    @_token_counter.setter
+    def _token_counter(self, value: dict) -> None:
+        self._local.counter = value
 
     def _make_token(self, pii_type: str) -> str:
         count = self._token_counter.get(pii_type, 0) + 1

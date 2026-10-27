@@ -499,8 +499,9 @@ async def _prepare_request(request: ProxyRequest, tenant: str, policy: Optional[
     conversation, and the cache key. Shared by the normal and the streaming path.
     """
     # Step 0: Scan for prompt injection before anything else
-    injection_result = injection_detector.scan_messages(
-        [{"role": m.role, "content": m.content} for m in request.messages]
+    injection_result = await run_in_threadpool(
+        injection_detector.scan_messages,
+        [{"role": m.role, "content": m.content} for m in request.messages],
     )
     if injection_result.blocked:
         raise HTTPException(
@@ -624,7 +625,7 @@ async def run_proxy_pipeline(request: ProxyRequest, tenant: str = "anonymous",
     if cache_hit and cached_entry:
         llm_response_raw = cached_entry.response_text
         cost_saved = cached_entry.cost_saved_usd
-        out_scan = output_scanner.scan(llm_response_raw, scan_mode, policy)
+        out_scan = await run_in_threadpool(output_scanner.scan, llm_response_raw, scan_mode, policy)
         llm_response_raw = out_scan.text
     else:
         provider = (request.provider or "anthropic").lower()
@@ -649,7 +650,7 @@ async def run_proxy_pipeline(request: ProxyRequest, tenant: str = "anonymous",
         )
 
         # Check the reply before it is cached or the customer's values are put back.
-        out_scan = output_scanner.scan(llm_response_raw, scan_mode, policy)
+        out_scan = await run_in_threadpool(output_scanner.scan, llm_response_raw, scan_mode, policy)
         llm_response_raw = out_scan.text
 
         if request.use_cache and cache_key:
@@ -801,7 +802,7 @@ async def run_proxy_stream(request: ProxyRequest, tenant: str, policy: Optional[
         })
 
     if cached:
-        scan = output_scanner.scan(cached.response_text, scan_mode, policy)
+        scan = await run_in_threadpool(output_scanner.scan, cached.response_text, scan_mode, policy)
         text = det.restore(scan.text, token_map)
 
         async def cached_pieces():
@@ -1107,7 +1108,7 @@ async def scan_injection_get_removed():
 @app.post("/v1/scan/injection")
 async def scan_injection(body: ScanRequest):
     """Scan text for prompt injection attempts. The text travels in the body, not the URL."""
-    result = injection_detector.scan(body.text)
+    result = await run_in_threadpool(injection_detector.scan, body.text)
     return {
         "injection_detected": result.injection_detected,
         "blocked": result.blocked,
@@ -1368,7 +1369,7 @@ async def scan_mcp_payload(payload: dict):
     Scan an MCP tool call, response, or tool description for threats.
     Detects tool poisoning, secret leakage, PII in tool calls.
     """
-    result = mcp_scanner.scan_mcp_payload(payload)
+    result = await run_in_threadpool(mcp_scanner.scan_mcp_payload, payload)
     return {
         "threat_detected": result.threat_detected,
         "blocked": result.blocked,
@@ -1387,7 +1388,7 @@ async def scan_tool_response(tool_name: str, payload: dict):
     Scan a tool response before it enters the LLM context.
     Prevents PII and secrets from flowing into the model context window.
     """
-    result = mcp_scanner.scan_tool_response(tool_name, payload)
+    result = await run_in_threadpool(mcp_scanner.scan_tool_response, tool_name, payload)
     return {
         "threat_detected": result.threat_detected,
         "blocked": result.blocked,
@@ -1412,7 +1413,7 @@ async def scan_tool_description(body: ToolDescriptionRequest):
     Detects hidden instructions injected into tool metadata.
     Send the name and description in the request body, never in the web address.
     """
-    result = mcp_scanner.scan_tool_description(body.tool_name, body.description)
+    result = await run_in_threadpool(mcp_scanner.scan_tool_description, body.tool_name, body.description)
     return {
         "threat_detected": result.threat_detected,
         "blocked": result.blocked,
