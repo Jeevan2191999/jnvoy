@@ -247,10 +247,10 @@
 
       <section id="result">
         <h2>The result</h2>
-        <p>On a fresh set of examples written after our last round of fixes and scored once, Jnvoy hid <strong>22 of 25 sensitive values (88.0%)</strong> and left <strong>17 of 17 harmless words (100.0%)</strong> readable. That is a good result for a first pass and it is not a guarantee: do not rely on any redaction tool as your only control.</p>
+        <p>On a fresh set of examples written after our last round of fixes, with no rule changed after seeing its results, Jnvoy hid <strong>22 of 25 sensitive values (88.0%)</strong> and left <strong>17 of 17 harmless words (100.0%)</strong> readable. That is a good result for a first pass and it is not a guarantee: do not rely on any redaction tool as your only control.</p>
         <div class="ledger">
           <div class="row head"><div>Test set</div><div>What it is</div><div>Hidden</div></div>
-          <div class="row"><div class="k">Fresh held-out set</div><div class="v">23 short texts, 25 sensitive values, 17 harmless words that should stay. Written after the last fixes and scored once. 17 harmless words stayed readable (100.0%).</div><div class="s mid">88.0%</div></div>
+          <div class="row"><div class="k">Fresh held-out set</div><div class="v">23 short texts, 25 sensitive values, 17 harmless words that should stay. Written after the last fixes, and no rule was changed after seeing its results. 17 harmless words stayed readable (100.0%).</div><div class="s mid">88.0%</div></div>
           <div class="row"><div class="k">Development set</div><div class="v">117 short texts, 109 sensitive values. We fixed the rules against this set, so its score is optimistic. 52 of 53 harmless words stayed readable (98.1%).</div><div class="s mid">100.0%</div></div>
           <div class="row"><div class="k">Earlier test sets</div><div class="v">Two sets that were fresh when written (68 and 24 short texts) and have since been used to fix rules, so they are optimistic now. The second scored 19 of 27 (70.4%) before street-address fixes and 26 of 27 after; the first scored 56 of 60 before and 59 of 60 after.</div><div class="s mid">98.3% / 96.3%</div></div>
           <div class="row"><div class="k">Country identifiers</div><div class="v">32 short texts, one published sample number for each of 24 identifier types from other countries. 7 of 8 harmless words stayed readable.</div><div class="s mid">100.0%</div></div>
@@ -312,7 +312,7 @@
 
       <section id="repeat">
         <h2>Repeat it yourself</h2>
-        <p>The data and the script are in the <a href="https://github.com/Jeevan2191999/jnvoy/tree/main/evaluation">evaluation folder</a>. After installing the requirements, run <code>python evaluation/run_eval.py --dataset evaluation/holdout.jsonl --misses</code> to see the table above and every value that leaked. If you find text it should have caught, <a href="https://github.com/Jeevan2191999/jnvoy/issues">open an issue</a> with a made-up example of the same shape.</p>
+        <p>The data and the script are in the <a href="https://github.com/Jeevan2191999/jnvoy/tree/main/evaluation">evaluation folder</a>. After installing the requirements, run <code>python evaluation/run_eval.py --dataset evaluation/holdout3.jsonl --misses</code> to see the table above and every value that leaked. If you find text it should have caught, <a href="https://github.com/Jeevan2191999/jnvoy/issues">open an issue</a> with a made-up example of the same shape.</p>
       </section>
 
     </div>
