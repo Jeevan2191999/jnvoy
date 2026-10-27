@@ -51,6 +51,7 @@ from core.tenancy import Caller, DEFAULT_TENANT
 logger = logging.getLogger("jnvoy")
 from api.docs_config import API_DESCRIPTION, OPENAPI_TAGS, VERSION, apply_docs
 from core.pii_judge import JudgeError
+from core.custom_detector import CustomPatternError
 from core.intelligence import semantic_cache, intelligent_router, outage_detector
 from core.injection import InjectionDetector
 from core.mcp_security import MCPSecurityScanner
@@ -533,6 +534,14 @@ async def _prepare_request(request: ProxyRequest, tenant: str, policy: Optional[
             detail={
                 "error": "pii_judge_unavailable",
                 "message": "Request blocked: the PII review step failed and JNVOY_JUDGE_FAIL_MODE is closed.",
+            },
+        )
+    except CustomPatternError:
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "error": "custom_pattern_failed",
+                "message": "Request blocked: one of this account's custom patterns could not finish on this text.",
             },
         )
 
@@ -1070,6 +1079,8 @@ async def scan_text_post(body: ScanRequest, http_request: Request):
         return await detectors.for_policy(_caller(http_request).policy).ascan_for_report(body.text)
     except JudgeError:
         raise HTTPException(status_code=503, detail={"error": "pii_judge_unavailable"})
+    except CustomPatternError:
+        raise HTTPException(status_code=503, detail={"error": "custom_pattern_failed"})
 
 
 def _gone_use_post(path: str) -> HTTPException:

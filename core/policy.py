@@ -9,6 +9,8 @@ falls back to the server's environment settings, so an empty policy behaves like
     judge            "default" (server setting), "on", or "off" (no text goes to the judge)
     judge_fail_mode  "default", "open" (keep first-pass redaction) or "closed" (reject request)
     output_scan      what to do with the model's reply: "off", "flag" or "redact"
+    custom_patterns  the customer's own types, e.g. [{"name": "employee_id", "pattern": "EMP-\\d{6}"}]
+    allowlist        text that must never be redacted, e.g. ["Acme Ltd", "support@acme.com"]
 
 "judge: off" matters to customers who do not want any text, even redacted, to reach a
 second provider.
@@ -22,7 +24,10 @@ from typing import Optional
 from core.detector_v2 import OPTIONAL_ENTITIES, resolve_entities
 from core import regions as _regions
 
-POLICY_FIELDS = ("regions", "redact_extra", "judge", "judge_fail_mode", "output_scan")
+POLICY_FIELDS = ("regions", "redact_extra", "judge", "judge_fail_mode", "output_scan",
+                 "custom_patterns", "allowlist")
+_LIST_FIELDS = ("custom_patterns", "allowlist")
+_DETECTION_FIELDS = ("regions", "redact_extra", "judge", "judge_fail_mode", "custom_patterns", "allowlist")
 _CHOICES = {
     "judge": ("default", "on", "off"),
     "judge_fail_mode": ("default", "open", "closed"),
@@ -44,6 +49,13 @@ def validate_policy(raw) -> dict:
     clean = {}
     for key, value in raw.items():
         if value is None:
+            continue
+        if key in _LIST_FIELDS:
+            from core import custom_rules
+            checked = (custom_rules.validate_custom_patterns if key == "custom_patterns"
+                       else custom_rules.validate_allowlist)(value)
+            if checked:
+                clean[key] = checked
             continue
         if not isinstance(value, str):
             raise ValueError(f"policy.{key} must be a string")
@@ -88,8 +100,7 @@ class PolicyDetectors:
         self._cache = OrderedDict()
 
     def for_policy(self, policy: Optional[dict]):
-        affecting = {k: v for k, v in (policy or {}).items()
-                     if k in ("regions", "redact_extra", "judge", "judge_fail_mode")}
+        affecting = {k: v for k, v in (policy or {}).items() if k in _DETECTION_FIELDS}
         if not affecting:
             return self.base
         key = json.dumps(affecting, sort_keys=True)
@@ -116,7 +127,10 @@ class PolicyDetectors:
                 fail_closed=(p["judge_fail_mode"] == "closed"),
                 chunk_chars=judge.chunk_chars, max_parallel=judge.max_parallel,
             )
-        return JudgedPIIDetector(
-            confidence_threshold=self.base.confidence_threshold,
-            entities=entities_for(p), judge=judge, from_env=False,
-        )
+        common = dict(confidence_threshold=self.base.confidence_threshold,
+                      entities=entities_for(p), judge=judge, from_env=False)
+        if p.get("custom_patterns") or p.get("allowlist"):
+            from core.custom_detector import CustomisedDetector
+            return CustomisedDetector(allowlist=p.get("allowlist", ()),
+                                      custom_patterns=p.get("custom_patterns", ()), **common)
+        return JudgedPIIDetector(**common)
