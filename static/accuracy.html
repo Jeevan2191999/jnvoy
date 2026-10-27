@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jnvoy: accuracy</title>
+<meta name="description" content="How well Jnvoy hides personal data, measured on example text we wrote, with the misses and the limits of the test listed.">
+<link rel="canonical" href="https://www.jnvoy.com/accuracy">
+<link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+<meta name="theme-color" content="#EDEEE9">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Jnvoy">
+<meta property="og:title" content="Jnvoy: accuracy">
+<meta property="og:description" content="How well Jnvoy hides personal data, measured on example text we wrote, with the misses and the limits of the test listed.">
+<meta property="og:url" content="https://www.jnvoy.com/accuracy">
+<meta property="og:image" content="https://www.jnvoy.com/static/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Jnvoy: accuracy">
+<meta name="twitter:description" content="How well Jnvoy hides personal data, measured on example text we wrote, with the misses and the limits of the test listed.">
+<meta name="twitter:image" content="https://www.jnvoy.com/static/og-image.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* Same tokens as the homepage, so the two pages read as one product. */
+  :root{
+    --ink:        #12161B;
+    --ink-soft:   #42484F;
+    --ink-faint:  #5C6269;
+    --paper:      #EDEEE9;
+    --paper-raised:#F8F8F4;
+    --line:       #D7D8D1;
+    --line-strong:#B9BAB2;
+    --red:        #8A2A16;
+    --red-dim:    #B8491F;
+    --red-wash:   #F4E7E2;
+    --green:      #1E6450;
+    --green-wash: #E3EEE9;
+    --redact:     #15171A;
+
+    --mono: 'Courier Prime', ui-monospace, 'SF Mono', Consolas, monospace;
+    --sans: 'Inter', -apple-system, 'Segoe UI', sans-serif;
+
+    --maxw: 1180px;
+    --radius-ui: 4px;
+  }
+
+  *,*::before,*::after{ box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:var(--sans);
+    font-size:16px;
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,p,ul,figure{ margin:0; }
+  a{ color:inherit; }
+  .wrap{ max-width:var(--maxw); margin:0 auto; padding:0 28px; }
+  :focus-visible{ outline:2px solid var(--green); outline-offset:3px; }
+  @media (prefers-reduced-motion: reduce){
+    html{ scroll-behavior:auto; }
+    *{ transition-duration:0.001ms !important; }
+  }
+
+  /* ---------- nav (identical to the homepage) ---------- */
+  header.site{
+    position:sticky; top:0; z-index:40;
+    background:rgba(237,238,233,0.92);
+    backdrop-filter:blur(6px);
+    border-bottom:1px solid var(--line);
+  }
+  .nav{ display:flex; align-items:center; justify-content:space-between; height:68px; }
+  .wordmark{
+    font-family:var(--mono); font-weight:700; font-size:1.05rem; letter-spacing:0.01em;
+    display:flex; align-items:center; gap:9px; text-decoration:none; color:var(--ink);
+  }
+  .wordmark .dot{ width:8px; height:8px; border-radius:50%; background:var(--green); box-shadow:0 0 0 3px var(--green-wash); }
+  .navlinks{ display:flex; align-items:center; gap:30px; }
+  .navlinks a{ text-decoration:none; font-size:0.9375rem; color:var(--ink-soft); font-weight:500; }
+  .navlinks a:hover{ color:var(--ink); }
+  .btn{
+    display:inline-flex; align-items:center; gap:8px;
+    font-family:var(--sans); font-weight:600; font-size:0.85rem;
+    padding:0.5em 1em; border-radius:var(--radius-ui); text-decoration:none;
+    border:1px solid transparent; transition:background 0.15s ease;
+  }
+  .navlinks a.btn{ background:var(--red); color:#fff; }
+  .navlinks a.btn:hover{ background:var(--red-dim); color:#fff; }
+  @media (max-width:760px){ .navlinks a:not(.btn){ display:none; } }
+
+  /* ---------- page head ---------- */
+  .pagehead{ padding:72px 0 56px; border-bottom:1px solid var(--line-strong); }
+  .pagehead h1{
+    font-family:var(--mono); font-weight:700;
+    font-size:clamp(2rem, 4.2vw, 3rem); line-height:1.1; letter-spacing:-0.01em;
+    max-width:18ch;
+  }
+  .pagehead .lede{ margin-top:20px; font-size:1.125rem; color:var(--ink-soft); max-width:56ch; line-height:1.65; }
+  .meta{ margin-top:28px; font-family:var(--mono); font-size:0.8125rem; color:var(--ink-faint); }
+
+  /* ---------- two column document ---------- */
+  .doc{
+    display:grid; grid-template-columns:200px minmax(0,1fr); gap:72px;
+    padding:64px 0 96px; align-items:start;
+  }
+  @media (max-width:900px){ .doc{ grid-template-columns:1fr; gap:0; padding-top:40px; } }
+  .toc{ position:sticky; top:96px; font-size:0.9rem; }
+  .toc p{ font-weight:600; color:var(--ink-faint); font-size:0.8125rem; margin-bottom:10px; }
+  .toc ul{ list-style:none; padding:0; border-left:1px solid var(--line-strong); }
+  .toc a{
+    display:block; padding:6px 0 6px 16px; margin-left:-1px;
+    border-left:2px solid transparent; text-decoration:none; color:var(--ink-soft);
+  }
+  .toc a:hover{ color:var(--ink); border-left-color:var(--line-strong); }
+  .toc a.on{ color:var(--ink); font-weight:600; border-left-color:var(--green); }
+  @media (max-width:900px){ .toc{ display:none; } }
+
+  .content > section{ padding:0 0 64px; scroll-margin-top:92px; }
+  .content > section + section{ padding-top:56px; border-top:1px solid var(--line); }
+  .content h2{
+    font-family:var(--mono); font-weight:700; font-size:1.55rem; line-height:1.25; margin-bottom:18px;
+  }
+  .content h3{ font-size:1rem; font-weight:600; margin:28px 0 6px; }
+  .content p{ color:var(--ink-soft); max-width:66ch; margin-top:14px; }
+  .content p:first-of-type{ margin-top:0; }
+  .content p strong, .content li strong{ color:var(--ink); font-weight:600; }
+  .content ul.plain{ padding-left:1.15em; margin-top:14px; color:var(--ink-soft); max-width:66ch; }
+  .content ul.plain li{ margin-top:8px; }
+  code{
+    font-family:var(--mono); font-size:0.9em; color:var(--ink);
+    background:var(--paper-raised); border:1px solid var(--line); border-radius:3px; padding:0.05em 0.35em;
+  }
+  .content a{ color:var(--green); text-underline-offset:3px; }
+
+  /* ---------- the ledger (answers at a glance, and storage) ---------- */
+  .ledger{ margin-top:26px; border-top:1px solid var(--line-strong); }
+  .row{
+    display:grid; grid-template-columns:minmax(0,1.1fr) minmax(0,1.6fr) minmax(0,0.9fr);
+    gap:20px; padding:16px 0; border-bottom:1px solid var(--line); align-items:baseline;
+  }
+  .row.head{ font-weight:600; font-size:0.8125rem; color:var(--ink-faint); padding-bottom:10px; }
+  .row .k{ font-weight:600; }
+  .row .v{ color:var(--ink-soft); font-size:0.9375rem; }
+  .row .s{ font-family:var(--mono); font-size:0.875rem; font-weight:700; }
+  .row .s.no{ color:var(--green); }
+  .row .s.yes{ color:var(--red); }
+  .row .s.mid{ color:var(--ink-soft); }
+  @media (max-width:700px){
+    .row{ grid-template-columns:1fr; gap:4px; }
+    .row.head{ display:none; }
+  }
+
+  /* ---------- the flow figure ---------- */
+  .flow{ margin-top:28px; }
+  .zones{ display:grid; grid-template-columns:1fr 1fr; gap:0; }
+  .zone{ padding-bottom:10px; font-size:0.8125rem; font-weight:600; border-bottom:2px solid var(--ink); }
+  .zone.out{ border-bottom-color:var(--green); color:var(--green); margin-left:12px; }
+  .zone.in{ color:var(--ink); margin-right:12px; }
+  .stops{ display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-top:12px; }
+  .stop{ background:var(--paper-raised); border:1px solid var(--line-strong); border-radius:3px; padding:16px 16px 18px; }
+  .stop h3{ margin:0 0 6px; font-size:0.9375rem; }
+  .stop .what{ font-size:0.8125rem; color:var(--ink-faint); line-height:1.5; }
+  .stop .sample{
+    margin-top:12px; padding:10px 10px; border-radius:3px;
+    font-family:var(--mono); font-size:0.78rem; line-height:1.55; overflow-wrap:anywhere;
+  }
+  .sample.raw{ background:var(--ink); color:#EDEEE9; }
+  .sample.tok{ background:var(--green-wash); color:var(--green); }
+  .stop.optional{ border-style:dashed; }
+  @media (max-width:900px){
+    .zones{ display:none; }
+    .stops{ grid-template-columns:1fr 1fr; }
+  }
+  @media (max-width:560px){ .stops{ grid-template-columns:1fr; } }
+  .flow figcaption{ margin-top:14px; font-size:0.875rem; color:var(--ink-faint); max-width:70ch; }
+
+  /* ---------- notice ---------- */
+  .notice{
+    margin-top:22px; padding:16px 18px; background:var(--red-wash);
+    border-left:3px solid var(--red); border-radius:0 3px 3px 0; max-width:66ch;
+    font-size:0.9375rem; color:var(--ink-soft);
+  }
+  .notice strong{ color:var(--ink); }
+
+
+  /* ---------- data-flow figure ---------- */
+  .dflow{ margin-top:26px; }
+  .dflow svg{ width:100%; height:auto; display:block; background:var(--paper-raised); border:1px solid var(--line-strong); border-radius:3px; }
+  .dflow .steps{ margin-top:20px; padding-left:1.3em; color:var(--ink-soft); max-width:70ch; }
+  .dflow .steps li{ margin-top:8px; }
+  .dflow figcaption{ margin-top:14px; font-size:0.875rem; color:var(--ink-faint); max-width:70ch; }
+  .dflow .t{ font-family:var(--sans); font-size:13px; fill:var(--ink); }
+  .dflow .t.h{ font-weight:600; font-size:14px; }
+  .dflow .t.s{ fill:var(--ink-soft); font-size:12px; }
+  .dflow .t.z{ font-family:var(--mono); font-weight:700; font-size:12px; }
+  .dflow .t.n{ font-family:var(--mono); font-weight:700; font-size:13px; fill:var(--green); }
+  @media (max-width:760px){ .dflow svg{ display:none; } }
+
+  /* ---------- footer (identical to the homepage plus Privacy) ---------- */
+  footer{ padding:40px 0; border-top:1px solid var(--line); }
+  .fgrid{ display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px; }
+  .fgrid .left{ font-family:var(--mono); font-size:0.8125rem; color:var(--ink-faint); }
+  .flinks{ display:flex; gap:22px; flex-wrap:wrap; }
+  .flinks a{ text-decoration:none; font-size:0.875rem; color:var(--ink-soft); }
+  .flinks a:hover{ color:var(--ink); }
+</style>
+</head>
+<body>
+
+<header class="site">
+  <div class="wrap nav">
+    <a href="/" class="wordmark"><span class="dot"></span>jnvoy</a>
+    <nav class="navlinks" aria-label="Main">
+      <a href="/">Home</a>
+      <a href="/docs">Docs</a>
+      <a href="https://github.com/Jeevan2191999/jnvoy">GitHub</a>
+      <a class="btn" href="/docs">Try the API</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="pagehead">
+    <div class="wrap">
+      <h1>Accuracy</h1>
+      <p class="lede">How well Jnvoy hides personal data, measured on example text we wrote ourselves. The misses are listed, and so are the limits of the test.</p>
+      <p class="meta">Last measured 27 October 2026 on version 3.0</p>
+    </div>
+  </div>
+
+  <div class="wrap doc">
+    <nav class="toc" aria-label="On this page">
+      <p>On this page</p>
+      <ul>
+        <li><a href="#result">The result</a></li>
+        <li><a href="#types">By type of data</a></li>
+        <li><a href="#wrong">What it gets wrong</a></li>
+        <li><a href="#limits">Limits of this test</a></li>
+        <li><a href="#repeat">Repeat it yourself</a></li>
+      </ul>
+    </nav>
+
+    <div class="content">
+
+      <section id="result">
+        <h2>The result</h2>
+        <p>On a second, separate set of examples, Jnvoy hid <strong>56 of 60 sensitive values (93.3%)</strong> and left <strong>33 of 36 harmless words (91.7%)</strong> readable. That is a good result for a first pass and it is not a guarantee: do not rely on any redaction tool as your only control.</p>
+        <div class="ledger">
+          <div class="row head"><div>Test set</div><div>What it is</div><div>Hidden</div></div>
+          <div class="row"><div class="k">Held-out set</div><div class="v">68 short texts, 60 sensitive values, 36 harmless words that should stay. 33 stayed readable (91.7%).</div><div class="s mid">93.3%</div></div>
+          <div class="row"><div class="k">Development set</div><div class="v">117 short texts, 109 sensitive values. We fixed the rules against this set, so its score is optimistic. 52 of 53 harmless words stayed readable (98.1%).</div><div class="s mid">100.0%</div></div>
+          <div class="row"><div class="k">Country identifiers</div><div class="v">32 short texts, one published sample number for each of 24 identifier types from other countries. 7 of 8 harmless words stayed readable.</div><div class="s mid">100.0%</div></div>
+        </div>
+        <p>A value counts as hidden only if neither the whole value nor any recognisable part of it (a surname, the last digits of a number) is still visible in the redacted text. These are first-pass results: the optional second check is off on the hosted service.</p>
+        <p>Speed on these short texts (about 45 characters each) was 15 to 28 milliseconds each in a small cloud container. We have not measured longer texts or the hosted service under load.</p>
+      </section>
+
+      <section id="types">
+        <h2>By type of data</h2>
+        <p>Held-out set. Several types have only a handful of examples, so one miss moves a row a long way.</p>
+        <div class="ledger">
+          <div class="row head"><div>Type</div><div>Result</div><div>Hidden</div></div>
+<div class="row"><div class="k">ADDRESS</div><div class="v">3 of 5 hidden</div><div class="s yes">60.0%</div></div>
+<div class="row"><div class="k">API_KEY</div><div class="v">10 of 10 hidden</div><div class="s no">100.0%</div></div>
+<div class="row"><div class="k">BANK</div><div class="v">2 of 2 hidden</div><div class="s no">100.0%</div></div>
+<div class="row"><div class="k">CARD</div><div class="v">1 of 1 hidden</div><div class="s no">100.0%</div></div>
+<div class="row"><div class="k">DOB</div><div class="v">6 of 6 hidden</div><div class="s no">100.0%</div></div>
+<div class="row"><div class="k">EMAIL</div><div class="v">3 of 3 hidden</div><div class="s no">100.0%</div></div>
+<div class="row"><div class="k">IBAN</div><div class="v">1 of 1 hidden</div><div class="s no">100.0%</div></div>
+<div class="row"><div class="k">INTERNAL_ID</div><div class="v">5 of 6 hidden</div><div class="s yes">83.3%</div></div>
+<div class="row"><div class="k">IP</div><div class="v">1 of 1 hidden</div><div class="s no">100.0%</div></div>
+<div class="row"><div class="k">NHS</div><div class="v">3 of 3 hidden</div><div class="s no">100.0%</div></div>
+<div class="row"><div class="k">NI</div><div class="v">2 of 2 hidden</div><div class="s no">100.0%</div></div>
+<div class="row"><div class="k">PASSPORT</div><div class="v">2 of 2 hidden</div><div class="s no">100.0%</div></div>
+<div class="row"><div class="k">PERSON</div><div class="v">9 of 10 hidden</div><div class="s yes">90.0%</div></div>
+<div class="row"><div class="k">PHONE</div><div class="v">5 of 5 hidden</div><div class="s no">100.0%</div></div>
+<div class="row"><div class="k">POSTCODE</div><div class="v">3 of 3 hidden</div><div class="s no">100.0%</div></div>
+        </div>
+        <p>Types detected by fixed rules (card numbers, IBANs, IP addresses, bank details, NHS and National Insurance numbers, API keys and similar) are tested to be fully caught on both sets, so those rows are optimistic. Names, addresses and company-specific identifiers are where the real uncertainty is.</p>
+      </section>
+
+      <section id="wrong">
+        <h2>What it gets wrong</h2>
+        <h3>Sensitive values it missed on the held-out set</h3>
+        <ul class="plain">
+          <li>A street address written in French format (the same sentence named Paris).</li>
+          <li>A UK address that began with a flat and a building name, which was left whole.</li>
+          <li>An internal reference number in a format it does not know, labelled "account holder reference".</li>
+          <li>An uncommon name in a list of attendees. The other two names in the list were hidden.</li>
+        </ul>
+        <h3>Harmless text it hid by mistake</h3>
+        <ul class="plain">
+          <li>A Unix timestamp that looks like an NHS number.</li>
+          <li>The words "Downing Street", read as a street address.</li>
+          <li>The word "Pepper", read as a person's name.</li>
+        </ul>
+        <p>Hiding too much costs you a slightly worse prompt. Hiding too little is the serious error, and the missed values above are the ones to watch.</p>
+      </section>
+
+      <section id="limits">
+        <h2>Limits of this test</h2>
+        <ul class="plain">
+          <li><strong>Written by us.</strong> The examples are synthetic text from the person who built the tool. This is not an independent evaluation.</li>
+          <li><strong>Small.</strong> 60 sensitive values in the held-out set is a gauge, not a statistical measurement. Expect real figures to differ in either direction.</li>
+          <li><strong>Mostly English, mostly short.</strong> Names are detected best in English, and street addresses best in UK and US formats.</li>
+          <li><strong>Country identifiers were tested only on published sample numbers.</strong> Accuracy on real data in those countries has not been measured.</li>
+          <li><strong>No real customer data was used.</strong> Every value is invented or a documented example number.</li>
+          <li><strong>It will change.</strong> The sets and the scores are kept in the repository, and a test fails if this page and the measured numbers disagree.</li>
+        </ul>
+      </section>
+
+      <section id="repeat">
+        <h2>Repeat it yourself</h2>
+        <p>The data and the script are in the <a href="https://github.com/Jeevan2191999/jnvoy/tree/main/evaluation">evaluation folder</a>. After installing the requirements, run <code>python evaluation/run_eval.py --dataset evaluation/holdout.jsonl --misses</code> to see the table above and every value that leaked. If you find text it should have caught, <a href="https://github.com/Jeevan2191999/jnvoy/issues">open an issue</a> with a made-up example of the same shape.</p>
+      </section>
+
+    </div>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap fgrid">
+    <div class="left">JNVOY LIMITED. Registered in England and Wales, company number 17536574.</div>
+    <div class="flinks">
+      <a href="/docs">API docs</a>
+      <a href="/accuracy">Accuracy</a>
+      <a href="https://github.com/Jeevan2191999/jnvoy">GitHub</a>
+      <a href="/v1/report/compliance">Sample report</a>
+      <a href="/privacy">Privacy</a>
+      <a href="/security">Security</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // Highlight the section being read in the contents list.
+  (function(){
+    var links = document.querySelectorAll('.toc a');
+    var map = {};
+    links.forEach(function(a){ map[a.getAttribute('href').slice(1)] = a; });
+    if (!('IntersectionObserver' in window)) return;
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if (e.isIntersecting){
+          links.forEach(function(a){ a.classList.remove('on'); });
+          var a = map[e.target.id]; if (a) a.classList.add('on');
+        }
+      });
+    }, { rootMargin:'-20% 0px -70% 0px' });
+    Object.keys(map).forEach(function(id){
+      var el = document.getElementById(id); if (el) io.observe(el);
+    });
+  })();
+</script>
+</body>
+</html>

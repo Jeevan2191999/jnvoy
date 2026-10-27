@@ -129,6 +129,14 @@ async def security_page():
     raise HTTPException(status_code=404, detail="Not found")
 
 
+@app.get("/accuracy", include_in_schema=False)
+async def accuracy_page():
+    _page = os.path.join(_static_dir, "accuracy.html")
+    if os.path.exists(_page):
+        return FileResponse(_page)
+    raise HTTPException(status_code=404, detail="Not found")
+
+
 SECURITY_TXT = (
     "Contact: mailto:j.nagaraj2109@gmail.com\n"
     "Expires: 2027-10-26T00:00:00.000Z\n"
@@ -156,6 +164,7 @@ SITEMAP_XML = (
     "  <url><loc>https://www.jnvoy.com/</loc></url>\n"
     "  <url><loc>https://www.jnvoy.com/security</loc></url>\n"
     "  <url><loc>https://www.jnvoy.com/privacy</loc></url>\n"
+    "  <url><loc>https://www.jnvoy.com/accuracy</loc></url>\n"
     "  <url><loc>https://www.jnvoy.com/docs</loc></url>\n"
     "</urlset>\n"
 )
