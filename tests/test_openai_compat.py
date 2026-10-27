@@ -211,10 +211,12 @@ def test_the_customers_provider_key_is_passed_on(client, monkeypatch):
     assert seen["key"] == "sk-theirs"
 
 
-def test_streaming_delivers_server_sent_events_with_the_restored_value(client, monkeypatch):
+def test_stream_in_redact_mode_is_checked_in_full_then_streamed(client, monkeypatch):
+    # Redact mode must not send text before it has been checked, so it uses the buffered path.
     fake_providers(monkeypatch, echo)
+    monkeypatch.setattr(app_module, "output_scan_mode", lambda policy: "redact")
     r = client.post("/v1/chat/completions", headers={"authorization": "Bearer " + OPERATOR},
-                    json={"model": "gpt-4o", "stream": True, "messages": [
+                    json={"model": "gpt-4o", "stream": True, "use_cache": False, "messages": [
                         {"role": "user", "content": "Write to compat.stream.two@example.com please"}]})
     assert r.status_code == 200
     assert r.headers["content-type"].startswith("text/event-stream")

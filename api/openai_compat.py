@@ -145,7 +145,7 @@ def chat_completion(audit_id: str, model: str, content: str, extra: dict) -> dic
     }
 
 
-def _pieces(text: str):
+def split_pieces(text: str):
     """Splits text into word-sized pieces that join back to exactly the same text."""
     return re.findall(r"\s*\S+|\s+", text)
 
@@ -168,9 +168,40 @@ def sse_stream(audit_id: str, model: str, content: str, extra: dict):
         return "data: " + json.dumps(chunk, ensure_ascii=False) + "\n\n"
 
     yield event({"role": "assistant", "content": ""})
-    for piece in _pieces(content):
+    for piece in split_pieces(content):
         yield event({"content": piece})
     yield event({}, finish="stop", more={"jnvoy": extra})
+    yield "data: [DONE]\n\n"
+
+
+async def sse_from_pieces(audit_id: str, model: str, pieces, extra):
+    """
+    The reply as server-sent events while it is still arriving. `pieces` is an async iterator of
+    text that is already restored. `extra` is called once at the end, because some of what it
+    reports (the reply scan) is only known then.
+
+    If the provider fails after the reply has started, the status line has already gone out as
+    200, so the failure is sent as an `error` event, which OpenAI client libraries raise.
+    """
+    base = {"id": completion_id(audit_id), "object": "chat.completion.chunk",
+            "created": int(time.time()), "model": model}
+
+    def event(delta, finish=None, more=None):
+        chunk = dict(base, choices=[{"index": 0, "delta": delta, "finish_reason": finish}])
+        if more:
+            chunk.update(more)
+        return "data: " + json.dumps(chunk, ensure_ascii=False) + "\n\n"
+
+    yield event({"role": "assistant", "content": ""})
+    try:
+        async for piece in pieces:
+            yield event({"content": piece})
+    except Exception as e:
+        # Provider errors carry a short message we wrote or the provider wrote; anything else is generic.
+        message = str(e) if type(e).__name__ == "UpstreamError" else "The reply was interrupted."
+        yield "data: " + json.dumps(error_body(502, message), ensure_ascii=False) + "\n\n"
+        return
+    yield event({}, finish="stop", more={"jnvoy": extra()})
     yield "data: [DONE]\n\n"
 
 

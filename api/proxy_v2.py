@@ -492,20 +492,11 @@ def _cache_key(tenant: str, request, redacted_messages: list) -> str:
     return hashlib.sha256(blob.encode("utf-8")).hexdigest()
 
 
-async def run_proxy_pipeline(request: ProxyRequest, tenant: str = "anonymous",
-                             policy: Optional[dict] = None,
-                             provider_key: Optional[str] = None) -> dict:
+async def _prepare_request(request: ProxyRequest, tenant: str, policy: Optional[dict]) -> dict:
     """
-    Full Jnvoy pipeline:
-    1. Scan all messages for PII and redact
-    2. Check semantic cache
-    3. Route to cheapest capable model
-    4. Call LLM with redacted messages
-    5. Restore PII in response
-    6. Store in cache
+    Everything done before a model is called: the injection check, redaction of the whole
+    conversation, and the cache key. Shared by the normal and the streaming path.
     """
-    start_time = time.time()
-
     # Step 0: Scan for prompt injection before anything else
     injection_result = injection_detector.scan_messages(
         [{"role": m.role, "content": m.content} for m in request.messages]
@@ -556,21 +547,13 @@ async def run_proxy_pipeline(request: ProxyRequest, tenant: str = "anonymous",
     cache_query = user_messages[-1].content if user_messages else ""
     # Exact-match key over everything the LLM receives, scoped to the caller.
     cache_key = _cache_key(tenant, request, redacted_messages) if redacted_messages else ""
+    return {"det": det, "redacted_messages": redacted_messages, "token_map": combined_token_map,
+            "pii_summary": combined_pii_summary, "cache_query": cache_query, "cache_key": cache_key}
 
-    # Step 3: Check semantic cache
-    cache_hit = False
-    cached_entry = None
-    if request.use_cache and cache_key:
-        cached_entry = semantic_cache.get(cache_key, exact_only=True)
-        if cached_entry:
-            cache_hit = True
 
-    # Step 4: Intelligent routing
-    original_model = request.model
+def _choose_model(request: ProxyRequest, cache_query: str, cache_hit: bool) -> str:
+    """The model to call. Routing is opt-in and only ever swaps within the caller's provider."""
     routed_model = request.model
-
-    # Routing is opt-in. It only ever swaps to a model from the same provider the
-    # caller chose, so an OpenAI request never turns into a Claude model name.
     if request.use_routing and not cache_hit:
         routing_decision = intelligent_router.route(cache_query)
         routing_provider = (request.provider or "anthropic").lower()
@@ -588,6 +571,39 @@ async def run_proxy_pipeline(request: ProxyRequest, tenant: str = "anonymous",
         if (candidate and candidate != request.model and
                 outage_detector.is_healthy(routing_provider)):
             routed_model = candidate
+    return routed_model
+
+
+async def run_proxy_pipeline(request: ProxyRequest, tenant: str = "anonymous",
+                             policy: Optional[dict] = None,
+                             provider_key: Optional[str] = None) -> dict:
+    """
+    Full Jnvoy pipeline:
+    1. Scan all messages for PII and redact
+    2. Check semantic cache
+    3. Route to cheapest capable model
+    4. Call LLM with redacted messages
+    5. Restore PII in response
+    6. Store in cache
+    """
+    start_time = time.time()
+
+    prep = await _prepare_request(request, tenant, policy)
+    det, redacted_messages = prep["det"], prep["redacted_messages"]
+    combined_token_map, combined_pii_summary = prep["token_map"], prep["pii_summary"]
+    cache_query, cache_key = prep["cache_query"], prep["cache_key"]
+
+    # Step 3: Check semantic cache
+    cache_hit = False
+    cached_entry = None
+    if request.use_cache and cache_key:
+        cached_entry = semantic_cache.get(cache_key, exact_only=True)
+        if cached_entry:
+            cache_hit = True
+
+    # Step 4: Intelligent routing
+    original_model = request.model
+    routed_model = _choose_model(request, cache_query, cache_hit)
 
     # Step 5: Get response from cache or LLM
     estimated_cost = 0.0
@@ -654,6 +670,177 @@ async def run_proxy_pipeline(request: ProxyRequest, tenant: str = "anonymous",
     }
 
 
+# ── Streaming ─────────────────────────────────────────────────────────────────
+
+from api import openai_compat  # noqa: E402
+from api.provider_stream import UpstreamError, sse_events, text_pieces  # noqa: E402
+from core.stream_restore import StreamRestorer  # noqa: E402
+
+
+class _Upstream:
+    """An open, streamed reply from a model provider. Status has already been checked."""
+
+    def __init__(self, provider: str, client, response, started: float):
+        self.provider, self._client, self._response, self._started = provider, client, response, started
+
+    async def pieces(self):
+        try:
+            async for piece in text_pieces(self.provider, sse_events(self._response.aiter_lines())):
+                yield piece
+        except UpstreamError:
+            outage_detector.record_failure(self.provider, "error during stream")
+            raise
+        except httpx.HTTPError as e:
+            outage_detector.record_failure(self.provider, str(e))
+            raise UpstreamError("The connection to the model provider was lost.")
+        outage_detector.record_success(self.provider, (time.time() - self._started) * 1000)
+
+    async def aclose(self):
+        try:
+            await self._response.aclose()
+        finally:
+            await self._client.aclose()
+
+
+async def open_upstream_stream(provider: str, messages: list[dict], model: str, max_tokens: int,
+                               temperature: float, api_key: Optional[str] = None) -> _Upstream:
+    """
+    Starts a streamed call to the provider and checks its status before anything is sent to
+    our own caller, so a wrong key or model is a normal error response, not a broken stream.
+    """
+    own_key = api_key is not None
+    if provider == "anthropic":
+        label, env_name = "Anthropic", "ANTHROPIC_API_KEY"
+        url = "https://api.anthropic.com/v1/messages"
+        body = dict(_anthropic_body(model, max_tokens, messages), stream=True)
+    elif provider == "openai":
+        label, env_name = "OpenAI", "OPENAI_API_KEY"
+        url = "https://api.openai.com/v1/chat/completions"
+        body = {"model": model, "messages": messages, "max_tokens": max_tokens,
+                "temperature": temperature, "stream": True}
+    else:
+        raise HTTPException(status_code=400, detail=f"Unknown provider: {provider}")
+    api_key = api_key or os.getenv(env_name)
+    if not api_key:
+        raise HTTPException(status_code=500, detail=f"{env_name} not configured")
+    if provider == "anthropic":
+        headers = {"x-api-key": api_key, "anthropic-version": "2023-06-01",
+                   "content-type": "application/json", "accept": "text/event-stream"}
+    else:
+        headers = {"Authorization": f"Bearer {api_key}", "content-type": "application/json",
+                   "accept": "text/event-stream"}
+
+    started = time.time()
+    client = httpx.AsyncClient(timeout=httpx.Timeout(30.0, read=60.0))
+    try:
+        response = await client.send(client.build_request("POST", url, headers=headers, json=body),
+                                     stream=True)
+    except Exception as e:
+        await client.aclose()
+        outage_detector.record_failure(provider, str(e))
+        raise HTTPException(status_code=502, detail=f"{label} connection error")
+    if response.status_code != 200:
+        try:
+            text = (await response.aread()).decode("utf-8", "replace")
+        finally:
+            await response.aclose()
+            await client.aclose()
+        if not own_key or response.status_code >= 500:
+            outage_detector.record_failure(provider, text[:100])
+        if own_key:
+            raise _own_key_error(label, response.status_code, text)
+        raise HTTPException(status_code=response.status_code, detail=f"{label} API error: {text}")
+    return _Upstream(provider, client, response, started)
+
+
+async def run_proxy_stream(request: ProxyRequest, tenant: str, policy: Optional[dict],
+                           provider_key: Optional[str], on_finish) -> dict:
+    """
+    The streaming twin of run_proxy_pipeline. Does the same checks up to the model call, then
+    returns a handle whose `pieces()` yields the reply, with the caller's own values restored,
+    as it arrives. Raises (as a normal HTTP error) before any piece if the request is refused.
+
+    `on_finish(result)` is called once, when the reply ends or the caller goes away, with the
+    same keys run_proxy_pipeline returns, so the audit row is written the same way.
+
+    The reply is checked after it has been sent, not before: in "redact" mode that would be too
+    late, so callers use the normal pipeline for that mode instead. In "flag" mode this is
+    equivalent, since flagging never changed the text.
+    """
+    start_time = time.time()
+    provider = (request.provider or "anthropic").lower()
+    if provider not in ("anthropic", "openai"):
+        raise HTTPException(status_code=400, detail=f"Unknown provider: {provider}")
+    prep = await _prepare_request(request, tenant, policy)
+    det, token_map = prep["det"], prep["token_map"]
+    cache_key = prep["cache_key"]
+    scan_mode = output_scan_mode(policy)
+
+    cached = semantic_cache.get(cache_key, exact_only=True) if (request.use_cache and cache_key) else None
+    routed_model = _choose_model(request, prep["cache_query"], bool(cached))
+    handle = {"pii_summary": prep["pii_summary"], "cache_hit": bool(cached),
+              "routed_model": routed_model, "output_scan": None}
+
+    def finish(raw_text: str, cost: float, saved: float, scan=None):
+        scan = scan or output_scanner.scan(raw_text, scan_mode, policy)
+        handle["output_scan"] = scan
+        on_finish({
+            "pii_summary": prep["pii_summary"], "cache_hit": bool(cached),
+            "original_model": request.model, "routed_model": routed_model,
+            "estimated_cost_usd": cost, "cost_saved_usd": saved,
+            "latency_ms": round((time.time() - start_time) * 1000, 2), "output_scan": scan,
+        })
+
+    if cached:
+        scan = output_scanner.scan(cached.response_text, scan_mode, policy)
+        text = det.restore(scan.text, token_map)
+
+        async def cached_pieces():
+            try:
+                for piece in openai_compat.split_pieces(text):
+                    yield piece
+            finally:
+                finish(cached.response_text, 0.0, cached.cost_saved_usd, scan)
+
+        handle["pieces"] = cached_pieces
+        return handle
+
+    upstream = await open_upstream_stream(provider, prep["redacted_messages"], routed_model,
+                                          request.max_tokens, request.temperature,
+                                          api_key=provider_key)
+
+    async def live_pieces():
+        restorer = StreamRestorer(token_map, det.restore)
+        raw = []
+        completed = False
+        try:
+            async for piece in upstream.pieces():
+                raw.append(piece)
+                out = restorer.feed(piece)
+                if out:
+                    yield out
+            tail = restorer.flush()
+            if tail:
+                yield tail
+            completed = True
+        finally:
+            text = "".join(raw)
+            from core.llm_gateway import calculate_cost
+            cost = calculate_cost(routed_model, len(prep["cache_query"].split()) * 2,
+                                  len(text.split()) * 2)
+            if completed and request.use_cache and cache_key and text:
+                semantic_cache.set(query=cache_key, response=text, model=routed_model,
+                                   provider=provider, cost_usd=cost)
+            finish(text, cost, 0.0)
+            try:
+                await asyncio.shield(upstream.aclose())
+            except BaseException:       # the caller may already be gone; the original error still raises
+                pass
+
+    handle["pieces"] = live_pieces
+    return handle
+
+
 # ── API Routes ────────────────────────────────────────────────────────────────
 
 @app.get("/health")
@@ -674,13 +861,8 @@ async def health():
     }
 
 
-async def _gateway_call(request: ProxyRequest, http_request: Request,
-                        api_key: Optional[str], x_provider_key: Optional[str]):
-    """
-    The part /v1/proxy and /v1/chat/completions share: the provider-key rule, the tenant,
-    the pipeline and the audit row. Returns (audit_id, result).
-    """
-    audit_id = str(uuid.uuid4())
+def _gateway_identity(http_request: Request, api_key: Optional[str], x_provider_key: Optional[str]):
+    """Who is calling and with which provider key. Raises if a customer sent no provider key."""
     caller = _caller(http_request)
     provider_key = (x_provider_key or "").strip() or None
     if caller.metered and not provider_key:
@@ -692,10 +874,11 @@ async def _gateway_call(request: ProxyRequest, http_request: Request,
     key_hash = hashlib.sha256((api_key or "anonymous").encode()).hexdigest()
     # Customers are isolated by tenant (all their keys), the operator's own keys by key.
     tenant = caller.tenant_id if caller.metered else key_hash
-    result = await run_proxy_pipeline(request, tenant=tenant, policy=caller.policy,
-                                      provider_key=provider_key)
+    return caller, provider_key, key_hash, tenant
 
-    _spawn(_write_audit(
+
+def _audit_row(audit_id: str, request: ProxyRequest, result: dict, key_hash: str, tenant_id: str):
+    return _write_audit(
         audit_id=audit_id,
         pii_summary=result["pii_summary"],
         provider=request.provider or "anthropic",
@@ -703,9 +886,22 @@ async def _gateway_call(request: ProxyRequest, http_request: Request,
         latency_ms=result["latency_ms"],
         cache_hit=result["cache_hit"],
         api_key_hash=key_hash[:8],
-        tenant_id=caller.tenant_id,
+        tenant_id=tenant_id,
         output_detected=result["output_scan"].audit_counts() if result["output_scan"] else {},
-    ))
+    )
+
+
+async def _gateway_call(request: ProxyRequest, http_request: Request,
+                        api_key: Optional[str], x_provider_key: Optional[str]):
+    """
+    The part /v1/proxy and /v1/chat/completions share: the provider-key rule, the tenant,
+    the pipeline and the audit row. Returns (audit_id, result).
+    """
+    audit_id = str(uuid.uuid4())
+    caller, provider_key, key_hash, tenant = _gateway_identity(http_request, api_key, x_provider_key)
+    result = await run_proxy_pipeline(request, tenant=tenant, policy=caller.policy,
+                                      provider_key=provider_key)
+    _spawn(_audit_row(audit_id, request, result, key_hash, caller.tenant_id))
     return audit_id, result
 
 
@@ -755,8 +951,38 @@ async def proxy_request(
 
 from fastapi import Body  # noqa: E402
 from fastapi.responses import JSONResponse, StreamingResponse  # noqa: E402
-from api import openai_compat  # noqa: E402
 from core.auth import key_from_headers  # noqa: E402
+
+
+async def _stream_chat(request: ProxyRequest, http_request: Request, key: Optional[str],
+                       x_provider_key: Optional[str], parsed: dict):
+    """A streamed /v1/chat/completions reply, delivered as it arrives."""
+    audit_id = str(uuid.uuid4())
+    caller, provider_key, key_hash, tenant = _gateway_identity(http_request, key, x_provider_key)
+
+    def on_finish(result: dict):
+        _spawn(_audit_row(audit_id, request, result, key_hash, caller.tenant_id))
+
+    handle = await run_proxy_stream(request, tenant, caller.policy, provider_key, on_finish)
+    summary = handle["pii_summary"]
+
+    def extra() -> dict:
+        scan = handle["output_scan"]
+        return {
+            "audit_id": audit_id,
+            "pii_summary": {"types_detected": summary, "total_instances": sum(summary.values()),
+                            "redacted": bool(summary)},
+            "cache_hit": handle["cache_hit"],
+            "output_scan": {"flagged": scan.flagged, "findings": scan.findings,
+                            "injection": scan.injection} if scan else None,
+        }
+
+    headers = {"cache-control": "no-cache", "x-accel-buffering": "no"}
+    if parsed["ignored"]:
+        headers["x-jnvoy-ignored-params"] = ",".join(parsed["ignored"])[:200]
+    return StreamingResponse(
+        openai_compat.sse_from_pieces(audit_id, handle["routed_model"], handle["pieces"](), extra),
+        media_type="text/event-stream", headers=headers)
 
 
 @app.post("/v1/chat/completions")
@@ -782,8 +1008,9 @@ async def chat_completions(
     it and put back in the reply, exactly as for `/v1/proxy`.
 
     Text only. Tools, functions, JSON mode, images and `n` above 1 are refused. With
-    `stream: true` the reply is delivered as server-sent events after it has been checked in
-    full, so it arrives all at once rather than word by word.
+    `stream: true` the reply arrives word by word, with your values restored as it goes. The
+    reply is scanned after it has been sent, so if your account's reply scanning is set to
+    `redact`, the reply is instead checked in full first and then streamed.
     """
     try:
         parsed = openai_compat.parse_chat_request(body)
@@ -797,6 +1024,9 @@ async def chat_completions(
         )
         key = key_from_headers(http_request.url.path, {
             k.lower(): v for k, v in http_request.headers.items()})
+        caller = _caller(http_request)
+        if parsed["stream"] and output_scan_mode(caller.policy) != "redact":
+            return await _stream_chat(request, http_request, key, x_provider_key, parsed)
         audit_id, result = await _gateway_call(request, http_request, key, x_provider_key)
     except openai_compat.CompatError as e:
         return JSONResponse(status_code=e.status, content={"error": {

@@ -176,7 +176,7 @@ client = OpenAI(
 reply = client.chat.completions.create(model="gpt-4o", messages=[{"role": "user", "content": "..."}])
 ```
 
-Models starting with `claude` go to Anthropic, everything else to OpenAI (override with the `x-jnvoy-provider` header). It is text only: images, audio, tools, functions, JSON mode and `n` above 1 are refused with a `400`, because they cannot be scanned for personal data or are not supported yet. Other optional fields (`top_p`, `stop`, `seed`...) are ignored, and the `x-jnvoy-ignored-params` response header lists any that were. `usage` is not returned. With `stream: true` the reply is sent as server-sent events after it has been checked in full, so it arrives at once rather than word by word. The Jnvoy key goes in `Authorization: Bearer` on this route only; every other route needs `x-api-key`.
+Models starting with `claude` go to Anthropic, everything else to OpenAI (override with the `x-jnvoy-provider` header). It is text only: images, audio, tools, functions, JSON mode and `n` above 1 are refused with a `400`, because they cannot be scanned for personal data or are not supported yet. Other optional fields (`top_p`, `stop`, `seed`...) are ignored, and the `x-jnvoy-ignored-params` response header lists any that were. `usage` is not returned. With `stream: true` the reply arrives word by word, with your values restored as it goes. The reply is scanned after it has been sent, so if your account's reply scanning is set to `redact` the reply is checked in full first and then streamed. The Jnvoy key goes in `Authorization: Bearer` on this route only; every other route needs `x-api-key`.
 
 Full request and response details, with an Authorize button for trying calls, are at [/docs](https://www.jnvoy.com/docs).
 
