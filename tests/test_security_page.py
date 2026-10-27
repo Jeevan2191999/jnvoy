@@ -117,3 +117,9 @@ def test_site_has_discovery_files_and_social_tags():
         html = client.get(path).text
         for tag in ('rel="canonical"', 'property="og:title"', 'property="og:image"', 'name="twitter:card"'):
             assert tag in html, (path, tag)
+
+
+def test_google_search_console_verification_file_is_served():
+    r = client.get("/googleeeaccce07f7f9ae9.html")
+    assert r.status_code == 200
+    assert r.text == "google-site-verification: googleeeaccce07f7f9ae9.html"

@@ -171,6 +171,16 @@ async def sitemap_xml():
     return Response(SITEMAP_XML, media_type="application/xml")
 
 
+GOOGLE_VERIFICATION_FILE = "googleeeaccce07f7f9ae9.html"
+
+
+@app.get("/" + GOOGLE_VERIFICATION_FILE, include_in_schema=False)
+async def google_site_verification():
+    # Proves to Google Search Console that this site is ours. Must stay in place.
+    return Response("google-site-verification: " + GOOGLE_VERIFICATION_FILE,
+                    media_type="text/html; charset=utf-8")
+
+
 @app.get("/favicon.ico", include_in_schema=False)
 async def favicon_ico():
     from fastapi.responses import RedirectResponse
