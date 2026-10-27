@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>How to remove personal data from prompts before sending them to OpenAI</title>
+<meta name="description" content="How well Jnvoy hides personal data, measured on example text we wrote, with the misses and the limits of the test listed.">
+<link rel="canonical" href="https://www.jnvoy.com/guides/remove-personal-data-from-prompts">
+<link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+<meta name="theme-color" content="#EDEEE9">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Jnvoy">
+<meta property="og:title" content="How to remove personal data from prompts before sending them to OpenAI">
+<meta property="og:description" content="How well Jnvoy hides personal data, measured on example text we wrote, with the misses and the limits of the test listed.">
+<meta property="og:url" content="https://www.jnvoy.com/guides/remove-personal-data-from-prompts">
+<meta property="og:image" content="https://www.jnvoy.com/static/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="How to remove personal data from prompts before sending them to OpenAI">
+<meta name="twitter:description" content="How well Jnvoy hides personal data, measured on example text we wrote, with the misses and the limits of the test listed.">
+<meta name="twitter:image" content="https://www.jnvoy.com/static/og-image.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* Same tokens as the homepage, so the two pages read as one product. */
+  :root{
+    --ink:        #12161B;
+    --ink-soft:   #42484F;
+    --ink-faint:  #5C6269;
+    --paper:      #EDEEE9;
+    --paper-raised:#F8F8F4;
+    --line:       #D7D8D1;
+    --line-strong:#B9BAB2;
+    --red:        #8A2A16;
+    --red-dim:    #B8491F;
+    --red-wash:   #F4E7E2;
+    --green:      #1E6450;
+    --green-wash: #E3EEE9;
+    --redact:     #15171A;
+
+    --mono: 'Courier Prime', ui-monospace, 'SF Mono', Consolas, monospace;
+    --sans: 'Inter', -apple-system, 'Segoe UI', sans-serif;
+
+    --maxw: 1180px;
+    --radius-ui: 4px;
+  }
+
+  *,*::before,*::after{ box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:var(--sans);
+    font-size:16px;
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,p,ul,figure{ margin:0; }
+  a{ color:inherit; }
+  .wrap{ max-width:var(--maxw); margin:0 auto; padding:0 28px; }
+  :focus-visible{ outline:2px solid var(--green); outline-offset:3px; }
+  @media (prefers-reduced-motion: reduce){
+    html{ scroll-behavior:auto; }
+    *{ transition-duration:0.001ms !important; }
+  }
+
+  /* ---------- nav (identical to the homepage) ---------- */
+  header.site{
+    position:sticky; top:0; z-index:40;
+    background:rgba(237,238,233,0.92);
+    backdrop-filter:blur(6px);
+    border-bottom:1px solid var(--line);
+  }
+  .nav{ display:flex; align-items:center; justify-content:space-between; height:68px; }
+  .wordmark{
+    font-family:var(--mono); font-weight:700; font-size:1.05rem; letter-spacing:0.01em;
+    display:flex; align-items:center; gap:9px; text-decoration:none; color:var(--ink);
+  }
+  .wordmark .dot{ width:8px; height:8px; border-radius:50%; background:var(--green); box-shadow:0 0 0 3px var(--green-wash); }
+  .navlinks{ display:flex; align-items:center; gap:30px; }
+  .navlinks a{ text-decoration:none; font-size:0.9375rem; color:var(--ink-soft); font-weight:500; }
+  .navlinks a:hover{ color:var(--ink); }
+  .btn{
+    display:inline-flex; align-items:center; gap:8px;
+    font-family:var(--sans); font-weight:600; font-size:0.85rem;
+    padding:0.5em 1em; border-radius:var(--radius-ui); text-decoration:none;
+    border:1px solid transparent; transition:background 0.15s ease;
+  }
+  .navlinks a.btn{ background:var(--red); color:#fff; }
+  .navlinks a.btn:hover{ background:var(--red-dim); color:#fff; }
+  @media (max-width:760px){ .navlinks a:not(.btn){ display:none; } }
+
+  /* ---------- page head ---------- */
+  .pagehead{ padding:72px 0 56px; border-bottom:1px solid var(--line-strong); }
+  .pagehead h1{
+    font-family:var(--mono); font-weight:700;
+    font-size:clamp(2rem, 4.2vw, 3rem); line-height:1.1; letter-spacing:-0.01em;
+    max-width:18ch;
+  }
+  .pagehead .lede{ margin-top:20px; font-size:1.125rem; color:var(--ink-soft); max-width:56ch; line-height:1.65; }
+  .meta{ margin-top:28px; font-family:var(--mono); font-size:0.8125rem; color:var(--ink-faint); }
+
+  /* ---------- two column document ---------- */
+  .doc{
+    display:grid; grid-template-columns:200px minmax(0,1fr); gap:72px;
+    padding:64px 0 96px; align-items:start;
+  }
+  @media (max-width:900px){ .doc{ grid-template-columns:1fr; gap:0; padding-top:40px; } }
+  .toc{ position:sticky; top:96px; font-size:0.9rem; }
+  .toc p{ font-weight:600; color:var(--ink-faint); font-size:0.8125rem; margin-bottom:10px; }
+  .toc ul{ list-style:none; padding:0; border-left:1px solid var(--line-strong); }
+  .toc a{
+    display:block; padding:6px 0 6px 16px; margin-left:-1px;
+    border-left:2px solid transparent; text-decoration:none; color:var(--ink-soft);
+  }
+  .toc a:hover{ color:var(--ink); border-left-color:var(--line-strong); }
+  .toc a.on{ color:var(--ink); font-weight:600; border-left-color:var(--green); }
+  @media (max-width:900px){ .toc{ display:none; } }
+
+  .content > section{ padding:0 0 64px; scroll-margin-top:92px; }
+  .content > section + section{ padding-top:56px; border-top:1px solid var(--line); }
+  .content h2{
+    font-family:var(--mono); font-weight:700; font-size:1.55rem; line-height:1.25; margin-bottom:18px;
+  }
+  .content h3{ font-size:1rem; font-weight:600; margin:28px 0 6px; }
+  .content p{ color:var(--ink-soft); max-width:66ch; margin-top:14px; }
+  .content p:first-of-type{ margin-top:0; }
+  .content p strong, .content li strong{ color:var(--ink); font-weight:600; }
+  .content ul.plain{ padding-left:1.15em; margin-top:14px; color:var(--ink-soft); max-width:66ch; }
+  .content ul.plain li{ margin-top:8px; }
+  code{
+    font-family:var(--mono); font-size:0.9em; color:var(--ink);
+    background:var(--paper-raised); border:1px solid var(--line); border-radius:3px; padding:0.05em 0.35em;
+  }
+  .content a{ color:var(--green); text-underline-offset:3px; }
+
+  /* ---------- the ledger (answers at a glance, and storage) ---------- */
+  .ledger{ margin-top:26px; border-top:1px solid var(--line-strong); }
+  .row{
+    display:grid; grid-template-columns:minmax(0,1.1fr) minmax(0,1.6fr) minmax(0,0.9fr);
+    gap:20px; padding:16px 0; border-bottom:1px solid var(--line); align-items:baseline;
+  }
+  .row.head{ font-weight:600; font-size:0.8125rem; color:var(--ink-faint); padding-bottom:10px; }
+  .row .k{ font-weight:600; }
+  .row .v{ color:var(--ink-soft); font-size:0.9375rem; }
+  .row .s{ font-family:var(--mono); font-size:0.875rem; font-weight:700; }
+  .row .s.no{ color:var(--green); }
+  .row .s.yes{ color:var(--red); }
+  .row .s.mid{ color:var(--ink-soft); }
+  @media (max-width:700px){
+    .row{ grid-template-columns:1fr; gap:4px; }
+    .row.head{ display:none; }
+  }
+
+  /* ---------- the flow figure ---------- */
+  .flow{ margin-top:28px; }
+  .zones{ display:grid; grid-template-columns:1fr 1fr; gap:0; }
+  .zone{ padding-bottom:10px; font-size:0.8125rem; font-weight:600; border-bottom:2px solid var(--ink); }
+  .zone.out{ border-bottom-color:var(--green); color:var(--green); margin-left:12px; }
+  .zone.in{ color:var(--ink); margin-right:12px; }
+  .stops{ display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-top:12px; }
+  .stop{ background:var(--paper-raised); border:1px solid var(--line-strong); border-radius:3px; padding:16px 16px 18px; }
+  .stop h3{ margin:0 0 6px; font-size:0.9375rem; }
+  .stop .what{ font-size:0.8125rem; color:var(--ink-faint); line-height:1.5; }
+  .stop .sample{
+    margin-top:12px; padding:10px 10px; border-radius:3px;
+    font-family:var(--mono); font-size:0.78rem; line-height:1.55; overflow-wrap:anywhere;
+  }
+  .sample.raw{ background:var(--ink); color:#EDEEE9; }
+  .sample.tok{ background:var(--green-wash); color:var(--green); }
+  .stop.optional{ border-style:dashed; }
+  @media (max-width:900px){
+    .zones{ display:none; }
+    .stops{ grid-template-columns:1fr 1fr; }
+  }
+  @media (max-width:560px){ .stops{ grid-template-columns:1fr; } }
+  .flow figcaption{ margin-top:14px; font-size:0.875rem; color:var(--ink-faint); max-width:70ch; }
+
+  /* ---------- notice ---------- */
+  .notice{
+    margin-top:22px; padding:16px 18px; background:var(--red-wash);
+    border-left:3px solid var(--red); border-radius:0 3px 3px 0; max-width:66ch;
+    font-size:0.9375rem; color:var(--ink-soft);
+  }
+  .notice strong{ color:var(--ink); }
+
+
+  /* ---------- data-flow figure ---------- */
+  .dflow{ margin-top:26px; }
+  .dflow svg{ width:100%; height:auto; display:block; background:var(--paper-raised); border:1px solid var(--line-strong); border-radius:3px; }
+  .dflow .steps{ margin-top:20px; padding-left:1.3em; color:var(--ink-soft); max-width:70ch; }
+  .dflow .steps li{ margin-top:8px; }
+  .dflow figcaption{ margin-top:14px; font-size:0.875rem; color:var(--ink-faint); max-width:70ch; }
+  .dflow .t{ font-family:var(--sans); font-size:13px; fill:var(--ink); }
+  .dflow .t.h{ font-weight:600; font-size:14px; }
+  .dflow .t.s{ fill:var(--ink-soft); font-size:12px; }
+  .dflow .t.z{ font-family:var(--mono); font-weight:700; font-size:12px; }
+  .dflow .t.n{ font-family:var(--mono); font-weight:700; font-size:13px; fill:var(--green); }
+  @media (max-width:760px){ .dflow svg{ display:none; } }
+
+  /* ---------- footer (identical to the homepage plus Privacy) ---------- */
+  footer{ padding:40px 0; border-top:1px solid var(--line); }
+  .fgrid{ display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px; }
+  .fgrid .left{ font-family:var(--mono); font-size:0.8125rem; color:var(--ink-faint); }
+  .flinks{ display:flex; gap:22px; flex-wrap:wrap; }
+  .flinks a{ text-decoration:none; font-size:0.875rem; color:var(--ink-soft); }
+  .flinks a:hover{ color:var(--ink); }
+</style>
+<style>
+  .content pre{ margin:18px 0 0; padding:16px 18px; background:var(--ink); color:#EDEEE9; border-radius:3px; overflow-x:auto; font-size:0.84rem; line-height:1.6; max-width:min(100%,78ch); }
+  .content pre code{ background:none; border:0; padding:0; color:inherit; font-size:inherit; }
+  .content .tight li{ margin-top:6px; }
+  .doc > .content{ min-width:0; }
+  .content pre{ max-width:100%; }
+</style>
+</head>
+<body>
+
+<header class="site">
+  <div class="wrap nav">
+    <a href="/" class="wordmark"><span class="dot"></span>jnvoy</a>
+    <nav class="navlinks" aria-label="Main">
+      <a href="/">Home</a>
+      <a href="/docs">Docs</a>
+      <a href="https://github.com/Jeevan2191999/jnvoy">GitHub</a>
+      <a class="btn" href="/docs">Try the API</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="pagehead">
+    <div class="wrap">
+      <h1>Remove personal data from prompts</h1>
+      <p class="lede">How to strip names, emails and ID numbers from text before it reaches OpenAI or any other model provider, with working code and honest limits.</p>
+      <p class="meta">Last updated 27 October 2026</p>
+    </div>
+  </div>
+
+  <div class="wrap doc">
+    <nav class="toc" aria-label="On this page">
+      <p>On this page</p>
+      <ul>
+        <li><a href="#why">Why do it</a></li>
+        <li><a href="#what">What to remove</a></li>
+        <li><a href="#diy">Do it yourself</a></li>
+        <li><a href="#tokens">Use tokens, not blanks</a></li>
+        <li><a href="#test">Test it</a></li>
+        <li><a href="#gateway">Or use a gateway</a></li>
+        <li><a href="#limits">What can go wrong</a></li>
+      </ul>
+    </nav>
+
+    <div class="content">
+
+      <section id="why">
+        <h2>Why do it</h2>
+        <p>When your application sends a prompt to a model provider, any personal data in it travels with it. Under UK and EU data protection law, <strong>data minimisation</strong> means you should send only what you need. Most prompts do not need a real name, email address or ID number to get a useful answer, so removing them before the request leaves is the simplest way to reduce what you expose.</p>
+        <p>This is a practical guide, not legal advice. If you handle health, financial or children's data, talk to your data protection officer or a solicitor as well.</p>
+      </section>
+
+      <section id="what">
+        <h2>What to remove</h2>
+        <ul class="plain tight">
+          <li><strong>Direct identifiers:</strong> names, email addresses, phone numbers, postal addresses and postcodes.</li>
+          <li><strong>Government and financial numbers:</strong> National Insurance, NHS and passport numbers, payment card numbers, IBANs and bank details.</li>
+          <li><strong>Secrets:</strong> API keys, passwords, tokens and connection strings. These are often pasted into prompts by accident, especially by developers asking for help with code.</li>
+          <li><strong>Internal references:</strong> customer, policy and case numbers that identify a person inside your own systems.</li>
+        </ul>
+        <p>Leave harmless context alone. Cities, company names and general dates usually make the answer better and identify nobody on their own.</p>
+      </section>
+
+      <section id="diy">
+        <h2>Do it yourself with Presidio</h2>
+        <p>Microsoft's open-source <a href="https://microsoft.github.io/presidio/">Presidio</a> library finds many types of personal data using patterns and a language model. This is the whole of a minimal version:</p>
+        <pre><code>pip install presidio-analyzer presidio-anonymizer
+python -m spacy download en_core_web_lg
+
+from presidio_analyzer import AnalyzerEngine
+from presidio_anonymizer import AnonymizerEngine
+
+analyzer = AnalyzerEngine()
+anonymizer = AnonymizerEngine()
+
+def redact(text: str) -&gt; str:
+    found = analyzer.analyze(text=text, language=&quot;en&quot;)
+    return anonymizer.anonymize(text=text, analyzer_results=found).text
+
+safe = redact(&quot;Email jane.doe@example.com about the claim for John Smith, phone 020 7946 0321.&quot;)
+# -&gt; &quot;Email &lt;EMAIL_ADDRESS&gt; about the claim for &lt;PERSON&gt;, phone &lt;PHONE_NUMBER&gt;.&quot;</code></pre>
+        <p>Then send the redacted text instead of the original:</p>
+        <pre><code>from openai import OpenAI
+
+client = OpenAI()
+reply = client.chat.completions.create(
+    model=&quot;YOUR_MODEL&quot;,
+    messages=[{&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: safe}],   # send the redacted text, never the original
+)</code></pre>
+        <p>This works for a prototype. Before you rely on it, know what it does not cover: it does not know your own internal ID formats, it misses some UK-specific numbers and street addresses, and it replaces values with blank labels such as <code>&lt;PERSON&gt;</code>, which can make replies less useful (see the next section).</p>
+      </section>
+
+      <section id="tokens">
+        <h2>Use tokens, not blanks</h2>
+        <p>If a prompt contains two people, <code>&lt;PERSON&gt;</code> and <code>&lt;PERSON&gt;</code> loses the difference between them. Number the replacements instead, such as <code>[PERSON_1]</code> and <code>[PERSON_2]</code>, so the model can still reason about who is who. Keep a private map from each token back to the real value, and put the real values back into the model's reply before you show it to your user. The model never sees the originals, and the user never sees the tokens.</p>
+        <p>Keep that map in memory for the length of one request. Do not write it, or the original prompt, to your logs.</p>
+      </section>
+
+      <section id="test">
+        <h2>Test it before you trust it</h2>
+        <p>Write 50 to 100 realistic examples that include the kinds of data your users actually type, and note which values are sensitive and which words are harmless. Run your redaction over them and count two things: how many sensitive values still appear (the serious error) and how many harmless words were hidden (which costs you answer quality). Keep a second set that you never tune against, so you do not fool yourself.</p>
+        <p>For an example of reporting this honestly, including the misses, see <a href="/accuracy">how Jnvoy measures itself</a>.</p>
+      </section>
+
+      <section id="gateway">
+        <h2>Or use a gateway</h2>
+        <p>If you would rather not maintain this yourself, <a href="/">Jnvoy</a> does the steps above as a service you can also self-host. It numbers the tokens, restores the real values in the reply, records only counts of what it found (never the text), and covers UK, EU and other national identifiers. Scan a piece of text:</p>
+        <pre><code>curl -X POST https://www.jnvoy.com/v1/scan \
+  -H &quot;x-api-key: YOUR_JNVOY_KEY&quot; -H &quot;Content-Type: application/json&quot; \
+  -d &#x27;{&quot;text&quot;: &quot;My name is John Smith and my NI number is AB123456C&quot;}&#x27;</code></pre>
+        <p>Or send a protected request to a model. You supply your own provider key, which Jnvoy uses for that one request and never stores:</p>
+        <pre><code>curl -X POST https://www.jnvoy.com/v1/proxy \
+  -H &quot;x-api-key: YOUR_JNVOY_KEY&quot; -H &quot;x-provider-key: YOUR_OPENAI_KEY&quot; \
+  -H &quot;Content-Type: application/json&quot; \
+  -d &#x27;{&quot;provider&quot;: &quot;openai&quot;, &quot;model&quot;: &quot;YOUR_MODEL&quot;,
+       &quot;messages&quot;: [{&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: &quot;My email is john@example.com. Say hello.&quot;}]}&#x27;</code></pre>
+        <p>Hosted keys are issued on request through <a href="/">the homepage</a>. The code is on <a href="https://github.com/Jeevan2191999/jnvoy">GitHub</a> under the Business Source License 1.1 (source-available, not open source), and you can run it on your own servers.</p>
+      </section>
+
+      <section id="limits">
+        <h2>What can go wrong</h2>
+        <ul class="plain tight">
+          <li><strong>No tool catches everything.</strong> Unusual names, informal addresses and company-specific identifiers are the usual misses. Treat redaction as one control among several.</li>
+          <li><strong>Context can identify a person on its own.</strong> "The CEO of our only London client" may point to someone without naming them.</li>
+          <li><strong>Too much redaction hurts answers.</strong> If you hide every place and date, the model has nothing to work with.</li>
+          <li><strong>Redacting the prompt is not enough if you log it.</strong> Check what your own application, proxy and monitoring tools write to disk.</li>
+        </ul>
+      </section>
+
+    </div>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap fgrid">
+    <div class="left">JNVOY LIMITED. Registered in England and Wales, company number 17536574.</div>
+    <div class="flinks">
+      <a href="/docs">API docs</a>
+      <a href="/accuracy">Accuracy</a>
+      <a href="/guides/remove-personal-data-from-prompts">Guide</a>
+      <a href="/guides/remove-personal-data-from-prompts">Guide</a>
+      <a href="https://github.com/Jeevan2191999/jnvoy">GitHub</a>
+      <a href="/v1/report/compliance">Sample report</a>
+      <a href="/privacy">Privacy</a>
+      <a href="/security">Security</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // Highlight the section being read in the contents list.
+  (function(){
+    var links = document.querySelectorAll('.toc a');
+    var map = {};
+    links.forEach(function(a){ map[a.getAttribute('href').slice(1)] = a; });
+    if (!('IntersectionObserver' in window)) return;
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if (e.isIntersecting){
+          links.forEach(function(a){ a.classList.remove('on'); });
+          var a = map[e.target.id]; if (a) a.classList.add('on');
+        }
+      });
+    }, { rootMargin:'-20% 0px -70% 0px' });
+    Object.keys(map).forEach(function(id){
+      var el = document.getElementById(id); if (el) io.observe(el);
+    });
+  })();
+</script>
+</body>
+</html>

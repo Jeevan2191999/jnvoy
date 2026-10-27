@@ -129,6 +129,14 @@ async def security_page():
     raise HTTPException(status_code=404, detail="Not found")
 
 
+@app.get("/guides/remove-personal-data-from-prompts", include_in_schema=False)
+async def guide_remove_personal_data():
+    _page = os.path.join(_static_dir, "guide-remove-personal-data.html")
+    if os.path.exists(_page):
+        return FileResponse(_page)
+    raise HTTPException(status_code=404, detail="Not found")
+
+
 @app.get("/accuracy", include_in_schema=False)
 async def accuracy_page():
     _page = os.path.join(_static_dir, "accuracy.html")
@@ -165,6 +173,7 @@ SITEMAP_XML = (
     "  <url><loc>https://www.jnvoy.com/security</loc></url>\n"
     "  <url><loc>https://www.jnvoy.com/privacy</loc></url>\n"
     "  <url><loc>https://www.jnvoy.com/accuracy</loc></url>\n"
+    "  <url><loc>https://www.jnvoy.com/guides/remove-personal-data-from-prompts</loc></url>\n"
     "  <url><loc>https://www.jnvoy.com/docs</loc></url>\n"
     "</urlset>\n"
 )
