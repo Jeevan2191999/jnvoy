@@ -997,7 +997,7 @@
   <div class="wrap">
     <div class="shead">
       <h2>Point your calls at Jnvoy.</h2>
-      <p>No SDK to install. Send your messages to the <code>/v1/proxy</code> endpoint with two headers: your Jnvoy key and your own model provider key. Replies come back with the original values restored. Responses are not streamed yet.</p>
+      <p>Already using the OpenAI client library? Change two lines: set the base URL to <code>https://www.jnvoy.com/v1</code> and use your Jnvoy key, with your own model provider key in an <code>x-provider-key</code> header. Or call the <code>/v1/proxy</code> endpoint directly. Replies come back with the original values restored, and streaming works. <a href="https://github.com/Jeevan2191999/jnvoy/blob/main/QUICKSTART.md">Read the 5-minute quickstart</a>.</p>
     </div>
     <div class="providers">
       <span class="chip">Anthropic Claude</span>

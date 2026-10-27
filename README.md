@@ -32,7 +32,7 @@ curl -X POST https://www.jnvoy.com/v1/scan \
   -d '{"text": "My name is John Smith and my NI number is AB123456C"}'
 ```
 
-Send a protected request to a model. The hosted service needs two headers: your Jnvoy key, and your own key from the model provider. Jnvoy uses the provider key for that one request and never stores or logs it. The request format is Jnvoy's own (not the Anthropic or OpenAI SDK format), and replies are not streamed.
+Send a protected request to a model. The hosted service needs two headers: your Jnvoy key, and your own key from the model provider. Jnvoy uses the provider key for that one request and never stores or logs it. `/v1/proxy` uses Jnvoy's own request format. If your app already uses the OpenAI client library, use `/v1/chat/completions` instead (see below), which also streams. A 5-minute walkthrough is in [QUICKSTART.md](QUICKSTART.md), and runnable examples are in [`examples/`](examples).
 
 ```bash
 curl -X POST https://www.jnvoy.com/v1/proxy \

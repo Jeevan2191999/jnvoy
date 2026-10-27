@@ -1,0 +1,84 @@
+name: refresh-pins
+
+# Once a month (and whenever you press "Run workflow"): install the newest versions of everything
+# our own requirements.txt does not name, run the whole test suite on them, and only if it passes,
+# open a pull request that updates constraints.txt. Nothing changes in production until you merge it.
+#
+# Needs Settings > Actions > General > "Allow GitHub Actions to create and approve pull requests".
+# If that is off, the new file is attached to the run as an artifact instead.
+
+on:
+  schedule:
+    - cron: "17 6 1 * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: jnvoy
+          POSTGRES_PASSWORD: jnvoy
+          POSTGRES_DB: jnvoy
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U jnvoy"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://jnvoy:jnvoy@localhost:5432/jnvoy
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install our requirements with the newest of everything else
+        run: |
+          python -m venv /tmp/fresh
+          . /tmp/fresh/bin/activate
+          grep -v '^-c' requirements.txt > /tmp/top-level.txt
+          pip install -r /tmp/top-level.txt -r requirements-dev.txt
+          python -m spacy download en_core_web_lg
+          python -m spacy download en_core_web_sm
+      - name: Run the full tests on those versions
+        run: |
+          . /tmp/fresh/bin/activate
+          pytest -q
+      - name: Write the new constraints.txt
+        run: |
+          . /tmp/fresh/bin/activate
+          pip freeze | python scripts/refresh_constraints.py > /tmp/constraints.new
+          cp /tmp/constraints.new constraints.txt
+          git diff --stat constraints.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: constraints
+          path: constraints.txt
+      - name: Open a pull request if anything changed
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if git diff --quiet constraints.txt; then
+            echo "Nothing to update."
+            exit 0
+          fi
+          branch="chore/refresh-pins-$(date +%Y%m%d)"
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          git checkout -b "$branch"
+          git add constraints.txt
+          git commit -m "Refresh pinned dependency versions"
+          git push origin "$branch"
+          git diff HEAD~1 -- constraints.txt > /tmp/diff.txt
+          gh pr create --base main --head "$branch" \
+            --title "Refresh pinned dependency versions" \
+            --body "The full test suite passed on these versions. Review the version changes below, then merge. Render deploys after the normal checks." \
+            || echo "Could not open the pull request. Turn on 'Allow GitHub Actions to create and approve pull requests' in Settings > Actions > General, or download the constraints artifact from this run."

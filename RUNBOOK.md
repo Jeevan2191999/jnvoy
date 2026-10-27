@@ -105,6 +105,25 @@ to the last good deploy, then fix forward. Run `pytest -q` before every push.
 Every response carries an `x-request-id` header. Ask a customer for it when they report a problem,
 then search Render's logs for it. It identifies one request and contains none of their text.
 
+### Keeping dependencies up to date (about 15 minutes a month)
+
+Every version is pinned: `requirements.txt` names what we use directly, and `constraints.txt` pins
+everything else. Nothing changes on its own.
+
+- **Monthly, automatic.** On the 1st of each month the `refresh-pins` workflow installs the newest
+  versions of everything we do not name, runs the full tests on them, and opens a pull request
+  "Refresh pinned dependency versions" only if the tests pass. Read the version list in the pull
+  request, merge it, and the usual checks and deploy follow. To run it now: GitHub, Actions,
+  refresh-pins, "Run workflow". It needs Settings, Actions, General, "Allow GitHub Actions to
+  create and approve pull requests" switched on; otherwise take the new file from the run's
+  "constraints" artifact.
+- **A package we name directly** (FastAPI, spaCy, Presidio and so on) is changed by hand: edit its
+  version in `requirements.txt`, run the refresh workflow or `pip freeze | python
+  scripts/refresh_constraints.py > constraints.txt` in a clean Python 3.12 environment, run
+  `pytest -q`, and push. Change spaCy only together with re-measuring the accuracy page.
+- **A security alert** from GitHub: do the same for that package, promptly.
+- If a merge breaks the deploy, Render keeps the previous version running; roll back the commit.
+
 ## 6. Something is wrong
 
 1. Check `/health` and Render's deploy status and logs.

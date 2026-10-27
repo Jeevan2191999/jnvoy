@@ -2,7 +2,7 @@
 # next month run the same code. requirements.txt names what we use; this file pins what pip picks
 # for the rest. Made with `pip freeze` in a clean Python 3.12 environment after installing
 # requirements.txt and requirements-dev.txt and running the full tests.
-# To update: install without this file, run the tests, then regenerate it. Dependabot proposes updates.
+# To update: the monthly refresh-pins workflow does it and opens a pull request (see RUNBOOK.md).
 # The spaCy models (en_core_web_lg and en_core_web_sm) are installed separately: see the Dockerfile.
 annotated-doc==0.0.5
 annotated-types==0.8.0

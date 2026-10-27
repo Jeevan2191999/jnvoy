@@ -1,9 +1,13 @@
 version: 2
 updates:
+  # pip version updates are handled by the monthly refresh-pins workflow instead: our versions are
+  # pinned in constraints.txt, so one-package pull requests from here could never pass. A limit of
+  # 0 turns off these version pull requests only. GitHub's security alerts still work.
   - package-ecosystem: pip
     directory: /
     schedule:
-      interval: weekly
+      interval: monthly
+    open-pull-requests-limit: 0
   - package-ecosystem: docker
     directory: /
     schedule:
