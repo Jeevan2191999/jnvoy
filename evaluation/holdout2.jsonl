@@ -1,0 +1,24 @@
+{"id": "F001", "text": "Please post the contract to 42 Rue Saint-Honoré, Paris.", "sensitive": [{"value": "42 Rue Saint-Honoré", "type": "ADDRESS"}], "keep": ["Paris"]}
+{"id": "F002", "text": "Our new flat is Flat 4C, Rosewood Court, Mill Lane, Norwich NR2 3AB.", "sensitive": [{"value": "Rosewood Court", "type": "ADDRESS"}, {"value": "NR2 3AB", "type": "POSTCODE"}], "keep": ["Norwich"]}
+{"id": "F003", "text": "Deliver to Hauptstraße 27, 10115 Berlin before Friday.", "sensitive": [{"value": "Hauptstraße 27", "type": "ADDRESS"}], "keep": ["Berlin"]}
+{"id": "F004", "text": "He moved to 19 Calle de Alcalá in Madrid last spring.", "sensitive": [{"value": "19 Calle de Alcalá", "type": "ADDRESS"}], "keep": ["Madrid"]}
+{"id": "F005", "text": "The client lives at 7 Via Giuseppe Verdi, Milano.", "sensitive": [{"value": "7 Via Giuseppe Verdi", "type": "ADDRESS"}], "keep": ["Milano"]}
+{"id": "F006", "text": "Send the invoice to 350 Fifth Avenue, New York.", "sensitive": [{"value": "350 Fifth Avenue", "type": "ADDRESS"}], "keep": ["New York"]}
+{"id": "F007", "text": "Shipping address: Apartment 9B, Elm Mansions, Park Road, Leeds.", "sensitive": [{"value": "Elm Mansions", "type": "ADDRESS"}], "keep": ["Leeds"]}
+{"id": "F008", "text": "Meet me outside the British Museum on Great Russell Street at noon.", "sensitive": [], "keep": ["British Museum", "Great Russell Street"]}
+{"id": "F009", "text": "Oxford Street gets busy at weekends.", "sensitive": [], "keep": ["Oxford Street"]}
+{"id": "F010", "text": "Parcel for Mr Tomasz Wiśniewski, 15 Kerkstraat, Utrecht.", "sensitive": [{"value": "Tomasz Wiśniewski", "type": "PERSON"}, {"value": "15 Kerkstraat", "type": "ADDRESS"}], "keep": ["Utrecht"]}
+{"id": "F011", "text": "Contact Imogen Hartley-Brown on 020 7946 0321 or imogen.hb@example.org.", "sensitive": [{"value": "Imogen Hartley-Brown", "type": "PERSON"}, {"value": "020 7946 0321", "type": "PHONE"}, {"value": "imogen.hb@example.org", "type": "EMAIL"}], "keep": []}
+{"id": "F012", "text": "Candidate Olusegun Adeyemi was born on 3 March 1994.", "sensitive": [{"value": "Olusegun Adeyemi", "type": "PERSON"}, {"value": "3 March 1994", "type": "DOB"}], "keep": []}
+{"id": "F013", "text": "Her national insurance number is QQ 12 34 56 C.", "sensitive": [{"value": "QQ 12 34 56 C", "type": "NI"}], "keep": []}
+{"id": "F014", "text": "Policy reference PL-448812-X belongs to the Okafor household.", "sensitive": [{"value": "PL-448812-X", "type": "INTERNAL_ID"}], "keep": []}
+{"id": "F015", "text": "Case file ref CF2291/88 was closed on Monday.", "sensitive": [{"value": "CF2291/88", "type": "INTERNAL_ID"}], "keep": []}
+{"id": "F016", "text": "The server at 192.0.2.44 rejected the login.", "sensitive": [{"value": "192.0.2.44", "type": "IP"}], "keep": []}
+{"id": "F017", "text": "My card 4111 1111 1111 1111 was declined.", "sensitive": [{"value": "4111 1111 1111 1111", "type": "CARD"}], "keep": []}
+{"id": "F018", "text": "Transfer to IBAN GB82 WEST 1234 5698 7654 32 please.", "sensitive": [{"value": "GB82 WEST 1234 5698 7654 32", "type": "IBAN"}], "keep": []}
+{"id": "F019", "text": "Raise the ticket with Priya Raman in the Glasgow office.", "sensitive": [{"value": "Priya Raman", "type": "PERSON"}], "keep": ["Glasgow"]}
+{"id": "F020", "text": "The 2023 report covers Manchester, Leeds and Sheffield.", "sensitive": [], "keep": ["Manchester", "Leeds", "Sheffield"]}
+{"id": "F021", "text": "Visit 10 Downing Street for the tour.", "sensitive": [], "keep": []}
+{"id": "F022", "text": "Ana Beatriz Souza lives at Rua das Flores 88, Lisboa.", "sensitive": [{"value": "Ana Beatriz Souza", "type": "PERSON"}, {"value": "Rua das Flores 88", "type": "ADDRESS"}], "keep": ["Lisboa"]}
+{"id": "F023", "text": "Old address was The Old Rectory, Church Lane, Hexham NE46 1AA.", "sensitive": [{"value": "The Old Rectory", "type": "ADDRESS"}, {"value": "NE46 1AA", "type": "POSTCODE"}], "keep": ["Hexham"]}
+{"id": "F024", "text": "Delivery to 12 Boulevard Voltaire, 75011 Paris, France.", "sensitive": [{"value": "12 Boulevard Voltaire", "type": "ADDRESS"}], "keep": ["France"]}

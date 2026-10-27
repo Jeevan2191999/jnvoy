@@ -1,0 +1,23 @@
+{"id": "G001", "text": "Parcel for Ngozi Eze, Rose Cottage, Mill Lane, Kendal.", "sensitive": [{"value": "Ngozi Eze", "type": "PERSON"}, {"value": "Rose Cottage", "type": "ADDRESS"}], "keep": ["Kendal"]}
+{"id": "G002", "text": "Her address is 8 bis rue des Lilas, Lyon.", "sensitive": [{"value": "8 bis rue des Lilas", "type": "ADDRESS"}], "keep": ["Lyon"]}
+{"id": "G003", "text": "Postal address: Goethestraße 4a, 80336 München.", "sensitive": [{"value": "Goethestraße 4a", "type": "ADDRESS"}], "keep": ["München"]}
+{"id": "G004", "text": "The tenant, Søren Kjær, lives at 5 chemin du Moulin, Annecy.", "sensitive": [{"value": "Søren Kjær", "type": "PERSON"}, {"value": "5 chemin du Moulin", "type": "ADDRESS"}], "keep": ["Annecy"]}
+{"id": "G005", "text": "Unit 3/45 Collins Street, Melbourne, is the billing address.", "sensitive": [{"value": "45 Collins Street", "type": "ADDRESS"}], "keep": ["Melbourne"]}
+{"id": "G006", "text": "Mail it to 221 Maple Ave., Unit 5, Toronto.", "sensitive": [{"value": "221 Maple Ave.", "type": "ADDRESS"}], "keep": ["Toronto"]}
+{"id": "G007", "text": "Employee file number EF-77219 needs updating.", "sensitive": [{"value": "EF-77219", "type": "INTERNAL_ID"}], "keep": []}
+{"id": "G008", "text": "Tenant ref T-20931 has an overdue balance.", "sensitive": [{"value": "T-20931", "type": "INTERNAL_ID"}], "keep": []}
+{"id": "G009", "text": "Write to Wei-Lin Chen at wei.chen@example.net about the lease.", "sensitive": [{"value": "Wei-Lin Chen", "type": "PERSON"}, {"value": "wei.chen@example.net", "type": "EMAIL"}], "keep": []}
+{"id": "G010", "text": "Apartment 6, Ashdown House, Cliff Road, Folkestone CT20 2AA.", "sensitive": [{"value": "Ashdown House", "type": "ADDRESS"}, {"value": "CT20 2AA", "type": "POSTCODE"}], "keep": ["Folkestone"]}
+{"id": "G011", "text": "Flat 1, 33 Sycamore Gardens, Exeter EX4 4HL.", "sensitive": [{"value": "33 Sycamore Gardens", "type": "ADDRESS"}, {"value": "EX4 4HL", "type": "POSTCODE"}], "keep": ["Exeter"]}
+{"id": "G012", "text": "Landlord: Fatima Al-Sayed, 17 Boulevard de la Liberté, Lille.", "sensitive": [{"value": "Fatima Al-Sayed", "type": "PERSON"}, {"value": "17 Boulevard de la Liberté", "type": "ADDRESS"}], "keep": ["Lille"]}
+{"id": "G013", "text": "She was born on 14/09/1988 in Cardiff.", "sensitive": [{"value": "14/09/1988", "type": "DOB"}], "keep": ["Cardiff"]}
+{"id": "G014", "text": "Reach me on +44 7700 900123 after six.", "sensitive": [{"value": "+44 7700 900123", "type": "PHONE"}], "keep": []}
+{"id": "G015", "text": "Passport number 925665416 expires next year.", "sensitive": [{"value": "925665416", "type": "PASSPORT"}], "keep": []}
+{"id": "G016", "text": "We ordered a flat white and a sandwich at the café.", "sensitive": [], "keep": ["flat white"]}
+{"id": "G017", "text": "Unit 4 of the course covers the Old Bailey trial.", "sensitive": [], "keep": ["Old Bailey"]}
+{"id": "G018", "text": "The song Boulevard of Broken Dreams came on.", "sensitive": [], "keep": ["Boulevard of Broken Dreams"]}
+{"id": "G019", "text": "The Manor House pub does a good Sunday roast.", "sensitive": [], "keep": ["Manor House"]}
+{"id": "G020", "text": "Our office is on Baker Street in London.", "sensitive": [], "keep": ["Baker Street", "London"]}
+{"id": "G021", "text": "Ask Chiamaka Nwosu to review it before the 3pm call.", "sensitive": [{"value": "Chiamaka Nwosu", "type": "PERSON"}], "keep": []}
+{"id": "G022", "text": "He rents a room at Number 9, Willow Barn, Stoke Road, Oxford.", "sensitive": [{"value": "Willow Barn", "type": "ADDRESS"}], "keep": ["Oxford"]}
+{"id": "G023", "text": "The sort code is 20-00-00 and the account number is 55779911.", "sensitive": [{"value": "20-00-00", "type": "BANK"}, {"value": "55779911", "type": "BANK"}], "keep": []}

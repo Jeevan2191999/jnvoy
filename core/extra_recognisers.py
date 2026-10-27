@@ -91,7 +91,7 @@ _DOB_LABEL = r"(?:date\s+of\s+birth|d\.?o\.?b\.?|born(?:\s+on)?|birth\s*date|bir
 # file, record, reference. Those are everyday words in developer prompts ("fix ticket PROJ-1234").
 _ID_WORDS = (
     r"(?:customer|client|case|claim|employee|staff|patient|policy|tenant|member|"
-    r"licen[cs]e|booking|student)"
+    r"licen[cs]e|booking|student|account\s+holder)(?:\s+file)?"
 )
 _ID_LABEL = r"(?:\s+(?:id|identifier|number|no\.?|num|ref(?:erence)?|code|#))?"
 
@@ -151,6 +151,34 @@ def make_extra_recognisers() -> list:
             r"Gardens|Crescent|Terrace|Square|Grove|Hill|Park|Mews|Row|Walk|Boulevard|Parade|"
             r"Embankment|Quay|Wharf|Rise|Green|Gate|Broadway|Highway|Alley)\b",
             0.85,
+        ), Pattern(
+            # Continental style: number, street word, then a capitalised name
+            # ("42 Rue Saint-Honoré", "12 Boulevard Voltaire", "19 Calle de Alcalá").
+            "street_continental",
+            r"\b\d{1,4}[A-Z]?,?\s+(?:[Rr]ue|[Bb]oulevard|[Aa]venue|[Cc]hemin|[Aa]llée|[Ii]mpasse|"
+            r"[Qq]uai|[Cc]alle|[Aa]venida|[Pp]aseo|[Pp]laza|[Rr]ua|Via|Viale|Piazza|Strada)\s+"
+            r"(?:(?:de\s+la|de\s+l['’]|de|du|des|del|della|di|da|dos|d['’])\s*)?"
+            r"[A-ZÀ-Ý][\w'’\-]*(?:\s+[A-ZÀ-Ý][\w'’\-]*){0,3}",
+            0.85,
+        ), Pattern(
+            # German and Dutch style: name ending in a street word, then the number
+            # ("Hauptstraße 27", "Kerkstraat 15").
+            "street_germanic",
+            r"\b[A-ZÄÖÜ][a-zäöüß]+(?:straße|strasse|straat|weg|platz|allee|gasse|laan|plein)\s+\d{1,4}[a-z]?\b",
+            0.85,
+        ), Pattern(
+            # A flat or unit followed by a building name ("Flat 4C, Rosewood Court").
+            "unit_building",
+            r"\b(?:Flat|Apartment|Apt|Unit|Suite)\s+\d{1,4}[A-Z]?,\s*(?:The\s+)?(?:[A-Z][a-z'\-]+\s+){0,3}"
+            r"(?:House|Court|Mansions|Lodge|Tower|Towers|Building|Buildings|Apartments|Heights|Villas|"
+            r"Cottage|Cottages|Manor|Hall|Gardens)\b",
+            0.85,
+        ), Pattern(
+            # A named house at the start of an address ("The Old Rectory, Church Lane").
+            "named_house",
+            r"\bThe\s+(?:Old\s+)?(?:Rectory|Vicarage|Manor|Lodge|Cottage|Farmhouse|Priory|Grange|"
+            r"Coach\s+House)(?=,\s*[A-Z])",
+            0.8,
         )],
         global_regex_flags=re.DOTALL | re.MULTILINE,  # case sensitive: needs capitalised names
         name="StreetAddressRecognizer",
