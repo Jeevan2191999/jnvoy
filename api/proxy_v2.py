@@ -181,6 +181,20 @@ async def google_site_verification():
                     media_type="text/html; charset=utf-8")
 
 
+BING_SITE_AUTH_XML = (
+    '<?xml version="1.0"?>\n'
+    "<users>\n"
+    "\t<user>C5810E531A6BC65F8ADED06E6A528119</user>\n"
+    "</users>\n"
+)
+
+
+@app.get("/BingSiteAuth.xml", include_in_schema=False)
+async def bing_site_auth():
+    # Proves to Bing Webmaster Tools that this site is ours. Must stay in place.
+    return Response(BING_SITE_AUTH_XML, media_type="application/xml")
+
+
 @app.get("/favicon.ico", include_in_schema=False)
 async def favicon_ico():
     from fastapi.responses import RedirectResponse

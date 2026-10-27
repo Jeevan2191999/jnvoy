@@ -123,3 +123,9 @@ def test_google_search_console_verification_file_is_served():
     r = client.get("/googleeeaccce07f7f9ae9.html")
     assert r.status_code == 200
     assert r.text == "google-site-verification: googleeeaccce07f7f9ae9.html"
+
+
+def test_bing_webmaster_verification_file_is_served():
+    r = client.get("/BingSiteAuth.xml")
+    assert r.status_code == 200
+    assert "<user>C5810E531A6BC65F8ADED06E6A528119</user>" in r.text
