@@ -54,7 +54,23 @@ ADMIN_EXACT = {"/v1/cache", "/v1/cache/stats", "/v1/providers/health"}
 ADMIN_PREFIXES = ("/v1/audit", "/v1/report/", "/v1/admin")
 
 # Calls that count against a customer's monthly allowance.
-METERED_PREFIXES = ("/v1/proxy", "/v1/scan", "/v1/mcp/")
+METERED_PREFIXES = ("/v1/proxy", "/v1/scan", "/v1/mcp/", "/v1/chat/completions")
+
+# OpenAI client libraries can only send their key as `Authorization: Bearer ...`. On this one
+# route that header is accepted as the Jnvoy key when no x-api-key is sent. Nowhere else.
+BEARER_ROUTES = ("/v1/chat/completions",)
+
+
+def key_from_headers(path: str, headers: dict) -> Optional[str]:
+    """The Jnvoy key a request carries. `headers` has lower-case names."""
+    key = headers.get("x-api-key")
+    if key:
+        return key
+    if path.rstrip("/") in BEARER_ROUTES:
+        auth = headers.get("authorization", "")
+        if auth[:7].lower() == "bearer ":
+            return auth[7:].strip() or None
+    return None
 
 
 def is_protected(path: str) -> bool:
@@ -262,8 +278,8 @@ class ApiKeyAuthMiddleware:
         headers = {k.decode("latin-1").lower(): v.decode("latin-1") for k, v in scope.get("headers", [])}
         forwarded = headers.get("x-forwarded-for", "").split(",")[-1].strip()
         client = forwarded or (scope.get("client") or ("unknown", 0))[0]
-        api_key = headers.get("x-api-key")
         method, path = scope["method"], scope["path"]
+        api_key = key_from_headers(path, headers)
         loop = asyncio.get_running_loop()
 
         tenant = None

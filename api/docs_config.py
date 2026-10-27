@@ -28,8 +28,8 @@ injection, and keeps an audit log of what was found.
 
 **Authentication.** Send your key in the `x-api-key` header on every `/v1` request. Choose \
 **Authorize** to try requests from this page. A client key can use the proxy, scanning and MCP \
-routes. An admin key can also use the administration routes. Keys come from whoever runs the \
-deployment. Never put a key in a URL.
+routes. An admin key can also use the administration routes. On `/v1/chat/completions` only, `Authorization: Bearer <key>` is accepted too, so OpenAI client \
+libraries work unchanged. Keys come from whoever runs the deployment. Never put a key in a URL.
 
 **Limits and errors**
 
@@ -58,6 +58,7 @@ OPENAPI_TAGS = [
 ROUTE_DOCS = {
     ("GET", "/health"): ("Health", "Check service health"),
     ("POST", "/v1/proxy"): ("Proxy", "Send a prompt to an AI model, with personal data removed"),
+    ("POST", "/v1/chat/completions"): ("Proxy", "OpenAI-compatible chat, with personal data removed"),
     ("POST", "/v1/scan"): ("Scanning", "Scan text for personal data"),
     ("POST", "/v1/scan/injection"): ("Scanning", "Scan text for prompt injection"),
     ("POST", "/v1/mcp/scan"): ("MCP security", "Scan an MCP message for threats"),

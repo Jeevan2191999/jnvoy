@@ -117,6 +117,7 @@ All `/v1` routes need an `x-api-key` header. Routes marked admin need an admin k
 |---|---|---|
 | `GET /health` | Service status | none |
 | `POST /v1/proxy` | Send a prompt to a model with personal data removed | client |
+| `POST /v1/chat/completions` | The same, in OpenAI's request and response format (see below) | client |
 | `POST /v1/scan` | Scan text for personal data | client |
 | `POST /v1/scan/injection` | Scan text for prompt injection | client |
 | `POST /v1/mcp/scan` | Scan an MCP message for threats | client |
@@ -159,6 +160,23 @@ curl -X POST https://your-host/v1/proxy -H "x-api-key: $JNVOY_KEY" -H "x-provide
 ```
 
 The provider key is used for that one request. It is never stored, logged, cached or written to the audit log, and a rejected key is reported as `400 provider_key_rejected` without repeating any part of it. Without the header a customer gets `400 provider_key_required`. `/v1/scan` and the MCP routes call no provider, so they need no provider key.
+
+#### Using an OpenAI client library
+
+`/v1/chat/completions` speaks OpenAI's chat format, so an existing app only changes where it points:
+
+```python
+from openai import OpenAI
+
+client = OpenAI(
+    base_url="https://www.jnvoy.com/v1",
+    api_key="<your Jnvoy key>",                       # sent as Authorization: Bearer
+    default_headers={"x-provider-key": "<your OpenAI or Anthropic key>"},
+)
+reply = client.chat.completions.create(model="gpt-4o", messages=[{"role": "user", "content": "..."}])
+```
+
+Models starting with `claude` go to Anthropic, everything else to OpenAI (override with the `x-jnvoy-provider` header). It is text only: images, audio, tools, functions, JSON mode and `n` above 1 are refused with a `400`, because they cannot be scanned for personal data or are not supported yet. Other optional fields (`top_p`, `stop`, `seed`...) are ignored, and the `x-jnvoy-ignored-params` response header lists any that were. `usage` is not returned. With `stream: true` the reply is sent as server-sent events after it has been checked in full, so it arrives at once rather than word by word. The Jnvoy key goes in `Authorization: Bearer` on this route only; every other route needs `x-api-key`.
 
 Full request and response details, with an Authorize button for trying calls, are at [/docs](https://www.jnvoy.com/docs).
 

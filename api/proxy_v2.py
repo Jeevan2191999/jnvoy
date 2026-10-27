@@ -382,6 +382,16 @@ def _own_key_error(provider: str, status: int, text: str) -> HTTPException:
     return HTTPException(status_code=status, detail=f"{provider} API error: {text[:500]}")
 
 
+def _anthropic_body(model: str, max_tokens: int, messages: list[dict]) -> dict:
+    """Anthropic takes system instructions in a separate field, not as a message."""
+    system = [m["content"] for m in messages if m.get("role") == "system"]
+    body = {"model": model, "max_tokens": max_tokens,
+            "messages": [m for m in messages if m.get("role") != "system"]}
+    if system:
+        body["system"] = "\n\n".join(system)
+    return body
+
+
 async def call_anthropic(messages: list[dict], model: str, max_tokens: int,
                          api_key: Optional[str] = None) -> str:
     # api_key is the caller's own key (hosted customers). Without it the operator's key is used.
@@ -400,7 +410,7 @@ async def call_anthropic(messages: list[dict], model: str, max_tokens: int,
                     "anthropic-version": "2023-06-01",
                     "content-type": "application/json"
                 },
-                json={"model": model, "max_tokens": max_tokens, "messages": messages}
+                json=_anthropic_body(model, max_tokens, messages)
             )
             if response.status_code != 200:
                 # A customer's wrong key or model must not mark the provider unhealthy for everyone.
@@ -664,6 +674,41 @@ async def health():
     }
 
 
+async def _gateway_call(request: ProxyRequest, http_request: Request,
+                        api_key: Optional[str], x_provider_key: Optional[str]):
+    """
+    The part /v1/proxy and /v1/chat/completions share: the provider-key rule, the tenant,
+    the pipeline and the audit row. Returns (audit_id, result).
+    """
+    audit_id = str(uuid.uuid4())
+    caller = _caller(http_request)
+    provider_key = (x_provider_key or "").strip() or None
+    if caller.metered and not provider_key:
+        raise HTTPException(status_code=400, detail={
+            "error": "provider_key_required",
+            "message": "Send your own model provider key in the x-provider-key header. "
+                       "Jnvoy does not supply model access.",
+        })
+    key_hash = hashlib.sha256((api_key or "anonymous").encode()).hexdigest()
+    # Customers are isolated by tenant (all their keys), the operator's own keys by key.
+    tenant = caller.tenant_id if caller.metered else key_hash
+    result = await run_proxy_pipeline(request, tenant=tenant, policy=caller.policy,
+                                      provider_key=provider_key)
+
+    _spawn(_write_audit(
+        audit_id=audit_id,
+        pii_summary=result["pii_summary"],
+        provider=request.provider or "anthropic",
+        model=result["routed_model"],
+        latency_ms=result["latency_ms"],
+        cache_hit=result["cache_hit"],
+        api_key_hash=key_hash[:8],
+        tenant_id=caller.tenant_id,
+        output_detected=result["output_scan"].audit_counts() if result["output_scan"] else {},
+    ))
+    return audit_id, result
+
+
 @app.post("/v1/proxy", response_model=ProxyResponse)
 async def proxy_request(
     request: ProxyRequest,
@@ -683,32 +728,7 @@ async def proxy_request(
     Customers pay their model provider directly: send your own provider key in the
     `x-provider-key` header. Jnvoy's own provider keys are never used for a customer.
     """
-    audit_id = str(uuid.uuid4())
-    caller = _caller(http_request)
-    provider_key = (x_provider_key or "").strip() or None
-    if caller.metered and not provider_key:
-        raise HTTPException(status_code=400, detail={
-            "error": "provider_key_required",
-            "message": "Send your own model provider key in the x-provider-key header. "
-                       "Jnvoy does not supply model access.",
-        })
-    key_hash = hashlib.sha256((x_api_key or "anonymous").encode()).hexdigest()
-    # Customers are isolated by tenant (all their keys), the operator's own keys by key.
-    tenant = caller.tenant_id if caller.metered else key_hash
-    result = await run_proxy_pipeline(request, tenant=tenant, policy=caller.policy,
-                                      provider_key=provider_key)
-
-    _spawn(_write_audit(
-        audit_id=audit_id,
-        pii_summary=result["pii_summary"],
-        provider=request.provider or "anthropic",
-        model=result["routed_model"],
-        latency_ms=result["latency_ms"],
-        cache_hit=result["cache_hit"],
-        api_key_hash=key_hash[:8],
-        tenant_id=caller.tenant_id,
-        output_detected=result["output_scan"].audit_counts() if result["output_scan"] else {},
-    ))
+    audit_id, result = await _gateway_call(request, http_request, x_api_key, x_provider_key)
 
     return ProxyResponse(
         id=audit_id,
@@ -731,6 +751,79 @@ async def proxy_request(
         audit_id=audit_id,
         output_scan=_output_summary(result["output_scan"]),
     )
+
+
+from fastapi import Body  # noqa: E402
+from fastapi.responses import JSONResponse, StreamingResponse  # noqa: E402
+from api import openai_compat  # noqa: E402
+from core.auth import key_from_headers  # noqa: E402
+
+
+@app.post("/v1/chat/completions")
+async def chat_completions(
+    http_request: Request,
+    body: dict = Body(...),
+    x_api_key: Optional[str] = Header(None),
+    x_provider_key: Optional[str] = Header(
+        None,
+        description="Your own key for the model provider. Required for customer keys. "
+                    "Used for this one request, never stored, logged or cached.",
+    ),
+    x_jnvoy_provider: Optional[str] = Header(
+        None,
+        description="'anthropic' or 'openai'. Optional: models starting with 'claude' go to "
+                    "Anthropic and everything else to OpenAI.",
+    ),
+):
+    """
+    OpenAI-compatible chat endpoint. Point an OpenAI client library at
+    `https://www.jnvoy.com/v1`, use your Jnvoy key as the API key, and send your model
+    provider key in the `x-provider-key` header. Personal data is removed before the model sees
+    it and put back in the reply, exactly as for `/v1/proxy`.
+
+    Text only. Tools, functions, JSON mode, images and `n` above 1 are refused. With
+    `stream: true` the reply is delivered as server-sent events after it has been checked in
+    full, so it arrives all at once rather than word by word.
+    """
+    try:
+        parsed = openai_compat.parse_chat_request(body)
+        provider = openai_compat.provider_for(parsed["model"], x_jnvoy_provider)
+        request = ProxyRequest(
+            model=parsed["model"],
+            messages=[Message(**m) for m in parsed["messages"]],
+            max_tokens=parsed["max_tokens"],
+            temperature=parsed["temperature"],
+            provider=provider,
+        )
+        key = key_from_headers(http_request.url.path, {
+            k.lower(): v for k, v in http_request.headers.items()})
+        audit_id, result = await _gateway_call(request, http_request, key, x_provider_key)
+    except openai_compat.CompatError as e:
+        return JSONResponse(status_code=e.status, content={"error": {
+            "message": e.message, "type": "invalid_request_error", "param": e.param, "code": e.code}})
+    except HTTPException as e:
+        return JSONResponse(status_code=e.status_code,
+                            content=openai_compat.error_body(e.status_code, e.detail))
+
+    summary = result["pii_summary"]
+    extra = {
+        "audit_id": audit_id,
+        "pii_summary": {"types_detected": summary, "total_instances": sum(summary.values()),
+                        "redacted": bool(summary)},
+        "cache_hit": result["cache_hit"],
+    }
+    headers = {}
+    if parsed["ignored"]:
+        headers["x-jnvoy-ignored-params"] = ",".join(parsed["ignored"])[:200]
+    model = result["routed_model"]
+    if parsed["stream"]:
+        return StreamingResponse(
+            openai_compat.sse_stream(audit_id, model, result["content"], extra),
+            media_type="text/event-stream",
+            headers={**headers, "cache-control": "no-cache", "x-accel-buffering": "no"},
+        )
+    return JSONResponse(openai_compat.chat_completion(audit_id, model, result["content"], extra),
+                        headers=headers)
 
 
 from pydantic import BaseModel as _ScanBase, Field as _ScanField
