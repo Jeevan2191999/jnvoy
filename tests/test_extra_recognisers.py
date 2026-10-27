@@ -176,7 +176,7 @@ def _scores(name):
     return runner.score(rows, redacted)
 
 
-@pytest.mark.parametrize("dataset", ["dataset.jsonl", "holdout.jsonl", "holdout2.jsonl", "holdout3.jsonl"])
+@pytest.mark.parametrize("dataset", ["dataset.jsonl", "holdout.jsonl", "holdout2.jsonl", "holdout3.jsonl", "holdout4.jsonl", "holdout5.jsonl"])
 def test_rule_based_types_are_fully_caught(dataset):
     result = _scores(dataset)
     for t in DETERMINISTIC:
@@ -185,7 +185,7 @@ def test_rule_based_types_are_fully_caught(dataset):
             assert p["caught"] == p["n"], (t, [m for m in result["misses"] if m["type"] == t])
 
 
-@pytest.mark.parametrize("dataset", ["dataset.jsonl", "holdout.jsonl", "holdout2.jsonl", "holdout3.jsonl"])
+@pytest.mark.parametrize("dataset", ["dataset.jsonl", "holdout.jsonl", "holdout2.jsonl", "holdout3.jsonl", "holdout4.jsonl", "holdout5.jsonl"])
 def test_most_harmless_text_stays_readable(dataset):
     result = _scores(dataset)
     assert result["keep_kept"] / result["keep_total"] >= 0.85, result["over"]

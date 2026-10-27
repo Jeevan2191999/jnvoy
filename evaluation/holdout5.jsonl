@@ -1,0 +1,25 @@
+{"id": "J001", "text": "Please deliver to Oluwaseun Adeyemi at 17 Marlborough Gardens, Bristol BS8 1TH.", "sensitive": [{"value": "Oluwaseun Adeyemi", "type": "PERSON"}, {"value": "17 Marlborough Gardens", "type": "ADDRESS"}, {"value": "BS8 1TH", "type": "POSTCODE"}], "keep": ["Bristol"]}
+{"id": "J002", "text": "She moved to Rose Cottage near Whitby last year, said Fiona Gallagher.", "sensitive": [{"value": "Rose Cottage", "type": "ADDRESS"}, {"value": "Fiona Gallagher", "type": "PERSON"}], "keep": ["Whitby"]}
+{"id": "J003", "text": "Pickup address: Calle de Serrano 45, 28001 Madrid.", "sensitive": [{"value": "Calle de Serrano 45", "type": "ADDRESS"}], "keep": ["Madrid"]}
+{"id": "J004", "text": "Livraison au 3 quater rue de la Paix, 69002 Lyon.", "sensitive": [{"value": "3 quater rue de la Paix", "type": "ADDRESS"}], "keep": ["Lyon"]}
+{"id": "J005", "text": "Adres: ul. Długa 5, 80-831 Gdańsk.", "sensitive": [{"value": "ul. Długa 5", "type": "ADDRESS"}], "keep": ["Gdańsk"]}
+{"id": "J006", "text": "Hon bor på Storgatan 12 i Uppsala sedan 2019.", "sensitive": [{"value": "Storgatan 12", "type": "ADDRESS"}], "keep": ["Uppsala"]}
+{"id": "J007", "text": "Fakturaadresse: Vestergade 4, 8000 Aarhus.", "sensitive": [{"value": "Vestergade 4", "type": "ADDRESS"}], "keep": ["Aarhus"]}
+{"id": "J008", "text": "Mr Dmitri Volkov of Maple Grange, Hartley Wintney, requested a copy.", "sensitive": [{"value": "Dmitri Volkov", "type": "PERSON"}, {"value": "Maple Grange", "type": "ADDRESS"}], "keep": ["Hartley Wintney"]}
+{"id": "J009", "text": "Dear Ms Farah Qureshi, your card 4111 1111 1111 1111 expires 04/28.", "sensitive": [{"value": "Farah Qureshi", "type": "PERSON"}, {"value": "4111 1111 1111 1111", "type": "CARD"}], "keep": []}
+{"id": "J010", "text": "NI number JG 10 20 30 D belongs to Gareth Pryce.", "sensitive": [{"value": "JG 10 20 30 D", "type": "NI"}, {"value": "Gareth Pryce", "type": "PERSON"}], "keep": []}
+{"id": "J011", "text": "Send the contract to 9 Kingsley Mews, London N1 9AB and cc priya.nair@example.org.", "sensitive": [{"value": "9 Kingsley Mews", "type": "ADDRESS"}, {"value": "N1 9AB", "type": "POSTCODE"}, {"value": "priya.nair@example.org", "type": "EMAIL"}], "keep": ["London"]}
+{"id": "J012", "text": "He gave his address as Flat 12, Dunmore Court, 3 Elm Road, Reading.", "sensitive": [{"value": "Dunmore Court", "type": "ADDRESS"}, {"value": "3 Elm Road", "type": "ADDRESS"}], "keep": ["Reading"]}
+{"id": "J013", "text": "Call Ravi Shankar on +44 7700 900456 after 5pm.", "sensitive": [{"value": "Ravi Shankar", "type": "PERSON"}, {"value": "+44 7700 900456", "type": "PHONE"}], "keep": []}
+{"id": "J014", "text": "Alle Rechnungen an: Bahnhofstraße 22, 10115 Berlin.", "sensitive": [{"value": "Bahnhofstraße 22", "type": "ADDRESS"}], "keep": ["Berlin"]}
+{"id": "J015", "text": "Nous habitons au 14 chemin des Vignes, Bordeaux.", "sensitive": [{"value": "14 chemin des Vignes", "type": "ADDRESS"}], "keep": ["Bordeaux"]}
+{"id": "J016", "text": "The Hendersons live at Oakwood, Bell Lane, Cranleigh.", "sensitive": [{"value": "Oakwood", "type": "ADDRESS"}], "keep": ["Cranleigh"]}
+{"id": "J017", "text": "Her passport number is 543218765.", "sensitive": [{"value": "543218765", "type": "PASSPORT"}], "keep": []}
+{"id": "J018", "text": "Rua do Ouro 15, Lisboa is our registered office.", "sensitive": [{"value": "Rua do Ouro 15", "type": "ADDRESS"}], "keep": ["Lisboa"]}
+{"id": "J019", "text": "The new depot on Sauchiehall Street in Glasgow opens in May.", "sensitive": [], "keep": ["Sauchiehall Street", "Glasgow"]}
+{"id": "J020", "text": "Customer IP 203.0.113.42 logged in as marta.kowalska@example.com.", "sensitive": [{"value": "203.0.113.42", "type": "IP"}, {"value": "marta.kowalska@example.com", "type": "EMAIL"}], "keep": []}
+{"id": "J021", "text": "Please send it to Corso Vittorio Emanuele 40, Milano.", "sensitive": [{"value": "Corso Vittorio Emanuele 40", "type": "ADDRESS"}], "keep": ["Milano"]}
+{"id": "J022", "text": "Dr Imani Okafor works at Meridian Health and lives at 5 Birchfield Close, Solihull.", "sensitive": [{"value": "Imani Okafor", "type": "PERSON"}, {"value": "5 Birchfield Close", "type": "ADDRESS"}], "keep": ["Meridian Health", "Solihull"]}
+{"id": "J023", "text": "Date of birth: 02/11/1990 for Lukas Bauer.", "sensitive": [{"value": "02/11/1990", "type": "DOB"}, {"value": "Lukas Bauer", "type": "PERSON"}], "keep": []}
+{"id": "J024", "text": "Rate our service: the library on Princes Street was lovely, wrote a reviewer.", "sensitive": [], "keep": ["Princes Street"]}
+{"id": "J025", "text": "The registered address is Thornfield House, 21 Abbey Road, Malvern.", "sensitive": [{"value": "Thornfield House", "type": "ADDRESS"}, {"value": "21 Abbey Road", "type": "ADDRESS"}], "keep": ["Malvern"]}

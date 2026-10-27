@@ -155,7 +155,7 @@ def make_extra_recognisers() -> list:
             # Continental style: number, street word, then a capitalised name
             # ("42 Rue Saint-Honoré", "12 Boulevard Voltaire", "19 Calle de Alcalá").
             "street_continental",
-            r"\b\d{1,4}[A-Z]?,?\s+(?:[Rr]ue|[Bb]oulevard|[Aa]venue|[Cc]hemin|[Aa]llée|[Ii]mpasse|"
+            r"\b\d{1,4}(?:[A-Z]|\s*(?:bis|ter|quater))?,?\s+(?:[Rr]ue|[Bb]oulevard|[Aa]venue|[Cc]hemin|[Aa]llée|[Ii]mpasse|"
             r"[Qq]uai|[Cc]alle|[Aa]venida|[Pp]aseo|[Pp]laza|[Rr]ua|Via|Viale|Piazza|Strada)\s+"
             r"(?:(?:de\s+la|de\s+l['’]|de|du|des|del|della|di|da|dos|d['’])\s*)?"
             r"[A-ZÀ-Ý][\w'’\-]*(?:\s+[A-ZÀ-Ý][\w'’\-]*){0,3}",
@@ -164,15 +164,43 @@ def make_extra_recognisers() -> list:
             # German and Dutch style: name ending in a street word, then the number
             # ("Hauptstraße 27", "Kerkstraat 15").
             "street_germanic",
-            r"\b[A-ZÄÖÜ][a-zäöüß]+(?:straße|strasse|straat|weg|platz|allee|gasse|laan|plein)\s+\d{1,4}[a-z]?\b",
+            r"\b[A-ZÄÖÜ][a-zäöüß]+(?:straße|strasse|straat|weg|platz|allee|gasse|laan|plein|gracht|kade|singel|dijk|steeg)\s+\d{1,4}[a-z]?\b",
             0.85,
         ), Pattern(
             # A flat or unit followed by a building name ("Flat 4C, Rosewood Court").
             "unit_building",
             r"\b(?:Flat|Apartment|Apt|Unit|Suite)\s+\d{1,4}[A-Z]?,\s*(?:The\s+)?(?:[A-Z][a-z'\-]+\s+){0,3}"
             r"(?:House|Court|Mansions|Lodge|Tower|Towers|Building|Buildings|Apartments|Heights|Villas|"
-            r"Cottage|Cottages|Manor|Hall|Gardens)\b",
+            r"Cottage|Cottages|Manor|Hall|Gardens|View|Point|Residence|Residences)\b",
             0.85,
+        ), Pattern(
+            # Street word first, name, then the number ("Via Garibaldi 15", "Calle Mayor 22",
+            # "Rua das Flores 88", "Avenida da Liberdade 200").
+            "street_first",
+            r"\b(?:Rue|Boulevard|Avenue|Chemin|Allée|Impasse|Quai|Calle|Avenida|Paseo|Plaza|Rua|"
+            r"Travessa|Alameda|Largo|Praça|Via|Viale|Piazza|Piazzale|Strada|Vicolo|Corso)\s+"
+            r"(?:(?:de|del|della|dei|degli|di|da|das|do|dos|du|des|la|le|el|los|las)\s+)*"
+            r"[A-ZÀ-Ý][\w'’\-]*(?:\s+(?:(?:de|del|della|dei|degli|di|da|das|do|dos|du|des|la|le|el|los|las)\s+)*"
+            r"[A-ZÀ-Ý][\w'’\-]*){0,3},?\s+\d{1,4}[A-Za-z]?\b",
+            0.85,
+        ), Pattern(
+            # A named dwelling at the start of an address line: one or two capitalised words
+            # ending in a house word, then a comma and the next line ("Willow Barn, Ashby Road").
+            # Words that are also common in landmark and book names (House, Hall, Mill, Farm) need
+            # a street after the comma to count, so "Animal Farm, Orwell" and "Royal Albert Hall,
+            # London" are left alone.
+            "named_dwelling",
+            r"\b(?:[A-Z][a-z'\-]+\s+){1,2}"
+            r"(?:Cottage|Lodge|Barn|Grange|Priory|Villa|Bungalow|Farmhouse|Rectory|Vicarage)"
+            r"(?=,\s*(?:[A-Z]|\d))",
+            0.8,
+        ), Pattern(
+            "named_dwelling_strict",
+            r"\b(?:[A-Z][a-z'\-]+\s+){1,2}(?:House|Hall|Mill|Farm|Manor)"
+            r"(?=,\s*(?:\d{1,4}[A-Z]?\s+)?(?:[A-Z][a-z'\-]+\s+){1,2}"
+            r"(?:Street|Road|Lane|Close|Avenue|Drive|Way|Court|Place|Gardens|Crescent|Terrace|Grove|"
+            r"Hill|Park|Mews|Row|Walk)\b)",
+            0.8,
         ), Pattern(
             # A named house at the start of an address ("The Old Rectory, Church Lane").
             "named_house",

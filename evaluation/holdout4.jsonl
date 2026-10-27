@@ -1,0 +1,24 @@
+{"id": "H001", "text": "Deliver the parcel to Aisha Rahman, Willow Barn, Ashby Road, Leicester.", "sensitive": [{"value": "Aisha Rahman", "type": "PERSON"}, {"value": "Willow Barn", "type": "ADDRESS"}], "keep": ["Leicester"]}
+{"id": "H002", "text": "Morada: Rua das Flores 88, Porto.", "sensitive": [{"value": "Rua das Flores 88", "type": "ADDRESS"}], "keep": ["Porto"]}
+{"id": "H003", "text": "The supplier is based at Rua Augusta 120, 3º andar, Lisboa.", "sensitive": [{"value": "Rua Augusta 120", "type": "ADDRESS"}], "keep": ["Lisboa"]}
+{"id": "H004", "text": "Il cliente abita in Via Garibaldi 15, Torino.", "sensitive": [{"value": "Via Garibaldi 15", "type": "ADDRESS"}], "keep": ["Torino"]}
+{"id": "H005", "text": "Dirección de envío: Calle Mayor 22, Madrid.", "sensitive": [{"value": "Calle Mayor 22", "type": "ADDRESS"}], "keep": ["Madrid"]}
+{"id": "H006", "text": "Send the invoice to 12 bis avenue Victor Hugo, Paris.", "sensitive": [{"value": "12 bis avenue Victor Hugo", "type": "ADDRESS"}], "keep": ["Paris"]}
+{"id": "H007", "text": "Mme Camille Dubois, 27 ter rue Pasteur, Nantes, asked for a refund.", "sensitive": [{"value": "Camille Dubois", "type": "PERSON"}, {"value": "27 ter rue Pasteur", "type": "ADDRESS"}], "keep": ["Nantes"]}
+{"id": "H008", "text": "Return to sender: Hillcrest, Station Road, Marlow.", "sensitive": [{"value": "Hillcrest", "type": "ADDRESS"}], "keep": ["Marlow"]}
+{"id": "H009", "text": "Our client Tendai Moyo lives at Ivy Cottage, Church Lane, Ludlow.", "sensitive": [{"value": "Tendai Moyo", "type": "PERSON"}, {"value": "Ivy Cottage", "type": "ADDRESS"}], "keep": ["Ludlow"]}
+{"id": "H010", "text": "Visit by appointment: Oak Lodge, Park Road, Bath.", "sensitive": [{"value": "Oak Lodge", "type": "ADDRESS"}], "keep": ["Bath"]}
+{"id": "H011", "text": "The farm, Primrose Farm, is near Skipton and belongs to Hannah Whitlock.", "sensitive": [{"value": "Primrose Farm", "type": "ADDRESS"}, {"value": "Hannah Whitlock", "type": "PERSON"}], "keep": ["Skipton"]}
+{"id": "H012", "text": "Flat 2, 14 Albert Terrace, Edinburgh is the correspondence address.", "sensitive": [{"value": "14 Albert Terrace", "type": "ADDRESS"}], "keep": ["Edinburgh"]}
+{"id": "H013", "text": "Apartment 9, Harbour View, Cardiff, is where the courier should go.", "sensitive": [{"value": "Harbour View", "type": "ADDRESS"}], "keep": ["Cardiff"]}
+{"id": "H014", "text": "Rechnungsadresse: Lindenallee 7, 50667 Köln.", "sensitive": [{"value": "Lindenallee 7", "type": "ADDRESS"}], "keep": ["Köln"]}
+{"id": "H015", "text": "Het kantoor staat aan de Prinsengracht 263 in Amsterdam.", "sensitive": [{"value": "Prinsengracht 263", "type": "ADDRESS"}], "keep": ["Amsterdam"]}
+{"id": "H016", "text": "Consegna presso Via dei Mille 3, Napoli.", "sensitive": [{"value": "Via dei Mille 3", "type": "ADDRESS"}], "keep": ["Napoli"]}
+{"id": "H017", "text": "Endereço: Avenida da Liberdade 200, Lisboa.", "sensitive": [{"value": "Avenida da Liberdade 200", "type": "ADDRESS"}], "keep": ["Lisboa"]}
+{"id": "H018", "text": "Ship to 742 Evergreen Terrace, Springfield for Marge Bouvier.", "sensitive": [{"value": "742 Evergreen Terrace", "type": "ADDRESS"}, {"value": "Marge Bouvier", "type": "PERSON"}], "keep": ["Springfield"]}
+{"id": "H019", "text": "We are opening a new shop on Oxford Street in Leeds next spring.", "sensitive": [], "keep": ["Oxford Street", "Leeds"]}
+{"id": "H020", "text": "Contact Kofi Mensah on kofi.mensah@example.com or 020 7946 0123.", "sensitive": [{"value": "Kofi Mensah", "type": "PERSON"}, {"value": "kofi.mensah@example.com", "type": "EMAIL"}, {"value": "020 7946 0123", "type": "PHONE"}], "keep": []}
+{"id": "H021", "text": "Brookfield House, 4 Mill Road, Stroud, is the registered office.", "sensitive": [{"value": "Brookfield House", "type": "ADDRESS"}, {"value": "4 Mill Road", "type": "ADDRESS"}], "keep": ["Stroud"]}
+{"id": "H022", "text": "Dr Emeka Obi lives at Barn Cottage, Tilford, GU10 2AB.", "sensitive": [{"value": "Emeka Obi", "type": "PERSON"}, {"value": "Barn Cottage", "type": "ADDRESS"}, {"value": "GU10 2AB", "type": "POSTCODE"}], "keep": []}
+{"id": "H023", "text": "My office is at Level 12, 100 Barangaroo Avenue, Sydney.", "sensitive": [{"value": "100 Barangaroo Avenue", "type": "ADDRESS"}], "keep": ["Sydney"]}
+{"id": "H024", "text": "The cottage cheese on Rue Morgue Street was fine, the review said.", "sensitive": [], "keep": ["Rue Morgue Street"]}

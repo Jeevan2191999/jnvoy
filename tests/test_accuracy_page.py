@@ -55,7 +55,7 @@ def _text():
 
 @needs_pinned_spacy
 def test_headline_numbers_match_the_measured_fresh_held_out_scores():
-    rows, ho = _score("holdout3.jsonl")
+    rows, ho = _score("holdout5.jsonl")
     text = _text()
     assert f"{ho['caught']} of {ho['n']} sensitive values ({_pct(ho['caught'], ho['n'])})" in text
     assert f"{ho['keep_kept']} of {ho['keep_total']} harmless words ({_pct(ho['keep_kept'], ho['keep_total'])})" in text
@@ -71,6 +71,11 @@ def test_development_and_country_rows_match_too():
     assert f"{dev['keep_kept']} of {dev['keep_total']} harmless words stayed readable" in text
     rows, rg = _score("regions.jsonl")
     assert f"{len(rows)} short texts" in text
+    h3_rows, h3 = _score("holdout3.jsonl")
+    h4_rows, h4 = _score("holdout4.jsonl")
+    assert f"{len(h3_rows)} and {len(h4_rows)} short texts" in text
+    assert f"22 of 25 (88.0%) before the latest fixes and {h3['caught']} of {h3['n']} after" in text
+    assert f"scored 15 of 32 (46.9%) before and {h4['caught']} of {h4['n']} after" in text
     old_rows, old = _score("holdout.jsonl")
     mid_rows, mid = _score("holdout2.jsonl")
     assert f"{len(old_rows)} and {len(mid_rows)} short texts" in text
@@ -80,7 +85,7 @@ def test_development_and_country_rows_match_too():
 
 @needs_pinned_spacy
 def test_every_type_row_matches_the_measured_counts():
-    _, ho = _score("holdout3.jsonl")
+    _, ho = _score("holdout5.jsonl")
     text = _text()
     for t, v in ho["per_type"].items():
         assert f"{t} {v['caught']} of {v['n']} hidden {_pct(v['caught'], v['n'])}" in text, t

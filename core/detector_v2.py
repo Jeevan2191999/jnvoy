@@ -232,6 +232,32 @@ class DetectionResult:
         return [m for m in self.matches if m.score >= 0.8]
 
 
+_STREET_END = re.compile(
+    r"\b(?:Street|St|Road|Rd|Avenue|Ave|Lane|Close|Drive|Way|Court|Place|Gardens|Crescent|Terrace|"
+    r"Square|Grove|Hill|Park|Mews|Row|Walk|Boulevard|Parade)$")
+_COMMA_BEFORE = re.compile(r",\s*$")
+
+
+def _is_town_after_address(text: str, r, results) -> bool:
+    """
+    A name-tagger often calls the town at the end of an address a person ("Church Lane, Ludlow").
+    A one or two word PERSON that follows a street and a comma, and ends the clause, is a place.
+    Only PERSON results are ever dropped, and only in this position.
+    """
+    if r.entity_type != "PERSON" or len(text[r.start:r.end].split()) > 2:
+        return False
+    comma = _COMMA_BEFORE.search(text[:r.start])
+    if not comma:
+        return False
+    after = text[r.end:r.end + 1]
+    if after and after not in ",.;\n":
+        return False
+    before = text[:comma.start()]
+    if any(o.entity_type == "STREET_ADDRESS" and o.end == len(before) for o in results):
+        return True
+    return bool(_STREET_END.search(before))
+
+
 # ── PII Detector v2 ───────────────────────────────────────────────────────────
 
 class PIIDetectorV2:
@@ -287,6 +313,8 @@ class PIIDetectorV2:
             entities=self.entities,
             score_threshold=self.confidence_threshold
         )
+
+        results = [r for r in results if not _is_town_after_address(text, r, results)]
 
         # Remove overlapping spans keeping highest confidence
         results.sort(key=lambda r: r.score, reverse=True)
