@@ -129,3 +129,13 @@ def test_bing_webmaster_verification_file_is_served():
     r = client.get("/BingSiteAuth.xml")
     assert r.status_code == 200
     assert "<user>C5810E531A6BC65F8ADED06E6A528119</user>" in r.text
+
+
+def test_public_pages_answer_head_requests_too():
+    # Link checkers and some crawlers use HEAD. It must not be refused with 405.
+    for path in ("/", "/privacy", "/security", "/accuracy", "/guides/remove-personal-data-from-prompts",
+                 "/robots.txt", "/sitemap.xml", "/.well-known/security.txt", "/BingSiteAuth.xml",
+                 "/googleeeaccce07f7f9ae9.html"):
+        r = client.head(path)
+        assert r.status_code == 200, (path, r.status_code)
+        assert r.text == ""

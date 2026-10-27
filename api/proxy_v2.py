@@ -106,7 +106,7 @@ app.add_middleware(SecurityHeaders)
 app.add_middleware(RequestId)
 
 
-@app.get("/", include_in_schema=False)
+@app.api_route("/", methods=["GET", "HEAD"], include_in_schema=False)
 async def landing():
     _index = os.path.join(_static_dir, "index.html")
     if os.path.exists(_index):
@@ -114,14 +114,14 @@ async def landing():
     return {"message": "Jnvoy privacy and security gateway", "docs": "/docs", "version": VERSION}
 
 
-@app.get("/privacy", include_in_schema=False)
+@app.api_route("/privacy", methods=["GET", "HEAD"], include_in_schema=False)
 async def privacy_page():
     _page = os.path.join(_static_dir, "privacy.html")
     if os.path.exists(_page):
         return FileResponse(_page)
     raise HTTPException(status_code=404, detail="Not found")
 
-@app.get("/security", include_in_schema=False)
+@app.api_route("/security", methods=["GET", "HEAD"], include_in_schema=False)
 async def security_page():
     _page = os.path.join(_static_dir, "security.html")
     if os.path.exists(_page):
@@ -129,7 +129,7 @@ async def security_page():
     raise HTTPException(status_code=404, detail="Not found")
 
 
-@app.get("/guides/remove-personal-data-from-prompts", include_in_schema=False)
+@app.api_route("/guides/remove-personal-data-from-prompts", methods=["GET", "HEAD"], include_in_schema=False)
 async def guide_remove_personal_data():
     _page = os.path.join(_static_dir, "guide-remove-personal-data.html")
     if os.path.exists(_page):
@@ -137,7 +137,7 @@ async def guide_remove_personal_data():
     raise HTTPException(status_code=404, detail="Not found")
 
 
-@app.get("/accuracy", include_in_schema=False)
+@app.api_route("/accuracy", methods=["GET", "HEAD"], include_in_schema=False)
 async def accuracy_page():
     _page = os.path.join(_static_dir, "accuracy.html")
     if os.path.exists(_page):
@@ -154,7 +154,7 @@ SECURITY_TXT = (
 )
 
 
-@app.get("/.well-known/security.txt", include_in_schema=False)
+@app.api_route("/.well-known/security.txt", methods=["GET", "HEAD"], include_in_schema=False)
 async def security_txt():
     return Response(SECURITY_TXT, media_type="text/plain; charset=utf-8")
 
@@ -179,12 +179,12 @@ SITEMAP_XML = (
 )
 
 
-@app.get("/robots.txt", include_in_schema=False)
+@app.api_route("/robots.txt", methods=["GET", "HEAD"], include_in_schema=False)
 async def robots_txt():
     return Response(ROBOTS_TXT, media_type="text/plain; charset=utf-8")
 
 
-@app.get("/sitemap.xml", include_in_schema=False)
+@app.api_route("/sitemap.xml", methods=["GET", "HEAD"], include_in_schema=False)
 async def sitemap_xml():
     return Response(SITEMAP_XML, media_type="application/xml")
 
@@ -192,7 +192,7 @@ async def sitemap_xml():
 GOOGLE_VERIFICATION_FILE = "googleeeaccce07f7f9ae9.html"
 
 
-@app.get("/" + GOOGLE_VERIFICATION_FILE, include_in_schema=False)
+@app.api_route("/" + GOOGLE_VERIFICATION_FILE, methods=["GET", "HEAD"], include_in_schema=False)
 async def google_site_verification():
     # Proves to Google Search Console that this site is ours. Must stay in place.
     return Response("google-site-verification: " + GOOGLE_VERIFICATION_FILE,
@@ -207,7 +207,7 @@ BING_SITE_AUTH_XML = (
 )
 
 
-@app.get("/BingSiteAuth.xml", include_in_schema=False)
+@app.api_route("/BingSiteAuth.xml", methods=["GET", "HEAD"], include_in_schema=False)
 async def bing_site_auth():
     # Proves to Bing Webmaster Tools that this site is ours. Must stay in place.
     return Response(BING_SITE_AUTH_XML, media_type="application/xml")
