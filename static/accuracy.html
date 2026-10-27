@@ -247,16 +247,16 @@
 
       <section id="result">
         <h2>The result</h2>
-        <p>On a fresh set of examples written after our last round of fixes and scored once, Jnvoy hid <strong>23 of 25 sensitive values (92.0%)</strong> and left <strong>16 of 17 harmless words (94.1%)</strong> readable. That is a good result for a first pass and it is not a guarantee: do not rely on any redaction tool as your only control.</p>
+        <p>On a fresh set of examples written after our last round of fixes and scored once, Jnvoy hid <strong>22 of 25 sensitive values (88.0%)</strong> and left <strong>17 of 17 harmless words (100.0%)</strong> readable. That is a good result for a first pass and it is not a guarantee: do not rely on any redaction tool as your only control.</p>
         <div class="ledger">
           <div class="row head"><div>Test set</div><div>What it is</div><div>Hidden</div></div>
-          <div class="row"><div class="k">Fresh held-out set</div><div class="v">23 short texts, 25 sensitive values, 17 harmless words that should stay. Written after the last fixes and scored once. 16 harmless words stayed readable (94.1%).</div><div class="s mid">92.0%</div></div>
+          <div class="row"><div class="k">Fresh held-out set</div><div class="v">23 short texts, 25 sensitive values, 17 harmless words that should stay. Written after the last fixes and scored once. 17 harmless words stayed readable (100.0%).</div><div class="s mid">88.0%</div></div>
           <div class="row"><div class="k">Development set</div><div class="v">117 short texts, 109 sensitive values. We fixed the rules against this set, so its score is optimistic. 52 of 53 harmless words stayed readable (98.1%).</div><div class="s mid">100.0%</div></div>
-          <div class="row"><div class="k">Earlier test sets</div><div class="v">Two sets that were fresh when written (68 and 24 short texts) and have since been used to fix rules, so they are optimistic now. The second scored 21 of 27 (77.8%) before street-address fixes and 27 of 27 after; the first scored 56 of 60 before and 59 of 60 after.</div><div class="s mid">98.3% / 100.0%</div></div>
+          <div class="row"><div class="k">Earlier test sets</div><div class="v">Two sets that were fresh when written (68 and 24 short texts) and have since been used to fix rules, so they are optimistic now. The second scored 19 of 27 (70.4%) before street-address fixes and 26 of 27 after; the first scored 56 of 60 before and 59 of 60 after.</div><div class="s mid">98.3% / 96.3%</div></div>
           <div class="row"><div class="k">Country identifiers</div><div class="v">32 short texts, one published sample number for each of 24 identifier types from other countries. 7 of 8 harmless words stayed readable.</div><div class="s mid">100.0%</div></div>
         </div>
         <p>A value counts as hidden only if neither the whole value nor any recognisable part of it (a surname, the last digits of a number) is still visible in the redacted text. These are first-pass results: the optional second check is off on the hosted service.</p>
-        <p>Speed on these short texts (about 45 characters each) was 15 to 28 milliseconds each in a small cloud container. We have not measured longer texts or the hosted service under load.</p>
+        <p>Speed on these short texts (35 to 50 characters each) was 16 to 32 milliseconds each in a small cloud container. We have not measured longer texts or the hosted service under load.</p>
       </section>
 
       <section id="types">
@@ -264,7 +264,7 @@
         <p>Fresh held-out set. Several types have only a handful of examples, so one miss moves a row a long way.</p>
         <div class="ledger">
           <div class="row head"><div>Type</div><div>Result</div><div>Hidden</div></div>
-<div class="row"><div class="k">ADDRESS</div><div class="v">8 of 10 hidden</div><div class="s yes">80.0%</div></div>
+<div class="row"><div class="k">ADDRESS</div><div class="v">7 of 10 hidden</div><div class="s yes">70.0%</div></div>
 <div class="row"><div class="k">BANK</div><div class="v">2 of 2 hidden</div><div class="s no">100.0%</div></div>
 <div class="row"><div class="k">DOB</div><div class="v">1 of 1 hidden</div><div class="s no">100.0%</div></div>
 <div class="row"><div class="k">EMAIL</div><div class="v">1 of 1 hidden</div><div class="s no">100.0%</div></div>
@@ -281,8 +281,9 @@
         <h2>What it gets wrong</h2>
         <h3>Sensitive values it still misses</h3>
         <ul class="plain">
-          <li>A named house with no flat number or "The" in front, such as "Rose Cottage, Mill Lane".</li>
+          <li>A named house or barn with no flat number or "The" in front, such as "Rose Cottage, Mill Lane" or "Willow Barn, Stoke Road".</li>
           <li>A French address with "bis" after the number, such as "8 bis rue des Lilas".</li>
+          <li>A Portuguese street-first address, such as "Rua das Flores 88".</li>
           <li>An uncommon name in a list of attendees. The other two names in the list were hidden.</li>
         </ul>
         <h3>Harmless text it hid by mistake</h3>
@@ -290,7 +291,7 @@
           <li>A Unix timestamp that looks like an NHS number.</li>
           <li>The words "Downing Street", read as a street address.</li>
           <li>The word "Pepper", read as a person's name.</li>
-          <li>"Bailey" in "Old Bailey", read as a surname.</li>
+          <li>The city name "Lisboa", read as a person.</li>
           <li>A link to public documentation, hidden as a web address.</li>
         </ul>
         <p>Hiding too much costs you a slightly worse prompt. Hiding too little is the serious error, and the missed values above are the ones to watch.</p>
@@ -304,6 +305,7 @@
           <li><strong>Mostly English, mostly short.</strong> Names are detected best in English, and street addresses best in UK and US formats.</li>
           <li><strong>Country identifiers were tested only on published sample numbers.</strong> Accuracy on real data in those countries has not been measured.</li>
           <li><strong>No real customer data was used.</strong> Every value is invented or a documented example number.</li>
+          <li><strong>Library versions matter.</strong> These numbers were measured with the versions the hosted service uses (Python 3.12, spaCy 3.7.5 and its en_core_web_lg 3.7.1 model). Newer versions scored one or two values differently in our checks.</li>
           <li><strong>It will change.</strong> The sets and the scores are kept in the repository, and a test fails if this page and the measured numbers disagree.</li>
         </ul>
       </section>

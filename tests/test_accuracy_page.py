@@ -9,6 +9,9 @@ import re
 import sys
 from pathlib import Path
 
+import pytest
+import spacy
+
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
@@ -22,6 +25,15 @@ runner = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(runner)
 
 client = TestClient(app)
+
+# The scores depend on the spaCy version, so the numbers on the page are only checked where the
+# library matches the pin in requirements.txt (GitHub's tests and the Docker image). Elsewhere
+# these three tests are skipped rather than failing for a version difference.
+_PINNED = re.search(r"^spacy==([\d.]+)", (ROOT / "requirements.txt").read_text(), re.M).group(1)
+needs_pinned_spacy = pytest.mark.skipif(
+    spacy.__version__ != _PINNED,
+    reason=f"scores on the accuracy page were measured with spaCy {_PINNED}; this is {spacy.__version__}",
+)
 det = JudgedPIIDetector(judge=None, from_env=False)
 
 
@@ -41,6 +53,7 @@ def _text():
     return re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", r.text))
 
 
+@needs_pinned_spacy
 def test_headline_numbers_match_the_measured_fresh_held_out_scores():
     rows, ho = _score("holdout3.jsonl")
     text = _text()
@@ -49,6 +62,7 @@ def test_headline_numbers_match_the_measured_fresh_held_out_scores():
     assert f"{len(rows)} short texts, {ho['n']} sensitive values" in text
 
 
+@needs_pinned_spacy
 def test_development_and_country_rows_match_too():
     rows, dev = _score("dataset.jsonl")
     text = _text()
@@ -64,6 +78,7 @@ def test_development_and_country_rows_match_too():
     assert f"{len(rg['per_type'])} identifier types" in text
 
 
+@needs_pinned_spacy
 def test_every_type_row_matches_the_measured_counts():
     _, ho = _score("holdout3.jsonl")
     text = _text()
