@@ -207,6 +207,8 @@ def _database_reachable() -> bool:
         from core.database import init_pool, init_schema
         init_pool()
         init_schema()
+        from core.tenants import init_tenant_schema
+        init_tenant_schema()
         return True
     except Exception:
         return False
