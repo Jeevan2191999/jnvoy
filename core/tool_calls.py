@@ -28,6 +28,8 @@ MAX_DESCRIPTION_CHARS = 8_000
 MAX_CALLS_PER_MESSAGE = 32
 MAX_ARGUMENT_CHARS = 100_000
 MAX_VALUES = 1_000           # strings, keys and long numbers in all tool-call arguments of one request
+MAX_SCHEMA_DEPTH = 32        # a parameter schema nested deeper than this is refused
+MAX_DEPTH = 32               # deeper JSON is treated as plain text, so it cannot exhaust the stack
 MIN_NUMBER_DIGITS = 6        # a shorter number is not redacted: it is rarely an identifier
 NAME_RE = re.compile(r"^[A-Za-z0-9_\-]{1,64}$")
 ID_RE = re.compile(r"^[A-Za-z0-9_\-.:]{1,200}$")
@@ -77,6 +79,9 @@ def validate_tools(raw) -> List[dict]:
         if params is not None:
             if not isinstance(params, dict):
                 raise ToolError(f"{where}.function.parameters must be a JSON Schema object.", "invalid_tools", where)
+            if not _shallow(params, MAX_SCHEMA_DEPTH):
+                raise ToolError(f"{where}.function.parameters is nested deeper than {MAX_SCHEMA_DEPTH} levels.",
+                                "invalid_tools", where)
             clean["parameters"] = params
         strict = fn.get("strict")
         if strict is not None:
@@ -149,13 +154,32 @@ def check_tool_call_id(value, where: str) -> str:
 
 # ── taking JSON apart and putting it back ──────────────────────────────────────────────────────
 
+def _shallow(value: Any, limit: int = MAX_DEPTH) -> bool:
+    """True if the value nests no deeper than `limit`. Checked without recursion."""
+    stack = [(value, 1)]
+    while stack:
+        item, depth = stack.pop()
+        if isinstance(item, (dict, list)):
+            if depth > limit:
+                return False
+            children = item.values() if isinstance(item, dict) else item
+            stack.extend((child, depth + 1) for child in children
+                         if isinstance(child, (dict, list)))
+    return True
+
+
 def parse_arguments(text: str):
-    """The arguments as a list or object, or None if they are not JSON of that kind."""
+    """
+    The arguments as a list or object, or None if they are not JSON of that kind, or nest too
+    deeply. None means the caller treats the whole string as plain text, which is still redacted.
+    """
     try:
         value = json.loads(text)
     except (ValueError, RecursionError):
         return None
-    return value if isinstance(value, (dict, list)) else None
+    if not isinstance(value, (dict, list)) or not _shallow(value):
+        return None
+    return value
 
 
 def _long_number(value) -> bool:

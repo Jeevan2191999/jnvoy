@@ -153,7 +153,7 @@ def _docx_part_text(raw: bytes) -> str:
         raise FileError("unreadable_file", "This Word file contains content that is not allowed.")
     del lowered
     try:
-        root = ET.fromstring(raw)
+        root = ET.fromstring(raw)  # nosec B314: DOCTYPE and ENTITY were refused above
     except ET.ParseError:
         raise FileError("unreadable_file", "This Word file could not be read. It may be damaged.")
     lines, current = [], []

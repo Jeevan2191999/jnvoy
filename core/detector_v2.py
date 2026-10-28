@@ -163,6 +163,19 @@ def _make_phone_recogniser():
 SPACY_MODEL = "unknown"
 
 
+def clean_text(text: str) -> str:
+    """
+    Swaps characters that cannot be written as UTF-8 (a lone surrogate such as "\\ud800", which
+    JSON allows) for "?", because the language model's tokenizer raises on them and the request
+    would fail with a 500. Same length, so positions in the text do not move.
+    """
+    try:
+        text.encode("utf-8")
+        return text
+    except UnicodeEncodeError:
+        return text.encode("utf-8", "replace").decode("utf-8")
+
+
 def _build_analyzer() -> AnalyzerEngine:
     """Build the Presidio analyzer with the large spaCy model and UK recognisers."""
     # Use en_core_web_lg in production for best accuracy
@@ -368,6 +381,7 @@ class PIIDetectorV2:
         Detect PII in text using Presidio with UK-specific recognisers.
         Returns redacted text with reversible tokens.
         """
+        text = clean_text(text) if text else text
         if not text or not text.strip():
             return DetectionResult(
                 original_text=text,

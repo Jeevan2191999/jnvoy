@@ -305,6 +305,8 @@ pytest -q
 
 To report a vulnerability, email j.nagaraj2109@gmail.com. Please do not open a public issue for it.
 
+Every pinned dependency is checked against public vulnerability databases each week by the `audit` workflow, and the whole API is attacked with malformed and hostile requests in the test suite (`tests/test_security_hardening.py`). Files are read in a locked-down child process, and customers' own regular expressions are size-checked, time-limited and refused if they could exhaust memory.
+
 ## About
 
 Built by Jeevan Nagaraj. Operated by JNVOY LIMITED, registered in England and Wales, company number 17536574.

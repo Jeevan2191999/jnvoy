@@ -54,6 +54,14 @@ def test_bad_tool_definitions_are_refused(bad):
         tc.validate_tools(bad)
 
 
+def test_a_parameter_schema_nested_too_deeply_is_refused():
+    schema = {"type": "object"}
+    for _ in range(40):
+        schema = {"properties": {"x": schema}}
+    with pytest.raises(tc.ToolError, match="nested deeper"):
+        tc.validate_tools([{"type": "function", "function": {"name": "f", "parameters": schema}}])
+
+
 def test_the_number_and_size_of_tools_are_limited():
     many = [{"type": "function", "function": {"name": f"f{i}"}} for i in range(tc.MAX_TOOLS + 1)]
     with pytest.raises(tc.ToolError, match="At most"):
@@ -144,6 +152,14 @@ def test_restored_values_with_quotes_stay_valid_json():
     restored = [t.replace("[PERSON_1]", 'Dr "JJ" O\'Neil \\ back') for t in tc.leaves(value)]
     text = json.dumps(tc.rebuild(value, iter(restored)), ensure_ascii=False)
     assert json.loads(text)["note"] == 'Dr "JJ" O\'Neil \\ back said hi'
+
+
+def test_very_deeply_nested_arguments_are_treated_as_text_not_walked():
+    deep = "[" * 985 + "1" + "]" * 985
+    assert tc.parse_arguments(deep) is None
+    ok = "[" * 30 + "1" + "]" * 30
+    assert tc.parse_arguments(ok) is not None
+    assert tc.parse_arguments("[" * 40 + "]" * 40) is None
 
 
 def test_arguments_that_are_not_an_object_or_list_are_not_parsed():
@@ -447,3 +463,23 @@ async def test_a_customers_wrong_key_is_reported_without_repeating_it(monkeypatc
         await app_module.call_openai_tools([{"role": "user", "content": "x"}], "gpt-4o", 100, 0.2,
                                            [LOOKUP], None, None, api_key="sk-secret-value")
     assert e.value.status_code == 400 and "sk-secret-value" not in json.dumps(e.value.detail)
+
+
+def test_deeply_nested_arguments_in_a_request_do_not_crash_the_server(client, monkeypatch):
+    seen = fake_model(monkeypatch, lambda m: {"content": "ok", "tool_calls": [], "finish_reason": "stop"})
+    deep = "[" * 985 + "\"deep.nest.nine@example.com\"" + "]" * 985
+    r = post(client, {"model": "gpt-4o", "tools": [LOOKUP], "messages": [
+        {"role": "user", "content": "go deep"},
+        {"role": "assistant", "content": "", "tool_calls": [
+            {"id": "call_1", "type": "function", "function": {"name": "lookup_customer", "arguments": deep}}]},
+        {"role": "tool", "tool_call_id": "call_1", "content": "no"}]})
+    assert r.status_code == 200, r.text
+    assert "deep.nest.nine@example.com" not in json.dumps(seen["messages"])
+
+
+def test_the_model_sending_deeply_nested_arguments_back_does_not_crash_the_server(client, monkeypatch):
+    deep = "[" * 985 + "1" + "]" * 985
+    fake_model(monkeypatch, lambda m: call_tool("lookup_customer", deep))
+    r = post(client, {"model": "gpt-4o", "tools": [LOOKUP], "messages": [{"role": "user", "content": "go deep back"}]})
+    assert r.status_code == 200, r.text
+    assert r.json()["choices"][0]["message"]["tool_calls"][0]["function"]["arguments"] == deep

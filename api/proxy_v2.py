@@ -80,6 +80,23 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+from fastapi.exceptions import RequestValidationError  # noqa: E402
+
+
+@app.exception_handler(RequestValidationError)
+async def _validation_error(request, exc):
+    """
+    A 422 that says where the problem is and what, without repeating what was sent. The default
+    answer echoes the whole submitted value, which can hold personal data that then sits in proxy
+    logs, and a very deeply nested one crashes the encoder with a 500.
+    """
+    from fastapi.responses import JSONResponse as _JSON
+    detail = [{"loc": [str(x) for x in e.get("loc", ())], "msg": str(e.get("msg", "")),
+               "type": str(e.get("type", ""))} for e in exc.errors()]
+    return _JSON(status_code=422, content={"detail": detail})
+
+
 # Single detector instance loaded once at startup
 detector = JudgedPIIDetector(confidence_threshold=0.6)
 
