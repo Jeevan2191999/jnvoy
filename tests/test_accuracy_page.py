@@ -112,6 +112,8 @@ def test_names_row_and_the_small_model_figures_match():
     _, ho = _score("holdout5.jsonl")
     ho_sm = _small_model_score("holdout5.jsonl")
     assert (f"it hid {ho_sm['caught']} of {ho_sm['n']} ({_pct(ho_sm['caught'], ho_sm['n'])}) instead of {ho['caught']}") in text
+    assert f"was running the small language model" in text
+    assert f"hid {ho_sm['caught']} of {ho_sm['n']} sensitive values ({_pct(ho_sm['caught'], ho_sm['n'])})" in text
 
 
 @needs_pinned_spacy
