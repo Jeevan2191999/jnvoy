@@ -124,15 +124,28 @@ All `/v1` routes need an `x-api-key` header. Routes marked admin need an admin k
 | `POST /v1/mcp/scan/tool-response` | Scan an MCP tool response | client |
 | `POST /v1/mcp/scan/tool-description` | Scan an MCP tool description for poisoning | client |
 | `GET /v1/me` | Your plan, this month's usage and your settings | client |
-| `GET /v1/me/audit` (`?format=csv` to export), `GET /v1/me/audit/summary` | Your own audit log | client |
+| `GET /v1/me/audit` (`?format=json\|csv\|ndjson`, `&from=` and `&to=` dates), `GET /v1/me/audit/summary` | Your own audit log | client |
 | `GET /v1/me/report/compliance` | Your own compliance report (PDF) | client |
 | `POST/GET /v1/admin/tenants`, `GET/PATCH/DELETE /v1/admin/tenants/{id}`, `POST /v1/admin/tenants/{id}/rotate-key` | Create and manage customers and their keys | admin |
-| `GET /v1/audit`, `GET /v1/audit/summary` | Read any customer's audit log (`?tenant_id=`) | admin |
+| `GET /v1/audit`, `GET /v1/audit/summary` | Read or export any customer's audit log (`?tenant_id=`, same options as above) | admin |
 | `GET /v1/report/compliance` | Compliance report (PDF) | admin |
 | `GET /v1/cache/stats`, `DELETE /v1/cache` | Response cache statistics and reset | admin |
 | `GET /v1/providers/health` | Model provider health | admin |
 
 ### Scanning the model's reply
+
+### Exporting the audit log
+
+The audit log holds counts and types only, never text. To hand it to a compliance team or a log system:
+
+```bash
+# one month, one JSON event per line (for Splunk, Elastic, Datadog and similar)
+curl "https://www.jnvoy.com/v1/me/audit?format=ndjson&from=2026-10-01&to=2026-10-31" -H "x-api-key: $JNVOY_KEY" -o october.ndjson
+# the same as a spreadsheet
+curl "https://www.jnvoy.com/v1/me/audit?format=csv&from=2026-10-01&to=2026-10-31" -H "x-api-key: $JNVOY_KEY" -o october.csv
+```
+
+Dates are UTC; `to` includes the whole of that day. A page holds up to 5,000 entries for CSV and NDJSON (1,000 for JSON). The response header `X-Total-Count` gives the number of matching entries, and `X-Next-Offset` (absent on the last page) is the `offset` to pass for the next page. `provider=openai` filters by provider. Text that a spreadsheet could run as a formula (for example a model name starting with `=`) is prefixed with an apostrophe in the CSV.
 
 Jnvoy also checks what the model sends back, before your values are put back in. It looks for credentials, payment cards, bank identifiers and national ID numbers (the same checksum rules as the request side), and for injection-style instructions aimed at whatever reads the reply next. Names, URLs, emails and phone numbers are not checked in replies, because models write them legitimately. With `output_scan: flag` (the default) the reply is left alone and the response carries an `output_scan` object listing what was found. With `redact`, secrets and identifiers are replaced by `[REDACTED_TYPE]`. Injection-style text is only ever reported, never removed. The audit log keeps counts by type, never the text.
 

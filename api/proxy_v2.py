@@ -30,7 +30,7 @@ from datetime import datetime, timezone
 from typing import Optional
 
 import httpx
-from fastapi import FastAPI, HTTPException, Header, Request
+from fastapi import FastAPI, HTTPException, Header, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, Response
 from fastapi.staticfiles import StaticFiles
@@ -1233,17 +1233,21 @@ def _mine(tenant_id: str) -> list:
     return [e for e in audit_log if e.get("tenant_id", DEFAULT_TENANT) == tenant_id]
 
 
-def audit_entries(tenant_id: str, limit: int = 50, offset: int = 0) -> dict:
+def audit_entries(tenant_id: str, limit: int = 50, offset: int = 0, start=None, end=None,
+                  provider: Optional[str] = None) -> dict:
     """One tenant's audit entries, newest first. Database when available, else memory."""
     if _db_available:
         try:
-            return query_audit_log(tenant_id=tenant_id, limit=limit, offset=offset)
+            return query_audit_log(tenant_id=tenant_id, limit=limit, offset=offset,
+                                   provider=provider, start_date=start, end_date=end)
         except Exception:
             logger.exception("audit read failed")
             raise HTTPException(status_code=503, detail={
                 "error": "audit_unavailable",
                 "message": "The audit log could not be read right now. Try again shortly."})
-    mine = [e for e in audit_log if e.get("tenant_id", DEFAULT_TENANT) == tenant_id]
+    from core.audit_export import in_range
+    mine = [e for e in audit_log if e.get("tenant_id", DEFAULT_TENANT) == tenant_id
+            and (provider is None or e.get("provider") == provider) and in_range(e, start, end)]
     newest_first = list(reversed(mine))
     return {
         "entries": newest_first[offset:offset + limit],
@@ -1290,9 +1294,21 @@ def audit_summary(tenant_id: str) -> dict:
 
 
 @app.get("/v1/audit")
-async def get_audit_log(limit: int = 50, offset: int = 0, tenant_id: str = DEFAULT_TENANT):
-    """Audit entries for one tenant (the operator's own by default). Admin key."""
-    return audit_entries(tenant_id, limit, offset)
+async def get_audit_log(limit: int = 50, offset: int = 0, tenant_id: str = DEFAULT_TENANT,
+                        format: str = "json",
+                        since: Optional[str] = Query(None, alias="from"),
+                        until: Optional[str] = Query(None, alias="to"),
+                        provider: Optional[str] = None):
+    """
+    Audit entries for one tenant (the operator's own by default). Admin key. Takes the same
+    `format` (json, csv, ndjson), `from`, `to` and paging as `/v1/me/audit`.
+    """
+    from core import audit_export
+    fmt = audit_export.check_format(format)
+    start, end = audit_export.parse_range(since, until)
+    data = await run_in_threadpool(audit_entries, tenant_id, audit_export.clamp_limit(limit, fmt),
+                                   max(0, offset), start, end, provider)
+    return audit_export.respond(data, fmt)
 
 
 @app.get("/v1/audit/summary")

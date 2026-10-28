@@ -14,12 +14,13 @@ import logging
 import re
 from typing import Optional
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Query, Request
 from fastapi.responses import JSONResponse, Response
 from pydantic import BaseModel, Field
 from starlette.concurrency import run_in_threadpool
 
 from api.docs_config import ROUTE_DOCS
+from core import audit_export
 from core import tenants as tenant_store
 from core.policy import POLICY_FIELDS, validate_policy
 from core.tenancy import Caller, DEFAULT_TENANT, resolver
@@ -28,7 +29,6 @@ log = logging.getLogger("jnvoy.account")
 router = APIRouter()
 
 _EMAIL = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
-MAX_EXPORT_ROWS = 5000
 
 
 def _doc(method: str, path: str) -> dict:
@@ -89,33 +89,23 @@ async def my_account(request: Request):
 
 
 @router.get("/v1/me/audit", **_doc("GET", "/v1/me/audit"))
-async def my_audit_log(request: Request, limit: int = 50, offset: int = 0, format: str = "json"):
-    """Your own audit log (counts and types only, never the text). Use format=csv to export."""
+async def my_audit_log(request: Request, limit: int = 50, offset: int = 0, format: str = "json",
+                       since: Optional[str] = Query(None, alias="from"),
+                       until: Optional[str] = Query(None, alias="to"),
+                       provider: Optional[str] = None):
+    """
+    Your own audit log (counts and types only, never the text). `format` is json, csv or ndjson
+    (one event per line, for log tools). `from` and `to` filter by date in UTC, for example
+    `from=2026-10-01&to=2026-10-31`. Exports come in pages of up to 5,000: read X-Next-Offset from
+    the response and pass it as `offset` for the next page.
+    """
     caller = _caller(request)
-    fmt = format.lower()
-    if fmt not in ("json", "csv"):
-        raise HTTPException(status_code=422, detail={"error": "invalid_format", "message": "format must be json or csv"})
-    limit = max(1, min(limit, MAX_EXPORT_ROWS if fmt == "csv" else 1000))
-    data = await run_in_threadpool(_app().audit_entries, caller.tenant_id, limit, max(0, offset))
-    if fmt == "json":
-        return data
-    out = io.StringIO()
-    writer = csv.writer(out)
-    writer.writerow(["audit_id", "timestamp", "provider", "model", "latency_ms", "cache_hit",
-                     "total_pii", "pii_detected", "reply_findings", "sensitive_data_transmitted"])
-    for e in data["entries"]:
-        writer.writerow([
-            e.get("audit_id"), e.get("timestamp"), e.get("provider"), e.get("model"),
-            e.get("latency_ms"), e.get("cache_hit"),
-            e.get("total_pii", e.get("total_pii_instances", 0)),
-            json.dumps(e.get("pii_detected", {}), sort_keys=True),
-            json.dumps(e.get("output_detected", {}), sort_keys=True),
-            e.get("sensitive_data_transmitted", False),
-        ])
-    return Response(
-        out.getvalue(), media_type="text/csv",
-        headers={"Content-Disposition": 'attachment; filename="jnvoy_audit_log.csv"'},
-    )
+    fmt = audit_export.check_format(format)
+    start, end = audit_export.parse_range(since, until)
+    limit = audit_export.clamp_limit(limit, fmt)
+    data = await run_in_threadpool(_app().audit_entries, caller.tenant_id, limit, max(0, offset),
+                                   start, end, provider)
+    return audit_export.respond(data, fmt)
 
 
 @router.get("/v1/me/audit/summary", **_doc("GET", "/v1/me/audit/summary"))
