@@ -203,7 +203,7 @@ client = OpenAI(
 reply = client.chat.completions.create(model="gpt-4o", messages=[{"role": "user", "content": "..."}])
 ```
 
-Models starting with `claude` go to Anthropic, everything else to OpenAI (override with the `x-jnvoy-provider` header). It handles text and files: images, audio, tools, functions, JSON mode and `n` above 1 are refused with a `400`, because they cannot be scanned for personal data or are not supported yet. A file can be sent as a `file` part (see Files below). Other optional fields (`top_p`, `stop`, `seed`...) are ignored, and the `x-jnvoy-ignored-params` response header lists any that were. `usage` is not returned. With `stream: true` the reply arrives word by word, with your values restored as it goes. The reply is scanned after it has been sent, so if your account's reply scanning is set to `redact` the reply is checked in full first and then streamed. The Jnvoy key goes in `Authorization: Bearer` on this route only; every other route needs `x-api-key`.
+Models starting with `claude` go to Anthropic, everything else to OpenAI (override with the `x-jnvoy-provider` header). It handles text, files and tools (see Tool calls below): images, audio, the older `functions`, JSON mode and `n` above 1 are refused with a `400`, because they cannot be scanned for personal data or are not supported yet. A file can be sent as a `file` part (see Files below). Other optional fields (`top_p`, `stop`, `seed`...) are ignored, and the `x-jnvoy-ignored-params` response header lists any that were. `usage` is not returned. With `stream: true` the reply arrives word by word, with your values restored as it goes. The reply is scanned after it has been sent, so if your account's reply scanning is set to `redact` the reply is checked in full first and then streamed. The Jnvoy key goes in `Authorization: Bearer` on this route only; every other route needs `x-api-key`.
 
 ## Files
 
@@ -234,6 +234,18 @@ What is refused rather than skipped, so nothing is passed along unchecked: scann
 Each file is read in a separate, locked-down process that has no access to keys or the database, has a memory and time limit, and cannot write files. Nothing is stored. Very long documents take longer to check: expect roughly 8 seconds for 100,000 characters of dense text.
 
 Full request and response details, with an Authorize button for trying calls, are at [/docs](https://www.jnvoy.com/docs).
+
+## Tool calls
+
+Function calling works through `/v1/chat/completions` with OpenAI models. Send `tools`, `tool_choice` and `parallel_tool_calls` as usual; Jnvoy sits between your agent loop and the model:
+
+- **Tool results** (messages with `role: "tool"`) are redacted before the model reads them. This is where agents leak most: a database row, a search hit or an email body that a tool fetched.
+- **Earlier tool-call arguments** in the conversation are redacted too: every string, every object key and every long number. The JSON stays valid.
+- **The model's tool calls** come back with your real values restored, so your code can run the tool. Each value is restored on its own and re-encoded as JSON, so a quote inside a real value cannot break the arguments. They go through the same reply scan as text (`flag`, or `redact` replaces secrets and identifiers).
+- **A tool the model invents** (one not in your `tools`) is never passed on: the request fails with `502 undeclared_tool`.
+- **Injection hidden in a tool result** is blocked like any other injection (`400 prompt_injection_detected`).
+
+Limits: tool definitions (names, descriptions, parameter schemas) are sent to the model as you wrote them, so keep personal data out of them; at most 64 tools and 100,000 characters of definitions; at most 1,000 values in the tool-call arguments of one request. With tools, `stream: true` does not deliver the reply word by word: it arrives as one complete set of chunks, because arguments cannot be restored while they are half written. Responses are never cached on this path. Claude models are not supported with tools yet and get `400 tools_not_supported_for_provider`. The older `functions` and `function_call` fields are refused; use `tools`.
 
 ## Configuration
 

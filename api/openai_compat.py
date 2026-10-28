@@ -12,8 +12,11 @@ same checks run (injection scan, redaction, cache, reply scan, restore, audit, m
 What is refused rather than quietly dropped, because dropping it would change what the
 caller gets or skip the privacy check:
   - images and audio in a message (they cannot be scanned for personal data)
-  - tools, functions and JSON mode (not supported yet)
+  - the older `functions` and `function_call` (use `tools`) and JSON mode (not supported yet)
   - more than one choice (n above 1)
+Tools (function calling) are accepted for OpenAI models: the tool results and tool-call
+arguments in the conversation are redacted, and the model's tool calls come back with the real
+values restored (see core/tool_calls.py). Streaming with tools is delivered whole, not word by word.
 Files are accepted: a `file` part with PDF (with text), Word (.docx) or plain text is read, its
 text is checked and redacted with the rest of the message, and only that text reaches the model.
 Other optional fields (top_p, stop, seed...) are ignored, and the response header
@@ -26,18 +29,19 @@ import re
 import time
 from typing import Optional
 
+from core import tool_calls as tools_module
 from core.file_extract import FileError
 from core.file_reader import decode_base64, file_summary, read_file
 
 DEFAULT_MAX_TOKENS = 4096
-ALLOWED_ROLES = {"system": "system", "developer": "system", "user": "user", "assistant": "assistant"}
+ALLOWED_ROLES = {"system": "system", "developer": "system", "user": "user", "assistant": "assistant",
+                 "tool": "tool"}
 
-USED = {"model", "messages", "max_tokens", "max_completion_tokens", "temperature", "stream", "n"}
+USED = {"model", "messages", "max_tokens", "max_completion_tokens", "temperature", "stream", "n",
+        "tools", "tool_choice", "parallel_tool_calls"}
 REFUSED = {
-    "tools": "tools are not supported yet",
-    "tool_choice": "tools are not supported yet",
-    "functions": "functions are not supported yet",
-    "function_call": "functions are not supported yet",
+    "functions": "'functions' is the older form, use 'tools'",
+    "function_call": "'function_call' is the older form, use 'tool_choice'",
     "audio": "audio cannot be scanned for personal data",
     "modalities": "only text is supported",
 }
@@ -189,6 +193,16 @@ def parse_chat_request(body) -> dict:
     if body.get("logprobs"):
         raise CompatError("'logprobs' is not supported.", "unsupported_parameter", "logprobs")
 
+    try:
+        tools = tools_module.validate_tools(body.get("tools"))
+        tool_choice = tools_module.validate_tool_choice(body.get("tool_choice"), tools)
+    except tools_module.ToolError as e:
+        raise CompatError(e.message, e.code, e.param, e.status)
+    parallel = body.get("parallel_tool_calls")
+    if parallel is not None and not isinstance(parallel, bool):
+        raise CompatError("'parallel_tool_calls' must be true or false.", "invalid_parallel_tool_calls",
+                          "parallel_tool_calls")
+
     messages = []
     for i, m in enumerate(raw):
         if not isinstance(m, dict):
@@ -197,7 +211,34 @@ def parse_chat_request(body) -> dict:
         if role is None:
             raise CompatError(f"Message role '{m.get('role')}' is not supported.",
                               "unsupported_role", f"messages[{i}].role")
-        messages.append({"role": role, "content": _text_of(m.get("content"), i, role)})
+        where = f"messages[{i}]"
+        entry = {}
+        try:
+            if m.get("tool_calls") not in (None, []):
+                if role != "assistant":
+                    raise tools_module.ToolError("Only assistant messages can hold tool_calls.",
+                                                 "invalid_messages", where)
+                entry["tool_calls"] = tools_module.parse_tool_calls(m.get("tool_calls"), where)
+            if role == "tool":
+                entry["tool_call_id"] = tools_module.check_tool_call_id(m.get("tool_call_id"), where)
+        except tools_module.ToolError as e:
+            raise CompatError(e.message, e.code, e.param, e.status)
+        content = m.get("content")
+        if content is None and (entry.get("tool_calls") or role == "assistant"):
+            content = ""
+        messages.append({"role": role, "content": _text_of(content, i, role), **entry})
+
+    uses_tools = bool(tools) or any(m["role"] == "tool" or m.get("tool_calls") for m in messages)
+    if uses_tools:
+        values = 0
+        for m in messages:
+            for c in m.get("tool_calls") or []:
+                parsed_args = tools_module.parse_arguments(c["arguments"])
+                values += 1 if parsed_args is None else tools_module.count_leaves(parsed_args)
+        if values > tools_module.MAX_VALUES:
+            raise CompatError(f"The tool-call arguments in the conversation hold more than "
+                              f"{tools_module.MAX_VALUES:,} values. Send fewer or shorter tool calls.",
+                              "request_too_large", "messages", 413)
 
     typed = sum(len(c) if isinstance(c, str) else sum(len(x) for x in c if isinstance(x, str))
                 for c in (m["content"] for m in messages))
@@ -222,6 +263,10 @@ def parse_chat_request(body) -> dict:
         "max_tokens": max_tokens,
         "temperature": 0.7 if temperature is None else float(temperature),
         "stream": bool(body.get("stream")),
+        "uses_tools": uses_tools,
+        "tools": tools,
+        "tool_choice": tool_choice,
+        "parallel_tool_calls": parallel,
         "ignored": sorted(k for k in body if k not in USED and k not in REFUSED and k != "response_format"),
     }
 
@@ -248,6 +293,51 @@ def chat_completion(audit_id: str, model: str, content: str, extra: dict) -> dic
                      "finish_reason": "stop"}],
         "jnvoy": extra,
     }
+
+
+def _wire_calls(calls: list) -> list:
+    return [{"id": c["id"], "type": "function",
+             "function": {"name": c["name"], "arguments": c["arguments"]}} for c in calls]
+
+
+def chat_completion_message(audit_id: str, model: str, content: Optional[str], calls: list,
+                            finish_reason: str, extra: dict) -> dict:
+    """A non-streaming answer that may hold tool calls. `content` is null when the model only calls tools."""
+    message = {"role": "assistant", "content": content or None}
+    if calls:
+        message["tool_calls"] = _wire_calls(calls)
+    return {
+        "id": completion_id(audit_id),
+        "object": "chat.completion",
+        "created": int(time.time()),
+        "model": model,
+        "choices": [{"index": 0, "message": message, "finish_reason": finish_reason}],
+        "jnvoy": extra,
+    }
+
+
+def sse_stream_message(audit_id: str, model: str, content: Optional[str], calls: list,
+                       finish_reason: str, extra: dict):
+    """
+    A reply that may hold tool calls, as server-sent events. The reply was complete before the
+    first event, because tool-call arguments cannot be restored while they are half written.
+    """
+    base = {"id": completion_id(audit_id), "object": "chat.completion.chunk",
+            "created": int(time.time()), "model": model}
+
+    def event(delta, finish=None, more=None):
+        chunk = dict(base, choices=[{"index": 0, "delta": delta, "finish_reason": finish}])
+        if more:
+            chunk.update(more)
+        return "data: " + json.dumps(chunk, ensure_ascii=False) + "\n\n"
+
+    yield event({"role": "assistant", "content": ""})
+    for piece in split_pieces(content or ""):
+        yield event({"content": piece})
+    for index, call in enumerate(_wire_calls(calls)):
+        yield event({"tool_calls": [dict(call, index=index)]})
+    yield event({}, finish=finish_reason, more={"jnvoy": extra})
+    yield "data: [DONE]\n\n"
 
 
 def split_pieces(text: str):

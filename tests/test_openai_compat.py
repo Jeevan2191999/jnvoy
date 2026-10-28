@@ -50,9 +50,8 @@ def test_anything_but_text_is_refused_because_it_cannot_be_scanned(part):
 
 
 @pytest.mark.parametrize("extra", [
-    {"tools": [{"type": "function", "function": {"name": "f"}}]},
     {"functions": [{"name": "f"}]},
-    {"tool_choice": "auto"},
+    {"function_call": "auto"},
     {"n": 2},
     {"response_format": {"type": "json_object"}},
     {"logprobs": True},
@@ -247,11 +246,11 @@ def test_bearer_does_not_work_on_other_routes(client):
 def test_refused_features_answer_with_an_openai_style_error(client, monkeypatch):
     fake_providers(monkeypatch, echo)
     r = client.post("/v1/chat/completions", headers={"x-api-key": OPERATOR},
-                    json={"model": "gpt-4o", "tools": [{"type": "function"}],
+                    json={"model": "gpt-4o", "functions": [{"name": "f"}],
                           "messages": [{"role": "user", "content": "x"}]})
     assert r.status_code == 400
     err = r.json()["error"]
-    assert err["code"] == "unsupported_parameter" and err["param"] == "tools"
+    assert err["code"] == "unsupported_parameter" and err["param"] == "functions"
 
 
 def test_prompt_injection_is_still_blocked_through_this_door(client, monkeypatch):

@@ -469,6 +469,55 @@ async def call_openai(messages: list[dict], model: str, max_tokens: int, tempera
         raise HTTPException(status_code=502, detail="OpenAI connection error")
 
 
+async def call_openai_tools(messages: list[dict], model: str, max_tokens: int, temperature: float,
+                            tools: list, tool_choice, parallel_tool_calls,
+                            api_key: Optional[str] = None) -> dict:
+    """
+    One OpenAI chat call that may answer with tool calls. Returns
+    {"content": str or None, "tool_calls": [{"id", "name", "arguments"}], "finish_reason": str}.
+    """
+    own_key = api_key is not None
+    api_key = api_key or os.getenv("OPENAI_API_KEY")
+    if not api_key:
+        raise HTTPException(status_code=500, detail="OPENAI_API_KEY not configured")
+    body = {"model": model, "messages": messages, "max_tokens": max_tokens, "temperature": temperature}
+    if tools:
+        body["tools"] = tools
+        if tool_choice is not None:
+            body["tool_choice"] = tool_choice
+        if parallel_tool_calls is not None:
+            body["parallel_tool_calls"] = parallel_tool_calls
+
+    start = time.time()
+    try:
+        async with httpx.AsyncClient(timeout=60.0) as client:
+            response = await client.post(
+                "https://api.openai.com/v1/chat/completions",
+                headers={"Authorization": f"Bearer {api_key}", "content-type": "application/json"},
+                json=body,
+            )
+            if response.status_code != 200:
+                if not own_key or response.status_code >= 500:
+                    outage_detector.record_failure("openai", response.text[:100])
+                if own_key:
+                    raise _own_key_error("OpenAI", response.status_code, response.text)
+                raise HTTPException(status_code=response.status_code,
+                                    detail=f"OpenAI API error: {response.text}")
+            data = response.json()
+            outage_detector.record_success("openai", (time.time() - start) * 1000)
+            choice = data["choices"][0]
+            message = choice["message"]
+            calls = [{"id": c["id"], "name": c["function"]["name"], "arguments": c["function"]["arguments"]}
+                     for c in (message.get("tool_calls") or []) if c.get("type", "function") == "function"]
+            return {"content": message.get("content"), "tool_calls": calls,
+                    "finish_reason": choice.get("finish_reason") or "stop"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        outage_detector.record_failure("openai", str(e))
+        raise HTTPException(status_code=502, detail="OpenAI connection error")
+
+
 # ── Core Proxy Pipeline ───────────────────────────────────────────────────────
 
 def _cache_key(tenant: str, request, redacted_messages: list) -> str:
@@ -496,16 +545,7 @@ def _cache_key(tenant: str, request, redacted_messages: list) -> str:
     return hashlib.sha256(blob.encode("utf-8")).hexdigest()
 
 
-async def _prepare_request(request: ProxyRequest, tenant: str, policy: Optional[dict]) -> dict:
-    """
-    Everything done before a model is called: the injection check, redaction of the whole
-    conversation, and the cache key. Shared by the normal and the streaming path.
-    """
-    # Step 0: Scan for prompt injection before anything else
-    injection_result = await run_in_threadpool(
-        injection_detector.scan_messages,
-        [{"role": m.role, "content": m.content} for m in request.messages],
-    )
+def _raise_if_injection(injection_result) -> None:
     if injection_result.blocked:
         raise HTTPException(
             status_code=400,
@@ -518,20 +558,11 @@ async def _prepare_request(request: ProxyRequest, tenant: str, policy: Optional[
             }
         )
 
-    # Step 1: Scan and redact all messages
-    redacted_messages = []
-    combined_token_map = {}
-    combined_pii_summary = {}
 
-    det = detectors.for_policy(policy)   # this customer's regions, extra types and judge setting
-
-    # The whole conversation is redacted together, so tokens are unique across
-    # messages ([EMAIL_ADDRESS_1] is always the same person) and the judge runs
-    # on all messages concurrently.
+async def _detect_or_refuse(det, texts: list):
+    """Detect personal data in all the texts together, or refuse the request if a safeguard failed."""
     try:
-        results = await det.detect_conversation_async(
-            [msg.content for msg in request.messages]
-        )
+        return await det.detect_conversation_async(texts)
     except JudgeError:
         raise HTTPException(
             status_code=503,
@@ -548,6 +579,31 @@ async def _prepare_request(request: ProxyRequest, tenant: str, policy: Optional[
                 "message": "Request blocked: one of this account's custom patterns could not finish on this text.",
             },
         )
+
+
+async def _prepare_request(request: ProxyRequest, tenant: str, policy: Optional[dict]) -> dict:
+    """
+    Everything done before a model is called: the injection check, redaction of the whole
+    conversation, and the cache key. Shared by the normal and the streaming path.
+    """
+    # Step 0: Scan for prompt injection before anything else
+    injection_result = await run_in_threadpool(
+        injection_detector.scan_messages,
+        [{"role": m.role, "content": m.content} for m in request.messages],
+    )
+    _raise_if_injection(injection_result)
+
+    # Step 1: Scan and redact all messages
+    redacted_messages = []
+    combined_token_map = {}
+    combined_pii_summary = {}
+
+    det = detectors.for_policy(policy)   # this customer's regions, extra types and judge setting
+
+    # The whole conversation is redacted together, so tokens are unique across
+    # messages ([EMAIL_ADDRESS_1] is always the same person) and the judge runs
+    # on all messages concurrently.
+    results = await _detect_or_refuse(det, [msg.content for msg in request.messages])
 
     for msg, result in zip(request.messages, results):
         redacted_messages.append({"role": msg.role, "content": result.redacted_text})
@@ -680,6 +736,119 @@ async def run_proxy_pipeline(request: ProxyRequest, tenant: str = "anonymous",
         "cost_saved_usd": cost_saved,
         "latency_ms": round(latency_ms, 2),
         "output_scan": out_scan,
+    }
+
+
+# ── Tool calls ────────────────────────────────────────────────────────────────
+
+def _merge_scans(mode: str, scans: list):
+    from core.output_scan import OutputScanResult
+    findings, injection, redacted = {}, {}, False
+    for sc in scans:
+        for k, n in sc.findings.items():
+            findings[k] = findings.get(k, 0) + n
+        for k, n in sc.injection.items():
+            injection[k] = injection.get(k, 0) + n
+        redacted = redacted or sc.redacted
+    return OutputScanResult(mode=mode, text="", findings=findings, injection=injection, redacted=redacted)
+
+
+async def run_tool_pipeline(parsed: dict, tenant: str, policy: Optional[dict],
+                            provider_key: Optional[str] = None) -> dict:
+    """
+    The pipeline for a conversation with tools (OpenAI models). Everything the model is sent is
+    redacted: message text, tool results, and the strings, keys and long numbers inside earlier
+    tool-call arguments. The model's reply, including the arguments of any tool it calls, is
+    checked, then the real values are put back so the caller can run the tool. There is no cache
+    and no routing: a tool call depends on state outside the conversation.
+    """
+    from core import tool_calls as tc
+    start_time = time.time()
+    messages = parsed["messages"]
+
+    injection_result = await run_in_threadpool(
+        injection_detector.scan_messages,
+        [{"role": m["role"], "content": m["content"]} for m in messages],
+    )
+    _raise_if_injection(injection_result)
+
+    texts, plan = [], []
+    for m in messages:
+        entry = {"content": len(texts), "calls": []}
+        texts.append(m["content"] or "")
+        for call in m.get("tool_calls") or []:
+            obj = tc.parse_arguments(call["arguments"])
+            if obj is None:
+                entry["calls"].append((None, len(texts), 1))
+                texts.append(call["arguments"])
+            else:
+                found = list(tc.leaves(obj))
+                entry["calls"].append((obj, len(texts), len(found)))
+                texts.extend(found)
+        plan.append(entry)
+
+    det = detectors.for_policy(policy)
+    results = await _detect_or_refuse(det, texts)
+
+    token_map, pii_summary = {}, {}
+    for r in results:
+        token_map.update(r.token_map)
+        for kind, n in r.summary.items():
+            pii_summary[kind] = pii_summary.get(kind, 0) + n
+
+    redacted = []
+    for m, entry in zip(messages, plan):
+        out = {"role": m["role"], "content": results[entry["content"]].redacted_text}
+        if m["role"] == "tool":
+            out["tool_call_id"] = m["tool_call_id"]
+        if m.get("tool_calls"):
+            wire = []
+            for call, (obj, at, n) in zip(m["tool_calls"], entry["calls"]):
+                if obj is None:
+                    arguments = results[at].redacted_text
+                else:
+                    arguments = json.dumps(
+                        tc.rebuild(obj, iter(r.redacted_text for r in results[at:at + n])), ensure_ascii=False)
+                wire.append({"id": call["id"], "type": "function",
+                             "function": {"name": call["name"], "arguments": arguments}})
+            out["tool_calls"] = wire
+            if not out["content"]:
+                out["content"] = None
+        redacted.append(out)
+
+    own = {"api_key": provider_key} if provider_key else {}
+    reply = await call_openai_tools(
+        redacted, parsed["model"], parsed["max_tokens"], parsed["temperature"],
+        parsed["tools"], parsed["tool_choice"], parsed["parallel_tool_calls"], **own)
+
+    declared = {t["function"]["name"] for t in parsed["tools"]}
+    scan_mode = output_scan_mode(policy)
+    scans, calls = [], []
+
+    async def check(text: str) -> str:
+        sc = await run_in_threadpool(output_scanner.scan, text, scan_mode, policy)
+        scans.append(sc)
+        return det.restore(sc.text, token_map)
+
+    content = await check(reply["content"]) if reply["content"] else None
+    for call in reply["tool_calls"]:
+        if call["name"] not in declared:
+            raise HTTPException(status_code=502, detail={
+                "error": "undeclared_tool",
+                "message": "The model asked for a tool that was not in 'tools'. The call was not passed on."})
+        obj = tc.parse_arguments(call["arguments"])
+        if obj is None:
+            arguments = await check(call["arguments"])
+        else:
+            restored = [await check(text) for text in tc.leaves(obj)]
+            arguments = json.dumps(tc.rebuild(obj, iter(restored)), ensure_ascii=False)
+        calls.append({"id": call["id"], "name": call["name"], "arguments": arguments})
+
+    return {
+        "content": content, "tool_calls": calls, "finish_reason": reply["finish_reason"],
+        "pii_summary": pii_summary, "cache_hit": False, "routed_model": parsed["model"],
+        "latency_ms": round((time.time() - start_time) * 1000, 2),
+        "output_scan": _merge_scans(scan_mode, scans),
     }
 
 
@@ -1000,6 +1169,43 @@ async def _stream_chat(request: ProxyRequest, http_request: Request, key: Option
         media_type="text/event-stream", headers=headers)
 
 
+async def _tool_chat(parsed: dict, provider: str, http_request: Request, x_provider_key: Optional[str]):
+    """A /v1/chat/completions request that uses tools. Always answered whole (see run_tool_pipeline)."""
+    if provider != "openai":
+        raise openai_compat.CompatError(
+            "Tool calls are supported for OpenAI models for now. Anthropic models are not supported yet.",
+            "tools_not_supported_for_provider", "tools")
+    from types import SimpleNamespace
+    key = key_from_headers(http_request.url.path, {k.lower(): v for k, v in http_request.headers.items()})
+    audit_id = str(uuid.uuid4())
+    caller, provider_key, key_hash, tenant = _gateway_identity(http_request, key, x_provider_key)
+    result = await run_tool_pipeline(parsed, tenant, caller.policy, provider_key)
+    _spawn(_audit_row(audit_id, SimpleNamespace(provider="openai"), result, key_hash, caller.tenant_id))
+
+    summary, scan = result["pii_summary"], result["output_scan"]
+    extra = {
+        "audit_id": audit_id,
+        "pii_summary": {"types_detected": summary, "total_instances": sum(summary.values()),
+                        "redacted": bool(summary)},
+        "cache_hit": False,
+        "output_scan": {"flagged": scan.flagged, "findings": scan.findings, "injection": scan.injection},
+        **({"files": parsed["files"]} if parsed.get("files") else {}),
+    }
+    headers = {}
+    if parsed["ignored"]:
+        headers["x-jnvoy-ignored-params"] = ",".join(parsed["ignored"])[:200]
+    if parsed["stream"]:
+        return StreamingResponse(
+            openai_compat.sse_stream_message(audit_id, result["routed_model"], result["content"],
+                                             result["tool_calls"], result["finish_reason"], extra),
+            media_type="text/event-stream",
+            headers={**headers, "cache-control": "no-cache", "x-accel-buffering": "no"})
+    return JSONResponse(
+        openai_compat.chat_completion_message(audit_id, result["routed_model"], result["content"],
+                                              result["tool_calls"], result["finish_reason"], extra),
+        headers=headers)
+
+
 @app.post("/v1/chat/completions")
 async def chat_completions(
     http_request: Request,
@@ -1022,9 +1228,12 @@ async def chat_completions(
     provider key in the `x-provider-key` header. Personal data is removed before the model sees
     it and put back in the reply, exactly as for `/v1/proxy`.
 
-    Text and files only. A `file` part with a PDF (with a text layer), Word (.docx) or plain text
-    file is read, and its text is redacted like the rest of the message. Tools, functions, JSON
-    mode, images, audio and `n` above 1 are refused. With
+    Text, files and tools. A `file` part with a PDF (with a text layer), Word (.docx) or plain text
+    file is read, and its text is redacted like the rest of the message. Tools (function calling)
+    work with OpenAI models: tool results and earlier tool-call arguments are redacted, and the
+    model's tool calls come back with your real values restored. A reply with tools is delivered
+    whole even with `stream: true`. The older `functions`, JSON mode, images, audio and `n`
+    above 1 are refused. With
     `stream: true` the reply arrives word by word, with your values restored as it goes. The
     reply is scanned after it has been sent, so if your account's reply scanning is set to
     `redact`, the reply is instead checked in full first and then streamed.
@@ -1033,6 +1242,8 @@ async def chat_completions(
         parsed = openai_compat.parse_chat_request(body)
         await openai_compat.attach_files(parsed)
         provider = openai_compat.provider_for(parsed["model"], x_jnvoy_provider)
+        if parsed["uses_tools"]:
+            return await _tool_chat(parsed, provider, http_request, x_provider_key)
         request = ProxyRequest(
             model=parsed["model"],
             messages=[Message(**m) for m in parsed["messages"]],
