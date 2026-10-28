@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Use Jnvoy with LiteLLM</title>
+<meta name="description" content="Route LiteLLM through Jnvoy so names, emails and ID numbers are replaced before they reach the model provider. Python SDK and proxy configs, tested with LiteLLM 1.106.5.">
+<link rel="canonical" href="https://www.jnvoy.com/guides/litellm">
+<link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+<meta name="theme-color" content="#EDEEE9">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Jnvoy">
+<meta property="og:title" content="Use Jnvoy with LiteLLM">
+<meta property="og:description" content="Route LiteLLM through Jnvoy so names, emails and ID numbers are replaced before they reach the model provider. Python SDK and proxy configs, tested with LiteLLM 1.106.5.">
+<meta property="og:url" content="https://www.jnvoy.com/guides/litellm">
+<meta property="og:image" content="https://www.jnvoy.com/static/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Use Jnvoy with LiteLLM">
+<meta name="twitter:description" content="Route LiteLLM through Jnvoy so names, emails and ID numbers are replaced before they reach the model provider. Python SDK and proxy configs, tested with LiteLLM 1.106.5.">
+<meta name="twitter:image" content="https://www.jnvoy.com/static/og-image.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* Same tokens as the homepage, so the two pages read as one product. */
+  :root{
+    --ink:        #12161B;
+    --ink-soft:   #42484F;
+    --ink-faint:  #5C6269;
+    --paper:      #EDEEE9;
+    --paper-raised:#F8F8F4;
+    --line:       #D7D8D1;
+    --line-strong:#B9BAB2;
+    --red:        #8A2A16;
+    --red-dim:    #B8491F;
+    --red-wash:   #F4E7E2;
+    --green:      #1E6450;
+    --green-wash: #E3EEE9;
+    --redact:     #15171A;
+
+    --mono: 'Courier Prime', ui-monospace, 'SF Mono', Consolas, monospace;
+    --sans: 'Inter', -apple-system, 'Segoe UI', sans-serif;
+
+    --maxw: 1180px;
+    --radius-ui: 4px;
+  }
+
+  *,*::before,*::after{ box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:var(--sans);
+    font-size:16px;
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,p,ul,figure{ margin:0; }
+  a{ color:inherit; }
+  .wrap{ max-width:var(--maxw); margin:0 auto; padding:0 28px; }
+  :focus-visible{ outline:2px solid var(--green); outline-offset:3px; }
+  @media (prefers-reduced-motion: reduce){
+    html{ scroll-behavior:auto; }
+    *{ transition-duration:0.001ms !important; }
+  }
+
+  /* ---------- nav (identical to the homepage) ---------- */
+  header.site{
+    position:sticky; top:0; z-index:40;
+    background:rgba(237,238,233,0.92);
+    backdrop-filter:blur(6px);
+    border-bottom:1px solid var(--line);
+  }
+  .nav{ display:flex; align-items:center; justify-content:space-between; height:68px; }
+  .wordmark{
+    font-family:var(--mono); font-weight:700; font-size:1.05rem; letter-spacing:0.01em;
+    display:flex; align-items:center; gap:9px; text-decoration:none; color:var(--ink);
+  }
+  .wordmark .dot{ width:8px; height:8px; border-radius:50%; background:var(--green); box-shadow:0 0 0 3px var(--green-wash); }
+  .navlinks{ display:flex; align-items:center; gap:30px; }
+  .navlinks a{ text-decoration:none; font-size:0.9375rem; color:var(--ink-soft); font-weight:500; }
+  .navlinks a:hover{ color:var(--ink); }
+  .btn{
+    display:inline-flex; align-items:center; gap:8px;
+    font-family:var(--sans); font-weight:600; font-size:0.85rem;
+    padding:0.5em 1em; border-radius:var(--radius-ui); text-decoration:none;
+    border:1px solid transparent; transition:background 0.15s ease;
+  }
+  .navlinks a.btn{ background:var(--red); color:#fff; }
+  .navlinks a.btn:hover{ background:var(--red-dim); color:#fff; }
+  @media (max-width:760px){ .navlinks a:not(.btn){ display:none; } }
+
+  /* ---------- page head ---------- */
+  .pagehead{ padding:72px 0 56px; border-bottom:1px solid var(--line-strong); }
+  .pagehead h1{
+    font-family:var(--mono); font-weight:700;
+    font-size:clamp(2rem, 4.2vw, 3rem); line-height:1.1; letter-spacing:-0.01em;
+    max-width:18ch;
+  }
+  .pagehead .lede{ margin-top:20px; font-size:1.125rem; color:var(--ink-soft); max-width:56ch; line-height:1.65; }
+  .meta{ margin-top:28px; font-family:var(--mono); font-size:0.8125rem; color:var(--ink-faint); }
+
+  /* ---------- two column document ---------- */
+  .doc{
+    display:grid; grid-template-columns:200px minmax(0,1fr); gap:72px;
+    padding:64px 0 96px; align-items:start;
+  }
+  @media (max-width:900px){ .doc{ grid-template-columns:1fr; gap:0; padding-top:40px; } }
+  .toc{ position:sticky; top:96px; font-size:0.9rem; }
+  .toc p{ font-weight:600; color:var(--ink-faint); font-size:0.8125rem; margin-bottom:10px; }
+  .toc ul{ list-style:none; padding:0; border-left:1px solid var(--line-strong); }
+  .toc a{
+    display:block; padding:6px 0 6px 16px; margin-left:-1px;
+    border-left:2px solid transparent; text-decoration:none; color:var(--ink-soft);
+  }
+  .toc a:hover{ color:var(--ink); border-left-color:var(--line-strong); }
+  .toc a.on{ color:var(--ink); font-weight:600; border-left-color:var(--green); }
+  @media (max-width:900px){ .toc{ display:none; } }
+
+  .content > section{ padding:0 0 64px; scroll-margin-top:92px; }
+  .content > section + section{ padding-top:56px; border-top:1px solid var(--line); }
+  .content h2{
+    font-family:var(--mono); font-weight:700; font-size:1.55rem; line-height:1.25; margin-bottom:18px;
+  }
+  .content h3{ font-size:1rem; font-weight:600; margin:28px 0 6px; }
+  .content p{ color:var(--ink-soft); max-width:66ch; margin-top:14px; }
+  .content p:first-of-type{ margin-top:0; }
+  .content p strong, .content li strong{ color:var(--ink); font-weight:600; }
+  .content ul.plain{ padding-left:1.15em; margin-top:14px; color:var(--ink-soft); max-width:66ch; }
+  .content ul.plain li{ margin-top:8px; }
+  code{
+    font-family:var(--mono); font-size:0.9em; color:var(--ink);
+    background:var(--paper-raised); border:1px solid var(--line); border-radius:3px; padding:0.05em 0.35em;
+  }
+  .content a{ color:var(--green); text-underline-offset:3px; }
+
+  /* ---------- the ledger (answers at a glance, and storage) ---------- */
+  .ledger{ margin-top:26px; border-top:1px solid var(--line-strong); }
+  .row{
+    display:grid; grid-template-columns:minmax(0,1.1fr) minmax(0,1.6fr) minmax(0,0.9fr);
+    gap:20px; padding:16px 0; border-bottom:1px solid var(--line); align-items:baseline;
+  }
+  .row.head{ font-weight:600; font-size:0.8125rem; color:var(--ink-faint); padding-bottom:10px; }
+  .row .k{ font-weight:600; }
+  .row .v{ color:var(--ink-soft); font-size:0.9375rem; }
+  .row .s{ font-family:var(--mono); font-size:0.875rem; font-weight:700; }
+  .row .s.no{ color:var(--green); }
+  .row .s.yes{ color:var(--red); }
+  .row .s.mid{ color:var(--ink-soft); }
+  @media (max-width:700px){
+    .row{ grid-template-columns:1fr; gap:4px; }
+    .row.head{ display:none; }
+  }
+
+  /* ---------- the flow figure ---------- */
+  .flow{ margin-top:28px; }
+  .zones{ display:grid; grid-template-columns:1fr 1fr; gap:0; }
+  .zone{ padding-bottom:10px; font-size:0.8125rem; font-weight:600; border-bottom:2px solid var(--ink); }
+  .zone.out{ border-bottom-color:var(--green); color:var(--green); margin-left:12px; }
+  .zone.in{ color:var(--ink); margin-right:12px; }
+  .stops{ display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-top:12px; }
+  .stop{ background:var(--paper-raised); border:1px solid var(--line-strong); border-radius:3px; padding:16px 16px 18px; }
+  .stop h3{ margin:0 0 6px; font-size:0.9375rem; }
+  .stop .what{ font-size:0.8125rem; color:var(--ink-faint); line-height:1.5; }
+  .stop .sample{
+    margin-top:12px; padding:10px 10px; border-radius:3px;
+    font-family:var(--mono); font-size:0.78rem; line-height:1.55; overflow-wrap:anywhere;
+  }
+  .sample.raw{ background:var(--ink); color:#EDEEE9; }
+  .sample.tok{ background:var(--green-wash); color:var(--green); }
+  .stop.optional{ border-style:dashed; }
+  @media (max-width:900px){
+    .zones{ display:none; }
+    .stops{ grid-template-columns:1fr 1fr; }
+  }
+  @media (max-width:560px){ .stops{ grid-template-columns:1fr; } }
+  .flow figcaption{ margin-top:14px; font-size:0.875rem; color:var(--ink-faint); max-width:70ch; }
+
+  /* ---------- notice ---------- */
+  .notice{
+    margin-top:22px; padding:16px 18px; background:var(--red-wash);
+    border-left:3px solid var(--red); border-radius:0 3px 3px 0; max-width:66ch;
+    font-size:0.9375rem; color:var(--ink-soft);
+  }
+  .notice strong{ color:var(--ink); }
+
+
+  /* ---------- data-flow figure ---------- */
+  .dflow{ margin-top:26px; }
+  .dflow svg{ width:100%; height:auto; display:block; background:var(--paper-raised); border:1px solid var(--line-strong); border-radius:3px; }
+  .dflow .steps{ margin-top:20px; padding-left:1.3em; color:var(--ink-soft); max-width:70ch; }
+  .dflow .steps li{ margin-top:8px; }
+  .dflow figcaption{ margin-top:14px; font-size:0.875rem; color:var(--ink-faint); max-width:70ch; }
+  .dflow .t{ font-family:var(--sans); font-size:13px; fill:var(--ink); }
+  .dflow .t.h{ font-weight:600; font-size:14px; }
+  .dflow .t.s{ fill:var(--ink-soft); font-size:12px; }
+  .dflow .t.z{ font-family:var(--mono); font-weight:700; font-size:12px; }
+  .dflow .t.n{ font-family:var(--mono); font-weight:700; font-size:13px; fill:var(--green); }
+  @media (max-width:760px){ .dflow svg{ display:none; } }
+
+  /* ---------- footer (identical to the homepage plus Privacy) ---------- */
+  footer{ padding:40px 0; border-top:1px solid var(--line); }
+  .fgrid{ display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px; }
+  .fgrid .left{ font-family:var(--mono); font-size:0.8125rem; color:var(--ink-faint); }
+  .flinks{ display:flex; gap:22px; flex-wrap:wrap; }
+  .flinks a{ text-decoration:none; font-size:0.875rem; color:var(--ink-soft); }
+  .flinks a:hover{ color:var(--ink); }
+</style>
+<style>
+  .content pre{ margin:18px 0 0; padding:16px 18px; background:var(--ink); color:#EDEEE9; border-radius:3px; overflow-x:auto; font-size:0.84rem; line-height:1.6; max-width:min(100%,78ch); }
+  .content pre code{ background:none; border:0; padding:0; color:inherit; font-size:inherit; }
+  .content .tight li{ margin-top:6px; }
+  .doc > .content{ min-width:0; }
+  .content pre{ max-width:100%; }
+</style>
+</head>
+<body>
+
+<header class="site">
+  <div class="wrap nav">
+    <a href="/" class="wordmark"><span class="dot"></span>jnvoy</a>
+    <nav class="navlinks" aria-label="Main">
+      <a href="/">Home</a>
+      <a href="/docs">Docs</a>
+      <a href="https://github.com/Jeevan2191999/jnvoy">GitHub</a>
+      <a class="btn" href="/docs">Try the API</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="pagehead">
+    <div class="wrap">
+      <h1>Use Jnvoy with LiteLLM</h1>
+      <p class="lede">Point LiteLLM at Jnvoy and the text it sends to OpenAI or Anthropic has names, emails and ID numbers replaced first. Your code keeps calling LiteLLM as before.</p>
+      <p class="meta">Tested with LiteLLM 1.106.5 &middot; Last updated 28 October 2026</p>
+    </div>
+  </div>
+
+  <div class="wrap doc">
+    <nav class="toc" aria-label="On this page">
+      <p>On this page</p>
+      <ul>
+        <li><a href="#how">How it fits</a></li>
+        <li><a href="#sdk">Python SDK</a></li>
+        <li><a href="#proxy">LiteLLM proxy</a></li>
+        <li><a href="#per-user">A key for each user</a></li>
+        <li><a href="#expect">What to expect</a></li>
+        <li><a href="#limits">Limits</a></li>
+      </ul>
+    </nav>
+
+    <div class="content">
+
+      <section id="how">
+        <h2>How it fits</h2>
+        <p>Jnvoy speaks the same chat format as OpenAI, so LiteLLM can use it as an OpenAI-compatible server. LiteLLM sends the request to Jnvoy, Jnvoy replaces personal data with placeholders such as <code>[EMAIL_ADDRESS_1]</code>, forwards the cleaned request to your model provider, and puts the real values back into the reply before LiteLLM sees it.</p>
+        <p>Four settings change. The model name gets the prefix <code>openai/</code>. <code>api_base</code> is <code>https://www.jnvoy.com/v1</code>. <code>api_key</code> is your Jnvoy key. Your own OpenAI or Anthropic key goes in an <code>x-provider-key</code> header. You still pay the provider directly; Jnvoy does not supply model access.</p>
+        <div class="notice"><strong>What Jnvoy can and cannot protect here.</strong> LiteLLM sits in front of Jnvoy, so LiteLLM itself, and anything attached to it such as request logs, callbacks and its own response cache, still sees the original text. Jnvoy protects what leaves for the model provider.</div>
+      </section>
+
+      <section id="sdk">
+        <h2>Python SDK</h2>
+        <p>Install LiteLLM with <code>pip install litellm</code>, then:</p>
+        <pre><code>import litellm
+
+reply = litellm.completion(
+    model=&quot;openai/gpt-4o-mini&quot;,              # &quot;openai/&quot; means &quot;an OpenAI-compatible server&quot;
+    api_base=&quot;https://www.jnvoy.com/v1&quot;,     # must end in /v1
+    api_key=&quot;&lt;your Jnvoy key&gt;&quot;,              # sent as Authorization: Bearer
+    extra_headers={&quot;x-provider-key&quot;: &quot;&lt;your OpenAI or Anthropic key&gt;&quot;},
+    messages=[{&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: &quot;Write to anna.lee@example.com about invoice 5521.&quot;}],
+)
+print(reply.choices[0].message.content)</code></pre>
+        <p>Streaming (<code>stream=True</code>) and tool calls work the same way. A runnable version is <a href="https://github.com/Jeevan2191999/jnvoy/blob/main/examples/litellm_demo.py"><code>examples/litellm_demo.py</code></a>. For a Claude model use a name that starts with <code>claude</code>, for example <code>openai/claude-haiku-4-5</code>; Jnvoy sends those to Anthropic.</p>
+      </section>
+
+      <section id="proxy">
+        <h2>LiteLLM proxy</h2>
+        <p>If you run the LiteLLM proxy, add Jnvoy to <code>config.yaml</code>. This version keeps one provider key on the LiteLLM server, read from an environment variable:</p>
+        <pre><code># LiteLLM proxy: every request goes through Jnvoy.
+# The provider keys stay on the LiteLLM server, in environment variables.
+#
+#   export JNVOY_API_KEY=...       # your Jnvoy key
+#   export OPENAI_API_KEY=...      # your own OpenAI key
+#   export ANTHROPIC_API_KEY=...   # your own Anthropic key
+#   litellm --config litellm_config.yaml
+model_list:
+  - model_name: gpt-4o-mini
+    litellm_params:
+      model: openai/gpt-4o-mini            # &quot;openai/&quot; means &quot;an OpenAI-compatible server&quot;
+      api_base: https://www.jnvoy.com/v1   # must end in /v1
+      api_key: os.environ/JNVOY_API_KEY
+      extra_headers:
+        x-provider-key: os.environ/OPENAI_API_KEY
+
+  - model_name: claude-haiku
+    litellm_params:
+      model: openai/claude-haiku-4-5       # Jnvoy sends model names starting with &quot;claude&quot; to Anthropic
+      api_base: https://www.jnvoy.com/v1
+      api_key: os.environ/JNVOY_API_KEY
+      extra_headers:
+        x-provider-key: os.environ/ANTHROPIC_API_KEY</code></pre>
+        <p>Start it with <code>litellm --config config.yaml</code>. Everything that calls the proxy, including the OpenAI libraries, now goes through Jnvoy without any change of its own. The same file is in the repository as <a href="https://github.com/Jeevan2191999/jnvoy/blob/main/examples/litellm_config.yaml"><code>examples/litellm_config.yaml</code></a>.</p>
+      </section>
+
+      <section id="per-user">
+        <h2>A key for each user</h2>
+        <p>If each caller should use their own provider key, leave the key out of the config and let LiteLLM pass the caller's header through:</p>
+        <pre><code># LiteLLM proxy: each caller brings their own provider key, and LiteLLM passes it on to Jnvoy.
+#
+#   export JNVOY_API_KEY=...       # your Jnvoy key
+#   litellm --config litellm_config_per_user.yaml
+#
+# A caller then sends their key to LiteLLM in an x-provider-key header, next to their LiteLLM key.
+model_list:
+  - model_name: gpt-4o-mini
+    litellm_params:
+      model: openai/gpt-4o-mini
+      api_base: https://www.jnvoy.com/v1   # must end in /v1
+      api_key: os.environ/JNVOY_API_KEY
+
+general_settings:
+  forward_client_headers_to_llm_api: true</code></pre>
+        <p>A caller then sends their provider key to LiteLLM:</p>
+        <pre><code>curl http://localhost:4000/chat/completions \
+  -H &quot;Authorization: Bearer &lt;your LiteLLM key&gt;&quot; \
+  -H &quot;x-provider-key: &lt;your OpenAI or Anthropic key&gt;&quot; \
+  -H &quot;Content-Type: application/json&quot; \
+  -d &#x27;{&quot;model&quot;: &quot;gpt-4o-mini&quot;, &quot;messages&quot;: [{&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: &quot;Hello&quot;}]}&#x27;</code></pre>
+        <p>The same file is in the repository as <a href="https://github.com/Jeevan2191999/jnvoy/blob/main/examples/litellm_config_per_user.yaml"><code>examples/litellm_config_per_user.yaml</code></a>. A Jnvoy customer key needs a provider key on every call, and answers <code>400 provider_key_required</code> without one.</p>
+      </section>
+
+      <section id="expect">
+        <h2>What to expect</h2>
+        <ul class="plain tight">
+          <li><strong>Token counts show as zero.</strong> Jnvoy does not return token usage yet, so LiteLLM reports 0 tokens and no cost for these calls. Use your provider's dashboard for spend.</li>
+          <li><strong>Errors map to LiteLLM's usual ones.</strong> A wrong Jnvoy key is an <code>AuthenticationError</code> (401). A rejected provider key is a <code>BadRequestError</code> (<code>provider_key_rejected</code>) and the message never repeats the key.</li>
+          <li><strong>Repeated identical requests can come from Jnvoy's cache.</strong> The reply says so in its <code>jnvoy.cache_hit</code> field.</li>
+          <li><strong>Some parameters are ignored.</strong> The response header <code>x-jnvoy-ignored-params</code> lists them.</li>
+          <li><strong>Not found?</strong> Check that <code>api_base</code> ends in <code>/v1</code>.</li>
+        </ul>
+      </section>
+
+      <section id="limits">
+        <h2>Limits</h2>
+        <ul class="plain tight">
+          <li>Images, audio, JSON mode and more than one choice (<code>n</code> above 1) are refused with a <code>400</code>, because they cannot be checked for personal data yet.</li>
+          <li>Tool calls work with OpenAI models. Claude models with tools are refused for now.</li>
+          <li>Jnvoy finds personal data that matches known patterns and common names. No tool catches everything, so keep it out of tool definitions and do not rely on any single layer. The <a href="/accuracy">accuracy page</a> lists what it misses.</li>
+          <li>We tested these configurations with LiteLLM 1.106.5 against a Jnvoy server, using a stand-in for the model provider. If something differs on your setup, <a href="mailto:j.nagaraj2109@gmail.com?subject=Jnvoy%20and%20LiteLLM">tell us</a>.</li>
+        </ul>
+      </section>
+
+    </div>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap fgrid">
+    <div class="left">JNVOY LIMITED. Registered in England and Wales, company number 17536574.</div>
+    <div class="flinks">
+      <a href="/docs">API docs</a>
+      <a href="/accuracy">Accuracy</a>
+      <a href="/guides/remove-personal-data-from-prompts">Guide</a>
+      <a href="/guides/litellm">LiteLLM</a>
+      <a href="https://github.com/Jeevan2191999/jnvoy">GitHub</a>
+      <a href="/v1/report/compliance">Sample report</a>
+      <a href="/privacy">Privacy</a>
+      <a href="/security">Security</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // Highlight the section being read in the contents list.
+  (function(){
+    var links = document.querySelectorAll('.toc a');
+    var map = {};
+    links.forEach(function(a){ map[a.getAttribute('href').slice(1)] = a; });
+    if (!('IntersectionObserver' in window)) return;
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if (e.isIntersecting){
+          links.forEach(function(a){ a.classList.remove('on'); });
+          var a = map[e.target.id]; if (a) a.classList.add('on');
+        }
+      });
+    }, { rootMargin:'-20% 0px -70% 0px' });
+    Object.keys(map).forEach(function(id){
+      var el = document.getElementById(id); if (el) io.observe(el);
+    });
+  })();
+</script>
+</body>
+</html>

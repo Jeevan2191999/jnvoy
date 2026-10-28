@@ -1,0 +1,23 @@
+# LiteLLM proxy: every request goes through Jnvoy.
+# The provider keys stay on the LiteLLM server, in environment variables.
+#
+#   export JNVOY_API_KEY=...       # your Jnvoy key
+#   export OPENAI_API_KEY=...      # your own OpenAI key
+#   export ANTHROPIC_API_KEY=...   # your own Anthropic key
+#   litellm --config litellm_config.yaml
+model_list:
+  - model_name: gpt-4o-mini
+    litellm_params:
+      model: openai/gpt-4o-mini            # "openai/" means "an OpenAI-compatible server"
+      api_base: https://www.jnvoy.com/v1   # must end in /v1
+      api_key: os.environ/JNVOY_API_KEY
+      extra_headers:
+        x-provider-key: os.environ/OPENAI_API_KEY
+
+  - model_name: claude-haiku
+    litellm_params:
+      model: openai/claude-haiku-4-5       # Jnvoy sends model names starting with "claude" to Anthropic
+      api_base: https://www.jnvoy.com/v1
+      api_key: os.environ/JNVOY_API_KEY
+      extra_headers:
+        x-provider-key: os.environ/ANTHROPIC_API_KEY

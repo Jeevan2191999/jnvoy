@@ -239,7 +239,7 @@ class AuthGate:
             wait = self._window_ok(self._failures, client, FAILED_AUTH_PER_MIN, now)
             if wait is not None:
                 return Decision(False, 429, "too_many_failed_attempts", "Too many requests without a valid key.", wait)
-            return Decision(False, 401, "invalid_api_key", "A valid x-api-key header is required.")
+            return Decision(False, 401, "invalid_api_key", "A valid Jnvoy key is required: send it in the x-api-key header (on /v1/chat/completions, Authorization: Bearer also works).")
 
         key_id = hashlib.sha256(api_key.encode("utf-8")).hexdigest()[:8]
         if is_admin_route(path) and role != "admin":

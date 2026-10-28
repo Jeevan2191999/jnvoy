@@ -158,6 +158,14 @@ async def guide_remove_personal_data():
     raise HTTPException(status_code=404, detail="Not found")
 
 
+@app.api_route("/guides/litellm", methods=["GET", "HEAD"], include_in_schema=False)
+async def guide_litellm():
+    _page = os.path.join(_static_dir, "litellm.html")
+    if os.path.exists(_page):
+        return FileResponse(_page)
+    raise HTTPException(status_code=404, detail="Not found")
+
+
 @app.api_route("/accuracy", methods=["GET", "HEAD"], include_in_schema=False)
 async def accuracy_page():
     _page = os.path.join(_static_dir, "accuracy.html")
@@ -195,6 +203,7 @@ SITEMAP_XML = (
     "  <url><loc>https://www.jnvoy.com/privacy</loc></url>\n"
     "  <url><loc>https://www.jnvoy.com/accuracy</loc></url>\n"
     "  <url><loc>https://www.jnvoy.com/guides/remove-personal-data-from-prompts</loc></url>\n"
+    "  <url><loc>https://www.jnvoy.com/guides/litellm</loc></url>\n"
     "  <url><loc>https://www.jnvoy.com/docs</loc></url>\n"
     "</urlset>\n"
 )

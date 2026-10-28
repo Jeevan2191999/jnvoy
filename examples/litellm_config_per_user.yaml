@@ -1,0 +1,15 @@
+# LiteLLM proxy: each caller brings their own provider key, and LiteLLM passes it on to Jnvoy.
+#
+#   export JNVOY_API_KEY=...       # your Jnvoy key
+#   litellm --config litellm_config_per_user.yaml
+#
+# A caller then sends their key to LiteLLM in an x-provider-key header, next to their LiteLLM key.
+model_list:
+  - model_name: gpt-4o-mini
+    litellm_params:
+      model: openai/gpt-4o-mini
+      api_base: https://www.jnvoy.com/v1   # must end in /v1
+      api_key: os.environ/JNVOY_API_KEY
+
+general_settings:
+  forward_client_headers_to_llm_api: true

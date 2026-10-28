@@ -205,6 +205,24 @@ reply = client.chat.completions.create(model="gpt-4o", messages=[{"role": "user"
 
 Models starting with `claude` go to Anthropic, everything else to OpenAI (override with the `x-jnvoy-provider` header). It handles text, files and tools (see Tool calls below): images, audio, the older `functions`, JSON mode and `n` above 1 are refused with a `400`, because they cannot be scanned for personal data or are not supported yet. A file can be sent as a `file` part (see Files below). Other optional fields (`top_p`, `stop`, `seed`...) are ignored, and the `x-jnvoy-ignored-params` response header lists any that were. `usage` is not returned. With `stream: true` the reply arrives word by word, with your values restored as it goes. The reply is scanned after it has been sent, so if your account's reply scanning is set to `redact` the reply is checked in full first and then streamed. The Jnvoy key goes in `Authorization: Bearer` on this route only; every other route needs `x-api-key`.
 
+#### Using LiteLLM
+
+LiteLLM can use Jnvoy as an OpenAI-compatible server, so a LiteLLM app or proxy gets the same protection without other changes. In the Python SDK:
+
+```python
+import litellm
+
+reply = litellm.completion(
+    model="openai/gpt-4o-mini",              # "openai/" means "an OpenAI-compatible server"
+    api_base="https://www.jnvoy.com/v1",     # must end in /v1
+    api_key="<your Jnvoy key>",              # sent as Authorization: Bearer
+    extra_headers={"x-provider-key": "<your OpenAI or Anthropic key>"},
+    messages=[{"role": "user", "content": "..."}],
+)
+```
+
+For the LiteLLM proxy, [`examples/litellm_config.yaml`](examples/litellm_config.yaml) keeps one provider key on the LiteLLM server and [`examples/litellm_config_per_user.yaml`](examples/litellm_config_per_user.yaml) lets each caller bring their own. Streaming and tool calls work. LiteLLM itself, and its logs and callbacks, still see the original text; Jnvoy protects what reaches the model provider. Jnvoy returns no token usage, so LiteLLM reports 0 tokens for these calls. Tested with LiteLLM 1.106.5. The setup page is at [/guides/litellm](https://www.jnvoy.com/guides/litellm).
+
 ## Files
 
 Jnvoy reads PDFs (with a text layer), Word (`.docx`) and plain text files (`txt`, `md`, `csv`, `tsv`, `json`, `jsonl`, `log`, `xml`, `html`, `yaml`), checks the text for personal data, and never sends the file itself anywhere.
