@@ -35,7 +35,9 @@ libraries work unchanged. Keys come from whoever runs the deployment. Never put 
 
 - `401` The key is missing or not valid.
 - `403` A client key was used on an administration route.
-- `422` The request body is malformed or too large.
+- `413` The request body or a file is too large (files up to 5 MB, 100 PDF pages and 200,000 characters of text).
+- `415` The file type is not supported. PDFs with text, Word (.docx) and plain text are. Scans and images are refused, not skipped.
+- `422` The request body is malformed, or a file could not be read.
 - `429` The rate limit was reached (60 a minute per key by default; see the `Retry-After` header), or the key has used its monthly allowance (`monthly_limit_reached`). Responses to metered calls carry `X-Jnvoy-Monthly-Limit` and `X-Jnvoy-Monthly-Remaining`.
 - `503` No keys are configured on this server, or the optional second check failed and the server \
 is set to fail closed.
@@ -60,6 +62,7 @@ ROUTE_DOCS = {
     ("POST", "/v1/proxy"): ("Proxy", "Send a prompt to an AI model, with personal data removed"),
     ("POST", "/v1/chat/completions"): ("Proxy", "OpenAI-compatible chat, with personal data removed"),
     ("POST", "/v1/scan"): ("Scanning", "Scan text for personal data"),
+    ("POST", "/v1/scan/file"): ("Scanning", "Scan a PDF, Word or text file for personal data"),
     ("POST", "/v1/scan/injection"): ("Scanning", "Scan text for prompt injection"),
     ("POST", "/v1/mcp/scan"): ("MCP security", "Scan an MCP message for threats"),
     ("POST", "/v1/mcp/scan/tool-response"): ("MCP security", "Scan an MCP tool response"),

@@ -20,6 +20,19 @@ def max_body_bytes() -> int:
     return value if value > 0 else DEFAULT_MAX_BODY_BYTES
 
 
+# Routes that can carry a file (as base64 inside the JSON) get a larger limit. Everything else
+# keeps the small one. The text inside is still capped separately once it has been read.
+FILE_ROUTES = ("/v1/scan/file", "/v1/chat/completions")
+
+
+def limit_for(path: str) -> int:
+    base = max_body_bytes()
+    if path.rstrip("/") in FILE_ROUTES:
+        from core.file_reader import body_limit_for_files
+        return max(base, body_limit_for_files())
+    return base
+
+
 class _TooLarge(Exception):
     pass
 
@@ -27,7 +40,7 @@ class _TooLarge(Exception):
 async def _send_413(send, limit: int) -> None:
     body = json.dumps({"detail": {
         "error": "request_too_large",
-        "message": f"The request body is larger than {limit} bytes. Send smaller text.",
+        "message": f"The request body is larger than {limit} bytes. Send smaller text or a smaller file.",
     }}).encode()
     await send({"type": "http.response.start", "status": 413,
                 "headers": [(b"content-type", b"application/json"),
@@ -43,7 +56,7 @@ class BodySizeLimit:
         if scope["type"] != "http" or scope["method"] not in ("POST", "PUT", "PATCH"):
             await self.app(scope, receive, send)
             return
-        limit = max_body_bytes()
+        limit = limit_for(scope.get("path", ""))
         declared = None
         for name, value in scope.get("headers", []):
             if name == b"content-length":

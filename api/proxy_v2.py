@@ -52,6 +52,8 @@ logger = logging.getLogger("jnvoy")
 from api.docs_config import API_DESCRIPTION, OPENAPI_TAGS, VERSION, apply_docs
 from core.pii_judge import JudgeError
 from core.custom_detector import CustomPatternError
+from core.file_extract import FileError
+from core.file_reader import decode_base64, file_summary, read_file
 from core.intelligence import semantic_cache, intelligent_router, outage_detector
 from core.injection import InjectionDetector
 from core.mcp_security import MCPSecurityScanner
@@ -985,6 +987,7 @@ async def _stream_chat(request: ProxyRequest, http_request: Request, key: Option
             "cache_hit": handle["cache_hit"],
             "output_scan": {"flagged": scan.flagged, "findings": scan.findings,
                             "injection": scan.injection} if scan else None,
+            **({"files": parsed["files"]} if parsed.get("files") else {}),
         }
 
     headers = {"cache-control": "no-cache", "x-accel-buffering": "no"}
@@ -1017,13 +1020,16 @@ async def chat_completions(
     provider key in the `x-provider-key` header. Personal data is removed before the model sees
     it and put back in the reply, exactly as for `/v1/proxy`.
 
-    Text only. Tools, functions, JSON mode, images and `n` above 1 are refused. With
+    Text and files only. A `file` part with a PDF (with a text layer), Word (.docx) or plain text
+    file is read, and its text is redacted like the rest of the message. Tools, functions, JSON
+    mode, images, audio and `n` above 1 are refused. With
     `stream: true` the reply arrives word by word, with your values restored as it goes. The
     reply is scanned after it has been sent, so if your account's reply scanning is set to
     `redact`, the reply is instead checked in full first and then streamed.
     """
     try:
         parsed = openai_compat.parse_chat_request(body)
+        await openai_compat.attach_files(parsed)
         provider = openai_compat.provider_for(parsed["model"], x_jnvoy_provider)
         request = ProxyRequest(
             model=parsed["model"],
@@ -1052,6 +1058,8 @@ async def chat_completions(
                         "redacted": bool(summary)},
         "cache_hit": result["cache_hit"],
     }
+    if parsed.get("files"):
+        extra["files"] = parsed["files"]
     headers = {}
     if parsed["ignored"]:
         headers["x-jnvoy-ignored-params"] = ",".join(parsed["ignored"])[:200]
@@ -1082,6 +1090,64 @@ async def scan_text_post(body: ScanRequest, http_request: Request):
         raise HTTPException(status_code=503, detail={"error": "pii_judge_unavailable"})
     except CustomPatternError:
         raise HTTPException(status_code=503, detail={"error": "custom_pattern_failed"})
+
+
+class FileScanRequest(_ScanBase):
+    filename: str = _ScanField(..., max_length=255)
+    content_base64: str = _ScanField(...)
+
+
+def _file_http_error(e: FileError) -> HTTPException:
+    return HTTPException(status_code=e.status, detail={"error": e.code, "message": e.message})
+
+
+def _page_findings(pages: list, matches) -> list:
+    """For a PDF: which pages the findings are on, as [{page, types_detected}]."""
+    import bisect
+
+    spans = [p for p in pages if p.get("page") is not None]
+    if not spans:
+        return []
+    starts = [p["start"] for p in spans]
+    by_page: dict = {}
+    for m in matches:
+        start = getattr(m, "start", None)
+        if start is None:
+            continue
+        i = bisect.bisect_right(starts, start) - 1
+        if i < 0 or start > spans[i]["end"]:
+            continue
+        counts = by_page.setdefault(spans[i]["page"], {})
+        counts[m.pii_type] = counts.get(m.pii_type, 0) + 1
+    return [{"page": n, "types_detected": by_page[n]} for n in sorted(by_page)]
+
+
+@app.post("/v1/scan/file")
+async def scan_file(body: FileScanRequest, http_request: Request):
+    """
+    Scan a file for personal data without sending it anywhere. PDFs (with a text layer), Word
+    (.docx) and plain text files are read; the file goes in the body as base64. Scanned PDFs
+    and images are refused, because their text cannot be read yet. The reply is the redacted
+    text and a report, plus which PDF pages the findings are on. The file itself is processed in
+    memory and never stored.
+    """
+    try:
+        data = decode_base64(body.content_base64)
+        info = await read_file(body.filename, data)
+    except FileError as e:
+        raise _file_http_error(e)
+    det = detectors.for_policy(_caller(http_request).policy)
+    try:
+        result = await det.detect_async(info["text"])
+    except JudgeError:
+        raise HTTPException(status_code=503, detail={"error": "pii_judge_unavailable"})
+    except CustomPatternError:
+        raise HTTPException(status_code=503, detail={"error": "custom_pattern_failed"})
+    report = det.report_from(result)
+    report["file"] = file_summary(body.filename, info)
+    if info["pages"]:
+        report["findings_by_page"] = _page_findings(info["pages"], result.matches)
+    return report
 
 
 def _gone_use_post(path: str) -> HTTPException:

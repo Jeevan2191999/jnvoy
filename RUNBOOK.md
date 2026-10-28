@@ -131,7 +131,10 @@ everything else. Nothing changes on its own.
    `auth_not_configured`: same. `429 monthly_limit_reached` for one customer: expected,
    raise the limit if they should have more.
 3. Slow responses: very large requests are slower to scan (the limit is `JNVOY_MAX_BODY_BYTES`,
-   default about 256 KB). The second check (`JNVOY_JUDGE_BACKEND`) is off on the hosted service.
+   default about 256 KB, larger on the file routes). Long documents are scanned in pieces and take
+   roughly 8 seconds per 100,000 characters. Files are read in a separate process; a file that is
+   refused is not a fault (`no_text_layer`, `image_not_supported` and similar are expected
+   answers). The second check (`JNVOY_JUDGE_BACKEND`) is off on the hosted service.
    If you switch it on and its provider is down, `JNVOY_JUDGE_FAIL_MODE=open` (default) keeps
    first-pass redaction.
 4. Model errors (`502`, provider errors): the provider is the problem. `/v1/providers/health`

@@ -49,6 +49,36 @@ JUDGE_SCORE = 0.7
 
 _TOKEN_RE = re.compile(r"^\[([A-Z][A-Z_]*)_(\d+)\]$")
 
+# Long text is scanned in pieces. Detection time grows faster than the length (about 1 second
+# for 9,000 characters but over 30 seconds for 110,000 in one go), so a long document is split
+# at paragraph breaks and the pieces are scanned one after another. Tokens are still unique
+# across the whole document and the same value keeps the same token.
+LONG_TEXT_CHARS = 12_000
+CHUNK_CHARS = 6_000
+
+
+def split_for_detection(text: str, size: Optional[int] = None) -> list:
+    """
+    Splits text into pieces of about `size` characters that join back to exactly the same text.
+    Returns a list of (offset, piece). Cuts go at a blank line if there is one in the second half
+    of the window, else a line break, else a sentence end or space, else anywhere.
+    """
+    size = size or CHUNK_CHARS
+    pieces, pos, n = [], 0, len(text)
+    while pos < n:
+        end = min(pos + size, n)
+        if end < n:
+            window_start = pos + size // 2
+            cut = -1
+            for marker in ("\n\n", "\n", ". ", " "):
+                cut = text.rfind(marker, window_start, end)
+                if cut != -1:
+                    end = cut + len(marker)
+                    break
+        pieces.append((pos, text[pos:end]))
+        pos = end
+    return pieces
+
 
 @dataclass
 class JudgedDetectionResult(DetectionResult):
@@ -76,6 +106,8 @@ class JudgedPIIDetector(PIIDetectorV2):
     async def detect_async(self, text: str) -> JudgedDetectionResult:
         # Detection is CPU work, so it runs on a worker thread and the server keeps answering
         # other requests meanwhile. Token numbering is per thread (see detector_v2).
+        if len(text) > LONG_TEXT_CHARS:
+            return (await self.detect_conversation_async([text]))[0]
         base = await asyncio.to_thread(self.detect, text)
         return await self._apply_judge(base)
 
@@ -85,18 +117,55 @@ class JudgedPIIDetector(PIIDetectorV2):
         whole conversation. Returns one result per message, in order. Each result's
         token_map holds the tokens used in that message; merge them with dict.update.
         """
+        # Long messages are split into pieces first (see LONG_TEXT_CHARS) and joined again after.
+        plan, flat = [], []
+        for t in texts:
+            if len(t) > LONG_TEXT_CHARS:
+                parts = split_for_detection(t)
+            else:
+                parts = [(0, t)]
+            plan.append((len(flat), parts))
+            flat.extend(piece for _, piece in parts)
+
         # All messages in order on one worker thread, so numbering stays in reading order.
-        bases = await asyncio.to_thread(lambda: [self.detect(t) for t in texts])
+        bases = await asyncio.to_thread(lambda: [self.detect(t) for t in flat])
         settled = await asyncio.gather(
             *(self._apply_judge(b) for b in bases), return_exceptions=True
         )
         for item in settled:
             if isinstance(item, BaseException):
                 raise item  # fail-closed JudgeError, or a cancellation
-        return self._unify(list(settled))
+        unified = self._unify(list(settled))
+        return [self._join(t, unified[first:first + len(parts)], parts)
+                for t, (first, parts) in zip(texts, plan)]
+
+    @staticmethod
+    def _join(text: str, results: list, parts: list) -> "JudgedDetectionResult":
+        """Puts the results for the pieces of one text back together as one result."""
+        if len(results) == 1:
+            return results[0]
+        matches = []
+        for res, (offset, _) in zip(results, parts):
+            matches.extend(replace(m, start=m.start + offset, end=m.end + offset) for m in res.matches)
+        errors = [r.judge_error for r in results if r.judge_error]
+        return JudgedDetectionResult(
+            original_text=text,
+            redacted_text="".join(r.redacted_text for r in results),
+            matches=sorted(matches, key=lambda m: m.start, reverse=True),
+            token_map={k: v for r in results for k, v in r.token_map.items()},
+            detection_time_ms=round(sum(r.detection_time_ms for r in results), 2),
+            judge_ran=any(r.judge_ran for r in results),
+            judge_added=sum(r.judge_added for r in results),
+            judge_error=errors[0] if errors else None,
+            judge_ms=round(sum(r.judge_ms for r in results), 2),
+        )
 
     async def ascan_for_report(self, text: str) -> dict:
-        result = await self.detect_async(text)
+        return self.report_from(await self.detect_async(text))
+
+    @staticmethod
+    def report_from(result: "JudgedDetectionResult") -> dict:
+        """The scan report for a finished detection. Used by the text and file scan routes."""
         return {
             "pii_found": result.pii_found,
             "total_instances": len(result.matches),

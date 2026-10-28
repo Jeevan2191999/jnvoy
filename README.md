@@ -176,7 +176,35 @@ client = OpenAI(
 reply = client.chat.completions.create(model="gpt-4o", messages=[{"role": "user", "content": "..."}])
 ```
 
-Models starting with `claude` go to Anthropic, everything else to OpenAI (override with the `x-jnvoy-provider` header). It is text only: images, audio, tools, functions, JSON mode and `n` above 1 are refused with a `400`, because they cannot be scanned for personal data or are not supported yet. Other optional fields (`top_p`, `stop`, `seed`...) are ignored, and the `x-jnvoy-ignored-params` response header lists any that were. `usage` is not returned. With `stream: true` the reply arrives word by word, with your values restored as it goes. The reply is scanned after it has been sent, so if your account's reply scanning is set to `redact` the reply is checked in full first and then streamed. The Jnvoy key goes in `Authorization: Bearer` on this route only; every other route needs `x-api-key`.
+Models starting with `claude` go to Anthropic, everything else to OpenAI (override with the `x-jnvoy-provider` header). It handles text and files: images, audio, tools, functions, JSON mode and `n` above 1 are refused with a `400`, because they cannot be scanned for personal data or are not supported yet. A file can be sent as a `file` part (see Files below). Other optional fields (`top_p`, `stop`, `seed`...) are ignored, and the `x-jnvoy-ignored-params` response header lists any that were. `usage` is not returned. With `stream: true` the reply arrives word by word, with your values restored as it goes. The reply is scanned after it has been sent, so if your account's reply scanning is set to `redact` the reply is checked in full first and then streamed. The Jnvoy key goes in `Authorization: Bearer` on this route only; every other route needs `x-api-key`.
+
+## Files
+
+Jnvoy reads PDFs (with a text layer), Word (`.docx`) and plain text files (`txt`, `md`, `csv`, `tsv`, `json`, `jsonl`, `log`, `xml`, `html`, `yaml`), checks the text for personal data, and never sends the file itself anywhere.
+
+Scan a file without calling a model:
+
+```bash
+curl https://www.jnvoy.com/v1/scan/file -H "x-api-key: $JNVOY_KEY" -H "content-type: application/json" \
+  -d "{\"filename\": \"letter.pdf\", \"content_base64\": \"$(base64 -w0 letter.pdf)\"}"
+```
+
+The reply has the redacted text, what was found, and for a PDF the pages the findings are on (`findings_by_page`). Send a file to a model with the personal data removed, using the OpenAI library:
+
+```python
+import base64
+data = base64.b64encode(open("letter.pdf", "rb").read()).decode()
+client.chat.completions.create(model="gpt-4o", messages=[{"role": "user", "content": [
+    {"type": "text", "text": "Summarise this letter."},
+    {"type": "file", "file": {"filename": "letter.pdf", "file_data": "data:application/pdf;base64," + data}},
+]}])
+```
+
+The model receives the text of the file, redacted like any other message, between `[Attached file: ...]` markers, and your values are restored in the reply. The response's `jnvoy.files` lists each file read (name, format, pages, characters, never content).
+
+What is refused rather than skipped, so nothing is passed along unchecked: scanned PDFs and images (the text in them cannot be read yet), password-protected PDFs, old `.doc` and Excel/PowerPoint files, and anything over the limits (5 MB, 100 PDF pages, 200,000 characters per file, 3 files per chat request). Pictures inside a readable PDF or Word file are not read and are reported as `images_skipped`; pages with no text are reported as `pages_without_text`. Only the extracted text is ever used.
+
+Each file is read in a separate, locked-down process that has no access to keys or the database, has a memory and time limit, and cannot write files. Nothing is stored. Very long documents take longer to check: expect roughly 8 seconds for 100,000 characters of dense text.
 
 Full request and response details, with an Authorize button for trying calls, are at [/docs](https://www.jnvoy.com/docs).
 
@@ -188,6 +216,10 @@ Full request and response details, with an Authorize button for trying calls, ar
 | `JNVOY_ADMIN_KEYS` | Admin keys, comma separated |
 | `JNVOY_RATE_LIMIT_PER_MIN` | Requests per key per minute. Default 60, `0` for no limit |
 | `JNVOY_MAX_BODY_BYTES` | Largest request body accepted, in bytes. Default 262144 (about 256 KB) |
+| `JNVOY_MAX_FILE_BYTES` | Largest file accepted. Default 5,000,000. File routes accept a body a third bigger (base64) |
+| `JNVOY_MAX_FILE_CHARS`, `JNVOY_MAX_FILE_PAGES` | Most text read from one file (default 200,000) and most PDF pages (default 100) |
+| `JNVOY_MAX_FILES_PER_REQUEST` | Files in one chat request. Default 3 |
+| `JNVOY_FILE_TIMEOUT_S`, `JNVOY_FILE_MEMORY_MB`, `JNVOY_FILE_WORKERS` | Time limit (20), memory limit (768) and number of files read at once (2) for the file reader |
 | `JNVOY_AUTH=off` | Switches authentication off. Local development only |
 | `JNVOY_REGIONS` | National identifier packs: `all` (default), `none`, `eu`, or country codes such as `in,au,sg` |
 | `JNVOY_REDACT_EXTRA` | `ORGANIZATION`, `LOCATION`, `DATE_TIME`, `NRP`, or `all` |
