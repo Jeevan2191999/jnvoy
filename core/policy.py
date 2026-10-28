@@ -75,6 +75,34 @@ def validate_policy(raw) -> dict:
     return clean
 
 
+FIELD_HELP = {
+    "regions": "National identifier packs that are on: all, none, or a list such as eu or in,au,sg.",
+    "redact_extra": "Extra types to redact as well, such as organization,location, or all.",
+    "judge": "default, on, or off. Off means no text, even redacted, goes to a second provider.",
+    "judge_fail_mode": "If the second check fails: default, open (keep the first redaction) or closed (refuse).",
+    "output_scan": "What to do with the model's reply: off, flag or redact.",
+    "custom_patterns": "Your own types: a list of {name, pattern, ignore_case}. At most 20.",
+    "allowlist": "Words or phrases that must never be redacted. At most 100.",
+}
+
+
+def plan_changes(changes) -> tuple:
+    """
+    Checks a customer's requested changes and returns (clean, removed): the fields to set and the
+    fields to put back to the server default. A field sent as null, or as an empty list, is removed.
+    Only the fields sent are checked, so a change never re-checks the ones left alone.
+    """
+    if not isinstance(changes, dict) or not changes:
+        raise ValueError("send the fields to change, for example {\"policy\": {\"output_scan\": \"redact\"}}")
+    sent = {k: v for k, v in changes.items() if v is not None}
+    clean = validate_policy(sent)          # also rejects unknown field names
+    unknown = [k for k in changes if k not in POLICY_FIELDS]
+    if unknown:
+        raise ValueError("unknown policy field(s): " + ", ".join(unknown) + ". Valid: " + ", ".join(POLICY_FIELDS))
+    removed = [k for k in changes if k not in clean]
+    return clean, removed
+
+
 def output_scan_mode(policy: Optional[dict]) -> str:
     return (policy or {}).get("output_scan", DEFAULT_OUTPUT_SCAN)
 

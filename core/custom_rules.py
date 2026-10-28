@@ -15,14 +15,22 @@ with a time limit on every request (see core/custom_detector.py).
 """
 
 import re
+import time
 from typing import Optional
 
 import regex
+
+try:                                    # the standard library's parser, used only to measure a pattern
+    from re import _constants as _sre_c, _parser as _sre_parser
+except ImportError:                     # pragma: no cover  (Python before 3.11)
+    import sre_constants as _sre_c, sre_parse as _sre_parser
 
 MAX_PATTERNS = 20
 MAX_PATTERN_CHARS = 300
 MAX_ALLOWLIST = 100
 MAX_ALLOW_CHARS = 200
+MAX_PATTERN_SIZE = 2000      # a pattern's size once its counted repeats are written out
+CHECK_BUDGET_SECONDS = 3.0   # time allowed to check one whole list of patterns
 NAME_RE = re.compile(r"^[a-z][a-z0-9_]{0,29}$")
 PROBE_SECONDS = 0.05
 _BASES = ["a" * 3000, "1" * 3000, " " * 3000, "ab" * 1500, "-" * 3000, "x@y." * 700,
@@ -30,6 +38,40 @@ _BASES = ["a" * 3000, "1" * 3000, " " * 3000, "ab" * 1500, "-" * 3000, "x@y." * 
 # Each probe also with a character on the end that stops the pattern from finishing, because
 # runaway backtracking only shows when the match fails after a long partial match.
 _PROBES = _BASES + [b + "!" for b in _BASES]
+
+
+def _size(parsed) -> int:
+    """How many pieces a pattern becomes when its counted repeats are written out."""
+    total = 0
+    for op, arg in parsed:
+        if op in (_sre_c.MAX_REPEAT, _sre_c.MIN_REPEAT, getattr(_sre_c, "POSSESSIVE_REPEAT", None)):
+            low, high, sub = arg
+            copies = low if high == _sre_c.MAXREPEAT else high
+            total += max(1, copies) * max(1, _size(sub))
+        else:
+            total += 1
+            for part in (arg if isinstance(arg, (tuple, list)) else (arg,)):
+                if isinstance(part, _sre_parser.SubPattern):
+                    total += _size(part)
+                elif isinstance(part, (tuple, list)):
+                    total += sum(_size(x) for x in part if isinstance(x, _sre_parser.SubPattern))
+    return total
+
+
+def check_size(pattern: str, where: str = "pattern") -> None:
+    """
+    Refuses a pattern that is small to write but huge to build, such as (?:(?:a{500}){500}){500},
+    which is 300 characters and tens of gigabytes. This must run BEFORE the pattern is compiled,
+    because the compile itself is what runs out of memory.
+    """
+    try:
+        parsed = _sre_parser.parse(pattern)
+    except (re.error, RecursionError, OverflowError) as exc:
+        raise ValueError(f"{where} is not a valid regular expression, or uses syntax that cannot be "
+                         f"checked (use standard syntax): {exc}")
+    if _size(parsed) > MAX_PATTERN_SIZE:
+        raise ValueError(f"{where} is too large once its repeats are counted. Use smaller repeat "
+                         "counts and do not nest counted repeats, for example {1000} inside {1000}.")
 
 
 def compile_pattern(pattern: str, ignore_case: bool = False):
@@ -43,8 +85,11 @@ def validate_custom_patterns(raw) -> list:
     if len(raw) > MAX_PATTERNS:
         raise ValueError(f"policy.custom_patterns can hold at most {MAX_PATTERNS} patterns")
     clean, seen = [], set()
+    started = time.monotonic()
     for i, item in enumerate(raw):
         where = f"policy.custom_patterns[{i}]"
+        if time.monotonic() - started > CHECK_BUDGET_SECONDS:
+            raise ValueError("policy.custom_patterns took too long to check. Send fewer or simpler patterns.")
         if not isinstance(item, dict):
             raise ValueError(f"{where} must be an object with name and pattern")
         extra = [k for k in item if k not in ("name", "pattern", "ignore_case")]
@@ -65,6 +110,7 @@ def validate_custom_patterns(raw) -> list:
         ignore_case = item.get("ignore_case", False)
         if not isinstance(ignore_case, bool):
             raise ValueError(f"{where}.ignore_case must be true or false")
+        check_size(pattern, f"{where}.pattern")
         try:
             compiled = compile_pattern(pattern, ignore_case)
         except regex.error as exc:

@@ -469,6 +469,37 @@ def update_tenant(tenant_id: str, tier: Optional[str] = None, monthly_limit: Opt
         pool.putconn(conn)
 
 
+def apply_policy_changes(tenant_id: str, clean: dict, removed: list):
+    """
+    Sets and removes policy fields on one tenant in a single locked step, so two edits made at
+    the same moment cannot undo each other. Returns (before, after), or None if there is no such
+    tenant.
+    """
+    pool = get_pool()
+    conn = pool.getconn()
+    try:
+        with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+            cur.execute("SELECT policy FROM tenants WHERE tenant_id = %s FOR UPDATE", (tenant_id,))
+            row = cur.fetchone()
+            if row is None:
+                conn.rollback()
+                return None
+            before = dict(row["policy"] or {})
+            after = {**before, **clean}
+            for key in removed:
+                after.pop(key, None)
+            if after != before:
+                cur.execute("UPDATE tenants SET policy = %s WHERE tenant_id = %s",
+                            (json.dumps(after), tenant_id))
+        conn.commit()
+        return before, after
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        pool.putconn(conn)
+
+
 def rotate_api_key(tenant_id: str, environment: str = "prod") -> Optional[str]:
     """
     Issue a new key for a tenant. The old key stops working at once.

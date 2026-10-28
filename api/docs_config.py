@@ -71,6 +71,8 @@ ROUTE_DOCS = {
     ("DELETE", "/v1/cache"): (ADMIN, "Clear the response cache"),
     ("GET", "/v1/providers/health"): (ADMIN, "Check model provider health"),
     ("GET", "/v1/me"): (ACCOUNT, "See your plan, usage and settings"),
+    ("GET", "/v1/me/policy"): (ACCOUNT, "See your settings and what each one does"),
+    ("PATCH", "/v1/me/policy"): (ACCOUNT, "Change your own settings (patterns, allowlist, regions, reply scanning)"),
     ("GET", "/v1/me/audit"): (ACCOUNT, "Read or export your audit log (JSON, CSV or NDJSON)"),
     ("GET", "/v1/me/audit/summary"): (ACCOUNT, "Summarise your audit log"),
     ("GET", "/v1/me/report/compliance"): (ACCOUNT, "Download your compliance report (PDF)"),

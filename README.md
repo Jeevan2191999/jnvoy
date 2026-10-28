@@ -160,7 +160,21 @@ curl -X POST https://your-host/v1/admin/tenants -H "x-api-key: $ADMIN_KEY" -H "C
 
 The response holds the customer's key once. Plans are `free` (10,000 calls a month), `production` (100,000), `business` and `enterprise`; set `monthly_limit` to agree a custom allowance. A customer who reaches the allowance gets `429 monthly_limit_reached`, and every metered response carries `X-Jnvoy-Monthly-Limit` and `X-Jnvoy-Monthly-Remaining`. Usage is counted per calendar month, so nothing needs resetting.
 
-Settings (`policy`) per customer: `regions`, `redact_extra`, `judge` (`default`, `on`, `off`), `judge_fail_mode` and `output_scan` (`flag` by default, `redact`, or `off`). `judge: off` means no text, not even redacted text, goes to a second provider. Two more settings are lists. `custom_patterns` redacts things only that customer has, for example `[{"name": "employee_id", "pattern": "\\bEMP-\\d{6}\\b"}]` turns `EMP-123456` into `[CUSTOM_EMPLOYEE_ID_1]` (up to 20 patterns of at most 300 characters; a pattern that can match nothing, or that can run away on hostile input, is refused when you save it, and a pattern that runs out of time on a request refuses that request instead of letting text through). `allowlist` is whole words or phrases that must never be redacted, for example `["Acme Ltd", "support@acme.com"]`, matched ignoring case; it wins over both custom patterns and built-in detection. Keys from `JNVOY_API_KEYS` and `JNVOY_ADMIN_KEYS` are the operator's own and are not metered. Customers need the database (`DATABASE_URL`).
+Settings (`policy`) per customer: `regions`, `redact_extra`, `judge` (`default`, `on`, `off`), `judge_fail_mode` and `output_scan` (`flag` by default, `redact`, or `off`). `judge: off` means no text, not even redacted text, goes to a second provider. Two more settings are lists. `custom_patterns` redacts things only that customer has, for example `[{"name": "employee_id", "pattern": "\\bEMP-\\d{6}\\b"}]` turns `EMP-123456` into `[CUSTOM_EMPLOYEE_ID_1]` (up to 20 patterns of at most 300 characters; a pattern that can match nothing, or that can run away on hostile input, is refused when you save it, and a pattern that runs out of time on a request refuses that request instead of letting text through). `allowlist` is whole words or phrases that must never be redacted, for example `["Acme Ltd", "support@acme.com"]`, matched ignoring case; it wins over both custom patterns and built-in detection. Customers can change all of these themselves with their own key (see below). Keys from `JNVOY_API_KEYS` and `JNVOY_ADMIN_KEYS` are the operator's own and are not metered. Customers need the database (`DATABASE_URL`).
+
+#### Customers changing their own settings
+
+A customer can read and change their own settings with their own key, with no need to ask you:
+
+```bash
+# see the current settings and what each one does
+curl https://www.jnvoy.com/v1/me/policy -H "x-api-key: $JNVOY_KEY"
+# turn on reply redaction and add one pattern and two allowlist entries; other settings stay as they are
+curl -X PATCH https://www.jnvoy.com/v1/me/policy -H "x-api-key: $JNVOY_KEY" -H "Content-Type: application/json" \
+  -d '{"policy":{"output_scan":"redact","custom_patterns":[{"name":"employee_id","pattern":"\\bEMP-\\d{6}\\b"}],"allowlist":["Acme Ltd","support@acme.com"]}}'
+```
+
+Send only the fields to change. A field sent as `null` (or an empty list) goes back to the server default. Changes take effect on the customer's next request. The checks are the same as for you, plus two more because the patterns now come from customers: a pattern that is small to write but huge to build (for example nested counted repeats such as `(?:a{500}){500}`) is refused before it is compiled, and a whole list has a time budget for checking. A customer may make 20 changes in 10 minutes, counting failed ones, then gets `429 too_many_policy_changes` with `Retry-After`. Operator keys have no stored settings and get `403 policy_not_editable`. A customer can weaken their own protection (for example `regions: none`); that is their choice for their own data, and the change is logged by field name, never by value.
 
 #### Model provider keys
 

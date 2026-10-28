@@ -12,6 +12,7 @@ import io
 import json
 import logging
 import re
+import time
 from typing import Optional
 
 from fastapi import APIRouter, HTTPException, Query, Request
@@ -22,7 +23,7 @@ from starlette.concurrency import run_in_threadpool
 from api.docs_config import ROUTE_DOCS
 from core import audit_export
 from core import tenants as tenant_store
-from core.policy import POLICY_FIELDS, validate_policy
+from core.policy import FIELD_HELP, POLICY_FIELDS, plan_changes, validate_policy
 from core.tenancy import Caller, DEFAULT_TENANT, resolver
 
 log = logging.getLogger("jnvoy.account")
@@ -86,6 +87,71 @@ async def my_account(request: Request):
         "policy": caller.policy,
         "policy_fields": list(POLICY_FIELDS),
     }
+
+
+# Settings a customer can change themselves. Checking a pattern costs processor time, so the
+# number of edits is limited per customer: 20 in 10 minutes. Failed attempts count too.
+POLICY_EDITS = 20
+POLICY_WINDOW_SECONDS = 600
+_policy_edits: dict = {}
+
+
+def _policy_edit_allowed(tenant_id: str, now: Optional[float] = None) -> int:
+    """0 if this edit may go ahead, otherwise the seconds to wait."""
+    now = time.monotonic() if now is None else now
+    recent = [t for t in _policy_edits.get(tenant_id, []) if now - t < POLICY_WINDOW_SECONDS]
+    if len(recent) >= POLICY_EDITS:
+        _policy_edits[tenant_id] = recent
+        return max(1, int(POLICY_WINDOW_SECONDS - (now - recent[0])) + 1)
+    recent.append(now)
+    _policy_edits[tenant_id] = recent
+    if len(_policy_edits) > 5000:                      # forget customers with nothing recent
+        for key in [k for k, v in _policy_edits.items() if not v or now - v[-1] >= POLICY_WINDOW_SECONDS]:
+            _policy_edits.pop(key, None)
+    return 0
+
+
+class PolicyChange(BaseModel):
+    policy: dict
+
+
+@router.get("/v1/me/policy", **_doc("GET", "/v1/me/policy"))
+async def my_policy(request: Request):
+    """Your settings, what each one does, and whether this key can change them."""
+    caller = _caller(request)
+    return {"tenant_id": caller.tenant_id, "editable": caller.metered,
+            "policy": caller.policy if caller.metered else {}, "fields": FIELD_HELP}
+
+
+@router.patch("/v1/me/policy", **_doc("PATCH", "/v1/me/policy"))
+async def change_my_policy(request: Request, body: PolicyChange):
+    """
+    Change your own settings. Send only the fields to change. A field set to null (or an empty
+    list) goes back to the server default. Takes effect on your next request.
+    """
+    caller = _caller(request)
+    if not caller.metered:
+        raise HTTPException(status_code=403, detail={
+            "error": "policy_not_editable",
+            "message": "This key has no stored settings. Server-wide settings are set by the operator."})
+    _need_database()
+    wait = _policy_edit_allowed(caller.tenant_id)
+    if wait:
+        raise HTTPException(status_code=429, headers={"Retry-After": str(wait)}, detail={
+            "error": "too_many_policy_changes",
+            "message": f"Too many settings changes. Try again in {wait} seconds."})
+    try:
+        clean, removed = await run_in_threadpool(plan_changes, body.policy)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail={"error": "invalid_policy", "message": str(exc)})
+    result = await run_in_threadpool(tenant_store.apply_policy_changes, caller.tenant_id, clean, removed)
+    if result is None:
+        raise HTTPException(status_code=404, detail={"error": "not_found", "message": "No such customer."})
+    before, after = result
+    resolver.invalidate()
+    changed = sorted(k for k in set(before) | set(after) if before.get(k) != after.get(k))
+    log.info("policy changed by customer: tenant=%s fields=%s", caller.tenant_id, ",".join(changed) or "none")
+    return {"updated": bool(changed), "changed": changed, "policy": after}
 
 
 @router.get("/v1/me/audit", **_doc("GET", "/v1/me/audit"))
