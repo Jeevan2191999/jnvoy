@@ -26,7 +26,7 @@ from dataclasses import dataclass, field
 from typing import Optional
 
 import spacy
-from presidio_analyzer import AnalyzerEngine, RecognizerRegistry
+from presidio_analyzer import AnalyzerEngine, RecognizerRegistry, RecognizerResult
 from presidio_analyzer.nlp_engine import NlpEngineProvider
 from presidio_anonymizer import AnonymizerEngine
 from presidio_anonymizer.entities import OperatorConfig
@@ -157,6 +157,12 @@ def _make_phone_recogniser():
     )
 
 
+# Which language model the analyzer is using. "en_core_web_lg" is the large, more accurate one; the small
+# one is used when the large one is not installed. /health reports this so a deployment that quietly
+# runs the small model (smaller memory, noticeably worse at names) is visible instead of assumed.
+SPACY_MODEL = "unknown"
+
+
 def _build_analyzer() -> AnalyzerEngine:
     """Build the Presidio analyzer with the large spaCy model and UK recognisers."""
     # Use en_core_web_lg in production for best accuracy
@@ -167,6 +173,13 @@ def _build_analyzer() -> AnalyzerEngine:
         model_name = "en_core_web_lg"
     except OSError:
         model_name = "en_core_web_sm"
+    global SPACY_MODEL
+    SPACY_MODEL = model_name
+    if model_name != "en_core_web_lg":
+        import logging
+        logging.getLogger("jnvoy.detector").warning(
+            "The large language model (en_core_web_lg) is not installed, so the small one is in use. "
+            "Detection of names is less accurate. Install it with: python -m spacy download en_core_web_lg")
     config = {"nlp_engine_name": "spacy", "models": [{"lang_code": "en", "model_name": model_name}]}
     provider = NlpEngineProvider(nlp_configuration=config)
     nlp_engine = provider.create_engine()
@@ -184,6 +197,9 @@ def _build_analyzer() -> AnalyzerEngine:
     from core.extra_recognisers import make_extra_recognisers
     for recogniser in make_extra_recognisers():
         registry.add_recognizer(recogniser)
+
+    from core.name_cues import NameCueRecognizer
+    registry.add_recognizer(NameCueRecognizer())
 
     from core.regions import make_region_recognisers
     for recogniser in make_region_recognisers():
@@ -259,6 +275,44 @@ def _is_town_after_address(text: str, r, results) -> bool:
     return bool(_STREET_END.search(before))
 
 
+def _cut_names_at_line_end(text: str, results: list) -> list:
+    """
+    A name does not run across a line break. The language model sometimes tags the first word of the
+    next line as part of the name ("Name: Lucía Fernández Ortega\\nEmployer"), which hides a word
+    the reader needs. Cut such a PERSON result at the line break.
+    """
+    out = []
+    for r in results:
+        if r.entity_type == "PERSON":
+            cut = text.find("\n", r.start, r.end)
+            if cut != -1:
+                if cut == r.start:
+                    continue
+                r = RecognizerResult(entity_type="PERSON", start=r.start, end=cut, score=r.score)
+        out.append(r)
+    return out
+
+
+def _merge_person_spans(results: list) -> list:
+    """
+    Joins PERSON results that overlap into one, so a name found in two pieces by two recognisers
+    ("Aoife" by one, "Brennan-Walsh" by another, or a title rule and the language model) is redacted
+    whole instead of leaving half of it visible. Other entity types are left alone.
+    """
+    people = sorted((r for r in results if r.entity_type == "PERSON"), key=lambda r: r.start)
+    if len(people) < 2:
+        return results
+    merged = []
+    for r in people:
+        if merged and r.start < merged[-1].end:
+            last = merged[-1]
+            merged[-1] = RecognizerResult(entity_type="PERSON", start=last.start,
+                                          end=max(last.end, r.end), score=max(last.score, r.score))
+        else:
+            merged.append(r)
+    return [r for r in results if r.entity_type != "PERSON"] + merged
+
+
 # ── PII Detector v2 ───────────────────────────────────────────────────────────
 
 class PIIDetectorV2:
@@ -332,6 +386,7 @@ class PIIDetectorV2:
         )
 
         results = [r for r in results if not _is_town_after_address(text, r, results)]
+        results = _merge_person_spans(_cut_names_at_line_end(text, results))
 
         # Remove overlapping spans keeping highest confidence
         results.sort(key=lambda r: r.score, reverse=True)

@@ -1,0 +1,30 @@
+{"id": "K001", "text": "Hi Callum, thanks for the update on the Leeds office move.", "sensitive": [{"value": "Callum", "type": "PERSON"}], "keep": ["Leeds"]}
+{"id": "K002", "text": "Regards,\nTunde Bakare\nOperations Manager, Tesco", "sensitive": [{"value": "Tunde Bakare", "type": "PERSON"}], "keep": ["Tesco"]}
+{"id": "K003", "text": "Patient: Mrs Imogen Featherstone-Hale, seen at Manchester Royal Infirmary on 3 March.", "sensitive": [{"value": "Imogen Featherstone-Hale", "type": "PERSON"}], "keep": ["Manchester Royal Infirmary"]}
+{"id": "K004", "text": "Please send the invoice to Sipho van der Merwe at Barclays by Friday.", "sensitive": [{"value": "Sipho van der Merwe", "type": "PERSON"}], "keep": ["Barclays"]}
+{"id": "K005", "text": "The report was written by Aiko Tanaka and reviewed by Dr Marcus Oyelaran.", "sensitive": [{"value": "Aiko Tanaka", "type": "PERSON"}, {"value": "Marcus Oyelaran", "type": "PERSON"}], "keep": []}
+{"id": "K006", "text": "Attendees: Brigid O'Donnell, Hamza Rahman and Tomasz Wiśniewski.", "sensitive": [{"value": "Brigid O'Donnell", "type": "PERSON"}, {"value": "Hamza Rahman", "type": "PERSON"}, {"value": "Tomasz Wiśniewski", "type": "PERSON"}], "keep": []}
+{"id": "K007", "text": "Name: Lucía Fernández Ortega\nEmployer: Microsoft\nStart date: 1 June", "sensitive": [{"value": "Lucía Fernández Ortega", "type": "PERSON"}], "keep": ["Microsoft"]}
+{"id": "K008", "text": "Ask Delphine Marchetti about the Paris contract.", "sensitive": [{"value": "Delphine Marchetti", "type": "PERSON"}], "keep": ["Paris"]}
+{"id": "K009", "text": "Priya Nair's laptop was returned to the Reading office.", "sensitive": [{"value": "Priya Nair", "type": "PERSON"}], "keep": ["Reading"]}
+{"id": "K010", "text": "Wang Wei joined the London team in January.", "sensitive": [{"value": "Wang Wei", "type": "PERSON"}], "keep": ["London"]}
+{"id": "K011", "text": "Dear Mr Achterberg, we confirm your booking.", "sensitive": [{"value": "Achterberg", "type": "PERSON"}], "keep": []}
+{"id": "K012", "text": "Referral for Ms Nokuthula Mbeki, DOB 14/07/1986, from Dr Sarah Whitlock.", "sensitive": [{"value": "Nokuthula Mbeki", "type": "PERSON"}, {"value": "Sarah Whitlock", "type": "PERSON"}, {"value": "14/07/1986", "type": "DOB"}], "keep": []}
+{"id": "K013", "text": "[10:32] Callum Reid: can you cover my shift?\n[10:33] Fatima Zahra: sure.", "sensitive": [{"value": "Callum Reid", "type": "PERSON"}, {"value": "Fatima Zahra", "type": "PERSON"}], "keep": []}
+{"id": "K014", "text": "Contact: Rhys Llewellyn-Jones, rhys.llj@example.com, 07700 900321.", "sensitive": [{"value": "Rhys Llewellyn-Jones", "type": "PERSON"}, {"value": "rhys.llj@example.com", "type": "EMAIL"}, {"value": "07700 900321", "type": "PHONE"}], "keep": []}
+{"id": "K015", "text": "Spoke with Agnieszka Kowalczyk from Siemens about the Berlin delivery.", "sensitive": [{"value": "Agnieszka Kowalczyk", "type": "PERSON"}], "keep": ["Siemens", "Berlin"]}
+{"id": "K016", "text": "Thanks, Joao", "sensitive": [{"value": "Joao", "type": "PERSON"}], "keep": []}
+{"id": "K017", "text": "Applicant Ngozi Eze lives in Croydon and works for Lloyds.", "sensitive": [{"value": "Ngozi Eze", "type": "PERSON"}], "keep": ["Croydon", "Lloyds"]}
+{"id": "K018", "text": "Mum's number is 07700 900654, ask for Gillian when you ring.", "sensitive": [{"value": "07700 900654", "type": "PHONE"}, {"value": "Gillian", "type": "PERSON"}], "keep": []}
+{"id": "K019", "text": "Cc: Henrik Lindqvist; Bcc: Rosalind Appiah", "sensitive": [{"value": "Henrik Lindqvist", "type": "PERSON"}, {"value": "Rosalind Appiah", "type": "PERSON"}], "keep": []}
+{"id": "K020", "text": "Meeting with Oleksandr Petrenko and team at 3pm on Tuesday in Glasgow.", "sensitive": [{"value": "Oleksandr Petrenko", "type": "PERSON"}], "keep": ["Glasgow"]}
+{"id": "K021", "text": "Invoice raised to Hartwell & Sons Ltd for Mr Desmond Achebe's consultation.", "sensitive": [{"value": "Desmond Achebe", "type": "PERSON"}], "keep": ["Hartwell & Sons Ltd"]}
+{"id": "K022", "text": "The Victoria line was suspended; Florence Nightingale Hospital closed its car park.", "sensitive": [], "keep": ["Victoria line", "Florence Nightingale Hospital"]}
+{"id": "K023", "text": "Born in Nairobi, Kamau Njoroge studied at Imperial College.", "sensitive": [{"value": "Kamau Njoroge", "type": "PERSON"}], "keep": ["Nairobi", "Imperial College"]}
+{"id": "K024", "text": "From: Beatrix Holloway <beatrix.holloway@example.org>\nSubject: Quarterly figures", "sensitive": [{"value": "Beatrix Holloway", "type": "PERSON"}, {"value": "beatrix.holloway@example.org", "type": "EMAIL"}], "keep": []}
+{"id": "K025", "text": "Please forward to Yusuf Demir, who handles the Istanbul account.", "sensitive": [{"value": "Yusuf Demir", "type": "PERSON"}], "keep": ["Istanbul"]}
+{"id": "K026", "text": "Witness statement of Eilidh MacAskill, taken in Inverness.", "sensitive": [{"value": "Eilidh MacAskill", "type": "PERSON"}], "keep": ["Inverness"]}
+{"id": "K027", "text": "Our new hire Marguerite Thibault starts on Monday.", "sensitive": [{"value": "Marguerite Thibault", "type": "PERSON"}], "keep": []}
+{"id": "K028", "text": "Signed: Anneliese Brandt (Head of Finance, Siemens)", "sensitive": [{"value": "Anneliese Brandt", "type": "PERSON"}], "keep": ["Siemens"]}
+{"id": "K029", "text": "Kindly welcome Ibrahim al-Farsi and Chioma Okafor to Birmingham.", "sensitive": [{"value": "Ibrahim al-Farsi", "type": "PERSON"}, {"value": "Chioma Okafor", "type": "PERSON"}], "keep": ["Birmingham"]}
+{"id": "K030", "text": "John Lewis and Marks & Spencer both reported results; call Elinor Vaughan-Price for comment.", "sensitive": [{"value": "Elinor Vaughan-Price", "type": "PERSON"}], "keep": ["John Lewis", "Marks & Spencer"]}

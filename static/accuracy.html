@@ -227,7 +227,7 @@
     <div class="wrap">
       <h1>Accuracy</h1>
       <p class="lede">How well Jnvoy hides personal data, measured on example text we wrote ourselves. The misses are listed, and so are the limits of the test.</p>
-      <p class="meta">Last measured 27 October 2026 on version 3.0</p>
+      <p class="meta">Last measured 28 October 2026 on version 3.0</p>
     </div>
   </div>
 
@@ -251,12 +251,14 @@
         <div class="ledger">
           <div class="row head"><div>Test set</div><div>What it is</div><div>Hidden</div></div>
           <div class="row"><div class="k">Fresh held-out set</div><div class="v">25 short texts, 37 sensitive values, 21 harmless words that should stay. Written after the last fixes, and no rule was changed after seeing its results. The same rules before those fixes scored 31 of 37 (83.8%) on it. 20 harmless words stayed readable (95.2%).</div><div class="s mid">91.9%</div></div>
-          <div class="row"><div class="k">Third and fourth sets</div><div class="v">Two sets that were fresh when written (23 and 24 short texts) and have since been used to fix rules, so they are optimistic now. The third scored 22 of 25 (88.0%) before the latest fixes and 25 of 25 after. The fourth, which we wrote to test street-first and named-house addresses, scored 15 of 32 (46.9%) before and 29 of 32 after.</div><div class="s mid">100.0% / 90.6%</div></div>
+          <div class="row"><div class="k">Names in letters and forms</div><div class="v">30 short texts, 41 sensitive values, mostly people's names in greetings, titles, labels, sign-offs, lists and chat lines, with 24 harmless company and place names that should stay. Written before the rules that find names from the words around them were added. One detail of those rules (which place tags may overrule a guess) was adjusted after seeing this set's results, so the figures after are slightly optimistic. With the large language model: 40 of 41 (97.6%) before those rules and 40 of 41 after. With the small model: 28 of 41 (68.3%) before and 38 of 41 (92.7%) after. 23 of 24 harmless words stayed readable.</div><div class="s mid">97.6%</div></div>
+          <div class="row"><div class="k">Third and fourth sets</div><div class="v">Two sets that were fresh when written (23 and 24 short texts) and have since been used to fix rules, so they are optimistic now. The third scored 22 of 25 (88.0%) before the latest fixes and 25 of 25 after. The fourth, which we wrote to test street-first and named-house addresses, scored 15 of 32 (46.9%) before and 30 of 32 after.</div><div class="s mid">100.0% / 93.8%</div></div>
           <div class="row"><div class="k">Development set</div><div class="v">117 short texts, 109 sensitive values. We fixed the rules against this set, so its score is optimistic. 52 of 53 harmless words stayed readable (98.1%).</div><div class="s mid">100.0%</div></div>
           <div class="row"><div class="k">Earlier test sets</div><div class="v">Two older sets that were fresh when written (68 and 24 short texts) and have since been used to fix rules, so they are optimistic now. The second scored 19 of 27 (70.4%) before street-address fixes and 27 of 27 after; the first scored 56 of 60 before and 59 of 60 after.</div><div class="s mid">98.3% / 100.0%</div></div>
           <div class="row"><div class="k">Country identifiers</div><div class="v">32 short texts, one published sample number for each of 24 identifier types from other countries. 7 of 8 harmless words stayed readable.</div><div class="s mid">100.0%</div></div>
         </div>
         <p>A value counts as hidden only if neither the whole value nor any recognisable part of it (a surname, the last digits of a number) is still visible in the redacted text. These are first-pass results: the optional second check is off on the hosted service.</p>
+        <p><strong>Which language model.</strong> The figures above use the large English model (en_core_web_lg). A server that has only the small model (en_core_web_sm) hides fewer names: on the fresh held-out set it hid 32 of 37 (86.5%) instead of 34. The hosted service reports which model it is running at <a href="/health">/health</a>, under <code>detector.spacy_model</code>.</p>
         <p>Speed on these short texts (35 to 50 characters each) was 16 to 32 milliseconds each in a small cloud container. We have not measured longer texts or the hosted service under load.</p>
       </section>
 
@@ -286,13 +288,14 @@
           <li>A single-word house name, such as "Oakwood, Bell Lane" or "Hillcrest, Station Road".</li>
           <li>A named house written inside a sentence instead of at the start of an address line, such as "She moved to Rose Cottage near Whitby" or "The farm, Primrose Farm, is near Skipton".</li>
           <li>Danish street names ending in "-gade", such as "Vestergade 4". Other Nordic street words have not been tested.</li>
-          <li>An uncommon name in a list of attendees, or a less common name after a title ("Dr Emeka Obi"). In both cases a different name in the same text was hidden.</li>
+          <li>An uncommon name in a sentence-style list, such as "attendees were A, B and C", where one of the names is not recognised as a name. Names after a title, a greeting, a label such as "Name:" or a sign-off are now found by rules, but a name with no such cue in a short sentence can still be missed, most often with the small model.</li>
         </ul>
         <h3>Harmless text it hid by mistake</h3>
         <ul class="plain">
           <li>A Unix timestamp that looks like an NHS number.</li>
           <li>The words "Downing Street", read as a street address.</li>
-          <li>The word "Pepper", read as a person's name.</li>
+          <li>Brand names that start with a title, such as "Dr Pepper" or "Dr Martens", read as a person's name.</li>
+          <li>A company named after people, such as "John Lewis", when it follows a verb such as "email" or "call".</li>
           <li>The city name "Lisboa" after a street address, read as a person.</li>
           <li>An invoice number that looks like a phone number.</li>
           <li>A link to public documentation, hidden as a web address.</li>
@@ -308,7 +311,7 @@
           <li><strong>Mostly English, mostly short.</strong> Names are detected best in English, and street addresses best in UK, US, French, German, Dutch, Spanish, Italian and Portuguese formats. Other languages have had little testing.</li>
           <li><strong>Country identifiers were tested only on published sample numbers.</strong> Accuracy on real data in those countries has not been measured.</li>
           <li><strong>No real customer data was used.</strong> Every value is invented or a documented example number.</li>
-          <li><strong>Library versions matter.</strong> These numbers were measured with the versions the hosted service uses (Python 3.12, spaCy 3.7.5 and its en_core_web_lg 3.7.1 model). Newer versions scored one or two values differently in our checks.</li>
+          <li><strong>Library versions matter.</strong> These numbers were measured with Python 3.12, spaCy 3.7.5 and its en_core_web_lg 3.7.1 model, except where the small model is named. Newer versions scored one or two values differently in our checks.</li>
           <li><strong>It will change.</strong> The sets and the scores are kept in the repository, and a test fails if this page and the measured numbers disagree.</li>
         </ul>
       </section>

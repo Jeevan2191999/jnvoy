@@ -7,6 +7,8 @@ All examples are synthetic (documented example numbers, fictional people). Nothi
     python evaluation/run_eval.py                 first pass only (Presidio and the UK rules)
     python evaluation/run_eval.py --judge         also runs the LLM judge and shows what it adds
     python evaluation/run_eval.py --misses        list every value that leaked
+    python evaluation/run_eval.py --small-model   score with the small language model (en_core_web_sm),
+                                                  which is what runs if the large one is not installed
     python evaluation/run_eval.py --json out.json write the full results to a file
 
 The judge uses the same settings as the live app, for example:
@@ -198,7 +200,18 @@ def main() -> int:
     ap.add_argument("--misses", action="store_true", help="list every leaked value")
     ap.add_argument("--json", metavar="FILE", help="write full results to FILE")
     ap.add_argument("--dataset", default=str(DATASET))
+    ap.add_argument("--small-model", action="store_true",
+                    help="use en_core_web_sm even if en_core_web_lg is installed")
     args = ap.parse_args()
+    if args.small_model:
+        import spacy
+        real_load = spacy.load
+
+        def load(name, *a, **k):
+            if name == "en_core_web_lg":
+                raise OSError("large model switched off by --small-model")
+            return real_load(name, *a, **k)
+        spacy.load = load
 
     rows = load_rows(Path(args.dataset))
     print(f"{len(rows)} documents, {sum(len(r['sensitive']) for r in rows)} sensitive values, "

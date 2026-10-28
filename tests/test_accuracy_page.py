@@ -83,6 +83,37 @@ def test_development_and_country_rows_match_too():
     assert f"{len(rg['per_type'])} identifier types" in text
 
 
+def _small_model_score(name):
+    """The same set scored in a separate process with the small language model switched on."""
+    import json
+    import subprocess
+    import tempfile
+
+    out = Path(tempfile.mkdtemp()) / "r.json"
+    subprocess.run([sys.executable, str(ROOT / "evaluation" / "run_eval.py"), "--dataset",
+                    str(ROOT / "evaluation" / name), "--small-model", "--json", str(out)],
+                   check=True, capture_output=True, cwd=ROOT)
+    return json.loads(out.read_text())["first_pass"]
+
+
+@needs_pinned_spacy
+def test_names_row_and_the_small_model_figures_match():
+    rows, k = _score("holdout6.jsonl")
+    text = _text()
+    assert f"{len(rows)} short texts, {k['n']} sensitive values" in text
+    assert f"With the large language model: 40 of 41 (97.6%) before those rules and {k['caught']} of {k['n']} after" in text
+    assert f"{k['keep_kept']} of {k['keep_total']} harmless words stayed readable" in text
+    try:
+        spacy.load("en_core_web_sm")
+    except OSError:
+        pytest.skip("the small model is not installed")
+    k_sm = _small_model_score("holdout6.jsonl")
+    assert f"With the small model: 28 of 41 (68.3%) before and {k_sm['caught']} of {k_sm['n']} ({_pct(k_sm['caught'], k_sm['n'])}) after" in text
+    _, ho = _score("holdout5.jsonl")
+    ho_sm = _small_model_score("holdout5.jsonl")
+    assert (f"it hid {ho_sm['caught']} of {ho_sm['n']} ({_pct(ho_sm['caught'], ho_sm['n'])}) instead of {ho['caught']}") in text
+
+
 @needs_pinned_spacy
 def test_every_type_row_matches_the_measured_counts():
     _, ho = _score("holdout5.jsonl")

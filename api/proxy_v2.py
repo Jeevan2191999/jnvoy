@@ -42,6 +42,7 @@ from pydantic import BaseModel
 import sys
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
+from core import detector_v2 as detector_module
 from core.detector_v2 import PIIDetectorV2
 from core.judged_detector import JudgedPIIDetector
 from core.auth import install_api_key_auth
@@ -870,6 +871,7 @@ async def health():
         "providers": outage_detector.get_dashboard(),
         "cache": semantic_cache.stats,
         "database": db_health,
+        "detector": {"spacy_model": detector_module.SPACY_MODEL},
     }
 
 
