@@ -264,3 +264,8 @@ def test_scans_send_text_in_the_body_not_the_url():
         assert call.kwargs["json"] == {"text": "secret text"}
         assert "params" not in call.kwargs
         assert call.kwargs["headers"]["x-api-key"] == "k" * 24
+
+
+def test_default_url_is_the_live_site_not_the_old_render_address():
+    from core.langchain_integration import JnvoyClient
+    assert JnvoyClient().jnvoy_url == "https://www.jnvoy.com"

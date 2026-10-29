@@ -243,6 +243,7 @@
       <p>On this page</p>
       <ul>
         <li><a href="#how">How it fits</a></li>
+        <li><a href="#presidio">LiteLLM's own PII guardrail</a></li>
         <li><a href="#sdk">Python SDK</a></li>
         <li><a href="#proxy">LiteLLM proxy</a></li>
         <li><a href="#per-user">A key for each user</a></li>
@@ -258,6 +259,12 @@
         <p>Jnvoy speaks the same chat format as OpenAI, so LiteLLM can use it as an OpenAI-compatible server. LiteLLM sends the request to Jnvoy, Jnvoy replaces personal data with placeholders such as <code>[EMAIL_ADDRESS_1]</code>, forwards the cleaned request to your model provider, and puts the real values back into the reply before LiteLLM sees it.</p>
         <p>Four settings change. The model name gets the prefix <code>openai/</code>. <code>api_base</code> is <code>https://www.jnvoy.com/v1</code>. <code>api_key</code> is your Jnvoy key. Your own OpenAI or Anthropic key goes in an <code>x-provider-key</code> header. You still pay the provider directly; Jnvoy does not supply model access.</p>
         <div class="notice"><strong>What Jnvoy can and cannot protect here.</strong> LiteLLM sits in front of Jnvoy, so LiteLLM itself, and anything attached to it such as request logs, callbacks and its own response cache, still sees the original text. Jnvoy protects what leaves for the model provider.</div>
+      </section>
+
+      <section id="presidio">
+        <h2>LiteLLM's own PII guardrail</h2>
+        <p>LiteLLM can already mask personal data without Jnvoy. Its Presidio guardrail uses Microsoft Presidio to replace names, emails and similar values in the request and can put the original values back into the reply. Presidio runs as two extra containers (an analyzer and an anonymizer) that you operate alongside LiteLLM. If you already run that setup and it covers your cases, you may not need Jnvoy.</p>
+        <p>Jnvoy is a separate service you point LiteLLM at, so there is nothing extra to run for the redaction itself. It also keeps an audit log that records counts and never the text, with CSV and NDJSON exports, and blocks prompt injection in requests. The trade-off is the one in the notice above: with Jnvoy placed behind LiteLLM, LiteLLM still sees the original text. We have not compared the detection accuracy of the two, so test both on your own data.</p>
       </section>
 
       <section id="sdk">

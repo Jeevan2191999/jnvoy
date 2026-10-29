@@ -62,3 +62,14 @@ def test_the_guide_makes_no_overclaim():
     assert "no tool catches everything" in text and "not legal advice" in text
     for banned in ("100% accurate", "guaranteed", "gdpr compliant", "certified", "zero risk"):
         assert banned not in text, banned
+
+
+def test_the_guide_has_its_own_description_and_not_the_accuracy_pages():
+    import re
+    from pathlib import Path
+    root = Path(__file__).resolve().parent.parent / "static"
+    def desc(name):
+        return re.search(r'name="description" content="([^"]*)"', (root / name).read_text(encoding="utf-8")).group(1)
+    guide = desc("guide-remove-personal-data.html")
+    assert guide != desc("accuracy.html")
+    assert "prompts" in guide.lower()

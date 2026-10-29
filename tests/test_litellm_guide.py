@@ -70,6 +70,13 @@ def test_the_page_makes_no_overclaim_and_states_the_limits():
     assert "litellm itself" in text and "still sees the original text" in text
 
 
+def test_the_page_says_litellm_has_its_own_presidio_guardrail_and_does_not_claim_better_accuracy():
+    text = TestClient(app_module.app).get(PATH).text.lower()
+    assert "presidio guardrail" in text and "you may not need jnvoy" in text
+    assert "have not compared the detection accuracy" in text
+    assert "more accurate" not in text and "better than litellm" not in text
+
+
 def test_the_sdk_snippet_is_the_same_on_the_page_and_in_the_readme():
     readme = (ROOT / "README.md").read_text(encoding="utf-8")
     page = html.unescape(TestClient(app_module.app).get(PATH).text)

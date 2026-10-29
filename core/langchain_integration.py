@@ -8,7 +8,7 @@ Usage:
 
     # As a simple LLM
     llm = JnvoyLLM(
-        jnvoy_url="https://jnvoy.onrender.com",
+        jnvoy_url="https://www.jnvoy.com",
         provider="anthropic",
         model="claude-haiku-4-5-20251001"
     )
@@ -16,7 +16,7 @@ Usage:
 
     # As a ChatModel (recommended)
     chat = JnvoyChat(
-        jnvoy_url="https://jnvoy.onrender.com",
+        jnvoy_url="https://www.jnvoy.com",
         provider="anthropic",
         model="claude-haiku-4-5-20251001"
     )
@@ -65,7 +65,7 @@ class JnvoyClient:
 
     def __init__(
         self,
-        jnvoy_url: str = "https://jnvoy.onrender.com",
+        jnvoy_url: str = "https://www.jnvoy.com",
         api_key: Optional[str] = None,
         provider_key: Optional[str] = None,
         provider: str = "anthropic",
@@ -201,7 +201,7 @@ if LANGCHAIN_AVAILABLE:
             result = llm.invoke("My email is john@example.com. Summarise this.")
         """
 
-        jnvoy_url: str = "https://jnvoy.onrender.com"
+        jnvoy_url: str = "https://www.jnvoy.com"
         jnvoy_api_key: Optional[str] = None
         provider_key: Optional[str] = None
         provider: str = "anthropic"
@@ -267,7 +267,7 @@ if LANGCHAIN_AVAILABLE:
             print(result.content)
         """
 
-        jnvoy_url: str = "https://jnvoy.onrender.com"
+        jnvoy_url: str = "https://www.jnvoy.com"
         jnvoy_api_key: Optional[str] = None
         provider_key: Optional[str] = None
         provider: str = "anthropic"
