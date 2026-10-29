@@ -44,7 +44,7 @@ numpy==1.26.4
 opentelemetry-api==1.45.1
 orjson==3.13.0
 packaging==26.3
-phonenumbers==9.0.40
+phonenumbers==9.0.41
 pillow==13.0.0
 pluggy==1.7.0
 preshed==3.0.15
