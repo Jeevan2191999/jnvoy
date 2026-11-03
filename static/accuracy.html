@@ -59,6 +59,8 @@
   h1,h2,h3,p,ul,figure{ margin:0; }
   a{ color:inherit; }
   .wrap{ max-width:var(--maxw); margin:0 auto; padding:0 28px; }
+  @media (max-width:480px){ .wrap{ padding-left:20px; padding-right:20px; } }
+  p code, li code, td code{ overflow-wrap:anywhere; }
   :focus-visible{ outline:2px solid var(--green); outline-offset:3px; }
   @media (prefers-reduced-motion: reduce){
     html{ scroll-behavior:auto; }
@@ -107,6 +109,8 @@
     padding:64px 0 96px; align-items:start;
   }
   @media (max-width:900px){ .doc{ grid-template-columns:1fr; gap:0; padding-top:40px; } }
+  @media (max-width:1236px){ .doc{ padding-left:28px; padding-right:28px; } }
+  @media (max-width:480px){ .doc{ padding-left:20px; padding-right:20px; } }
   .toc{ position:sticky; top:96px; font-size:0.9rem; }
   .toc p{ font-weight:600; color:var(--ink-faint); font-size:0.8125rem; margin-bottom:10px; }
   .toc ul{ list-style:none; padding:0; border-left:1px solid var(--line-strong); }
