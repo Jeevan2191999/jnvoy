@@ -1,0 +1,4 @@
+text,sensitive,keep
+"Hi, this is Priya Nair. My card 4111 1111 1111 1111 was charged twice by Contoso.",PERSON::Priya Nair || CARD::4111 1111 1111 1111,Contoso
+"Please send the contract to dan.okafor@example.org by Friday.",EMAIL::dan.okafor@example.org,Friday
+"The server at 10.0.4.17 restarted after the update to version 3.2.1.",IP::10.0.4.17,3.2.1

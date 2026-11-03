@@ -1,0 +1,726 @@
+{
+ "measured": "2026-11-03",
+ "versions": {
+  "spacy": "3.7.5",
+  "spacy_models": "3.7.1",
+  "presidio": "2.2.364",
+  "faker": "40.44.0"
+ },
+ "note": "Numbers in the larger-test section of the public accuracy page come from this file; tests/test_larger_accuracy.py re-measures them and fails if they differ.",
+ "sets": {
+  "large": {
+   "file": "evaluation/large.jsonl",
+   "seed": 20261103,
+   "md5": "9aac3680a6c3161970dfc40a94c4d480",
+   "en_core_web_lg": {
+    "documents": 1000,
+    "model": "en_core_web_lg",
+    "systems": {
+     "jnvoy": {
+      "caught": 1352,
+      "n": 1758,
+      "caught_ci95": [
+       0.7488,
+       0.7882
+      ],
+      "keep_kept": 836,
+      "keep_total": 900,
+      "keep_ci95": [
+       0.9102,
+       0.9439
+      ],
+      "ms_per_doc": 9.6,
+      "per_type": {
+       "DOB": {
+        "n": 117,
+        "caught": 117
+       },
+       "US_SSN": {
+        "n": 68,
+        "caught": 68
+       },
+       "PERSON": {
+        "n": 364,
+        "caught": 261
+       },
+       "API_KEY": {
+        "n": 140,
+        "caught": 140
+       },
+       "IBAN": {
+        "n": 100,
+        "caught": 97
+       },
+       "EMAIL": {
+        "n": 167,
+        "caught": 167
+       },
+       "PASSWORD": {
+        "n": 73,
+        "caught": 55
+       },
+       "IP": {
+        "n": 90,
+        "caught": 90
+       },
+       "ADDRESS": {
+        "n": 179,
+        "caught": 69
+       },
+       "POSTCODE": {
+        "n": 179,
+        "caught": 48
+       },
+       "PHONE": {
+        "n": 180,
+        "caught": 163
+       },
+       "CARD": {
+        "n": 101,
+        "caught": 77
+       }
+      }
+     },
+     "presidio": {
+      "caught": 1238,
+      "n": 1758,
+      "caught_ci95": [
+       0.6824,
+       0.7251
+      ],
+      "keep_kept": 392,
+      "keep_total": 900,
+      "keep_ci95": [
+       0.4035,
+       0.4682
+      ],
+      "ms_per_doc": 8.6,
+      "per_type": {
+       "DOB": {
+        "n": 117,
+        "caught": 117
+       },
+       "US_SSN": {
+        "n": 68,
+        "caught": 68
+       },
+       "PERSON": {
+        "n": 364,
+        "caught": 277
+       },
+       "API_KEY": {
+        "n": 140,
+        "caught": 20
+       },
+       "IBAN": {
+        "n": 100,
+        "caught": 97
+       },
+       "EMAIL": {
+        "n": 167,
+        "caught": 167
+       },
+       "PASSWORD": {
+        "n": 73,
+        "caught": 14
+       },
+       "IP": {
+        "n": 90,
+        "caught": 90
+       },
+       "ADDRESS": {
+        "n": 179,
+        "caught": 55
+       },
+       "POSTCODE": {
+        "n": 179,
+        "caught": 74
+       },
+       "PHONE": {
+        "n": 180,
+        "caught": 169
+       },
+       "CARD": {
+        "n": 101,
+        "caught": 90
+       }
+      }
+     },
+     "presidio_tuned": {
+      "caught": 1078,
+      "n": 1758,
+      "caught_ci95": [
+       0.5902,
+       0.6357
+      ],
+      "keep_kept": 693,
+      "keep_total": 900,
+      "keep_ci95": [
+       0.7414,
+       0.7963
+      ],
+      "ms_per_doc": 8.3,
+      "per_type": {
+       "DOB": {
+        "n": 117,
+        "caught": 4
+       },
+       "US_SSN": {
+        "n": 68,
+        "caught": 68
+       },
+       "PERSON": {
+        "n": 364,
+        "caught": 268
+       },
+       "API_KEY": {
+        "n": 140,
+        "caught": 20
+       },
+       "IBAN": {
+        "n": 100,
+        "caught": 97
+       },
+       "EMAIL": {
+        "n": 167,
+        "caught": 167
+       },
+       "PASSWORD": {
+        "n": 73,
+        "caught": 9
+       },
+       "IP": {
+        "n": 90,
+        "caught": 90
+       },
+       "ADDRESS": {
+        "n": 179,
+        "caught": 46
+       },
+       "POSTCODE": {
+        "n": 179,
+        "caught": 51
+       },
+       "PHONE": {
+        "n": 180,
+        "caught": 169
+       },
+       "CARD": {
+        "n": 101,
+        "caught": 89
+       }
+      }
+     }
+    },
+    "head_to_head": {
+     "presidio": {
+      "both": 1124,
+      "only_jnvoy": 228,
+      "only_presidio": 114,
+      "neither": 292,
+      "mcnemar_p": 0.0
+     },
+     "presidio_tuned": {
+      "both": 1002,
+      "only_jnvoy": 350,
+      "only_presidio_tuned": 76,
+      "neither": 330,
+      "mcnemar_p": 0.0
+     }
+    }
+   },
+   "en_core_web_sm": {
+    "documents": 1000,
+    "model": "en_core_web_sm",
+    "systems": {
+     "jnvoy": {
+      "caught": 1360,
+      "n": 1758,
+      "caught_ci95": [
+       0.7535,
+       0.7926
+      ],
+      "keep_kept": 820,
+      "keep_total": 900,
+      "keep_ci95": [
+       0.8907,
+       0.928
+      ],
+      "ms_per_doc": 8.7,
+      "per_type": {
+       "DOB": {
+        "n": 117,
+        "caught": 117
+       },
+       "US_SSN": {
+        "n": 68,
+        "caught": 68
+       },
+       "PERSON": {
+        "n": 364,
+        "caught": 265
+       },
+       "API_KEY": {
+        "n": 140,
+        "caught": 140
+       },
+       "IBAN": {
+        "n": 100,
+        "caught": 97
+       },
+       "EMAIL": {
+        "n": 167,
+        "caught": 167
+       },
+       "PASSWORD": {
+        "n": 73,
+        "caught": 55
+       },
+       "IP": {
+        "n": 90,
+        "caught": 90
+       },
+       "ADDRESS": {
+        "n": 179,
+        "caught": 68
+       },
+       "POSTCODE": {
+        "n": 179,
+        "caught": 53
+       },
+       "PHONE": {
+        "n": 180,
+        "caught": 163
+       },
+       "CARD": {
+        "n": 101,
+        "caught": 77
+       }
+      }
+     },
+     "presidio": {
+      "caught": 1241,
+      "n": 1758,
+      "caught_ci95": [
+       0.6842,
+       0.7267
+      ],
+      "keep_kept": 335,
+      "keep_total": 900,
+      "keep_ci95": [
+       0.3412,
+       0.4043
+      ],
+      "ms_per_doc": 8.1,
+      "per_type": {
+       "DOB": {
+        "n": 117,
+        "caught": 117
+       },
+       "US_SSN": {
+        "n": 68,
+        "caught": 68
+       },
+       "PERSON": {
+        "n": 364,
+        "caught": 270
+       },
+       "API_KEY": {
+        "n": 140,
+        "caught": 18
+       },
+       "IBAN": {
+        "n": 100,
+        "caught": 97
+       },
+       "EMAIL": {
+        "n": 167,
+        "caught": 167
+       },
+       "PASSWORD": {
+        "n": 73,
+        "caught": 10
+       },
+       "IP": {
+        "n": 90,
+        "caught": 90
+       },
+       "ADDRESS": {
+        "n": 179,
+        "caught": 52
+       },
+       "POSTCODE": {
+        "n": 179,
+        "caught": 89
+       },
+       "PHONE": {
+        "n": 180,
+        "caught": 168
+       },
+       "CARD": {
+        "n": 101,
+        "caught": 95
+       }
+      }
+     },
+     "presidio_tuned": {
+      "caught": 1035,
+      "n": 1758,
+      "caught_ci95": [
+       0.5656,
+       0.6115
+      ],
+      "keep_kept": 653,
+      "keep_total": 900,
+      "keep_ci95": [
+       0.6955,
+       0.7537
+      ],
+      "ms_per_doc": 6.7,
+      "per_type": {
+       "DOB": {
+        "n": 117,
+        "caught": 9
+       },
+       "US_SSN": {
+        "n": 68,
+        "caught": 68
+       },
+       "PERSON": {
+        "n": 364,
+        "caught": 251
+       },
+       "API_KEY": {
+        "n": 140,
+        "caught": 5
+       },
+       "IBAN": {
+        "n": 100,
+        "caught": 97
+       },
+       "EMAIL": {
+        "n": 167,
+        "caught": 167
+       },
+       "PASSWORD": {
+        "n": 73,
+        "caught": 7
+       },
+       "IP": {
+        "n": 90,
+        "caught": 90
+       },
+       "ADDRESS": {
+        "n": 179,
+        "caught": 42
+       },
+       "POSTCODE": {
+        "n": 179,
+        "caught": 42
+       },
+       "PHONE": {
+        "n": 180,
+        "caught": 168
+       },
+       "CARD": {
+        "n": 101,
+        "caught": 89
+       }
+      }
+     }
+    },
+    "head_to_head": {
+     "presidio": {
+      "both": 1118,
+      "only_jnvoy": 242,
+      "only_presidio": 123,
+      "neither": 275,
+      "mcnemar_p": 0.0
+     },
+     "presidio_tuned": {
+      "both": 982,
+      "only_jnvoy": 378,
+      "only_presidio_tuned": 53,
+      "neither": 345,
+      "mcnemar_p": 0.0
+     }
+    }
+   },
+   "breakdown_en_core_web_lg": {
+    "person_plain": {
+     "n": 227,
+     "caught": 223
+    },
+    "person_all_capitals": {
+     "n": 72,
+     "caught": 8
+    },
+    "person_surname_first": {
+     "n": 65,
+     "caught": 30
+    },
+    "password_after_the_word_password": {
+     "n": 55,
+     "caught": 55
+    },
+    "password_after_pwd": {
+     "n": 18,
+     "caught": 0
+    },
+    "password_other": {
+     "n": 0,
+     "caught": 0
+    },
+    "card_by_digit_count": {
+     "12": {
+      "n": 7,
+      "caught": 0
+     },
+     "13": {
+      "n": 8,
+      "caught": 8
+     },
+     "14": {
+      "n": 11,
+      "caught": 11
+     },
+     "15": {
+      "n": 15,
+      "caught": 12
+     },
+     "16": {
+      "n": 53,
+      "caught": 46
+     },
+     "19": {
+      "n": 7,
+      "caught": 0
+     }
+    }
+   }
+  },
+  "large_heldout": {
+   "file": "evaluation/large_heldout.jsonl",
+   "seed": 4242,
+   "md5": "34ce64160f3f1379e160914b11753671",
+   "role": "Never inspected while fixing detection. Used to check that fixes help on text they were not tuned on.",
+   "en_core_web_lg": {
+    "documents": 600,
+    "model": "en_core_web_lg",
+    "systems": {
+     "jnvoy": {
+      "caught": 848,
+      "n": 1076,
+      "caught_ci95": [
+       0.7627,
+       0.8115
+      ],
+      "keep_kept": 478,
+      "keep_total": 521,
+      "keep_ci95": [
+       0.8907,
+       0.9382
+      ],
+      "ms_per_doc": 9.4,
+      "per_type": {
+       "PERSON": {
+        "n": 221,
+        "caught": 169
+       },
+       "CARD": {
+        "n": 65,
+        "caught": 43
+       },
+       "EMAIL": {
+        "n": 120,
+        "caught": 120
+       },
+       "PHONE": {
+        "n": 107,
+        "caught": 100
+       },
+       "US_SSN": {
+        "n": 43,
+        "caught": 43
+       },
+       "ADDRESS": {
+        "n": 105,
+        "caught": 40
+       },
+       "POSTCODE": {
+        "n": 105,
+        "caught": 30
+       },
+       "DOB": {
+        "n": 89,
+        "caught": 89
+       },
+       "PASSWORD": {
+        "n": 27,
+        "caught": 23
+       },
+       "IBAN": {
+        "n": 63,
+        "caught": 61
+       },
+       "API_KEY": {
+        "n": 88,
+        "caught": 87
+       },
+       "IP": {
+        "n": 43,
+        "caught": 43
+       }
+      }
+     },
+     "presidio": {
+      "caught": 784,
+      "n": 1076,
+      "caught_ci95": [
+       0.7013,
+       0.7543
+      ],
+      "keep_kept": 228,
+      "keep_total": 521,
+      "keep_ci95": [
+       0.3956,
+       0.4805
+      ],
+      "ms_per_doc": 8.6,
+      "per_type": {
+       "PERSON": {
+        "n": 221,
+        "caught": 186
+       },
+       "CARD": {
+        "n": 65,
+        "caught": 53
+       },
+       "EMAIL": {
+        "n": 120,
+        "caught": 120
+       },
+       "PHONE": {
+        "n": 107,
+        "caught": 101
+       },
+       "US_SSN": {
+        "n": 43,
+        "caught": 43
+       },
+       "ADDRESS": {
+        "n": 105,
+        "caught": 24
+       },
+       "POSTCODE": {
+        "n": 105,
+        "caught": 49
+       },
+       "DOB": {
+        "n": 89,
+        "caught": 89
+       },
+       "PASSWORD": {
+        "n": 27,
+        "caught": 6
+       },
+       "IBAN": {
+        "n": 63,
+        "caught": 61
+       },
+       "API_KEY": {
+        "n": 88,
+        "caught": 9
+       },
+       "IP": {
+        "n": 43,
+        "caught": 43
+       }
+      }
+     },
+     "presidio_tuned": {
+      "caught": 674,
+      "n": 1076,
+      "caught_ci95": [
+       0.5971,
+       0.6548
+      ],
+      "keep_kept": 395,
+      "keep_total": 521,
+      "keep_ci95": [
+       0.7196,
+       0.793
+      ],
+      "ms_per_doc": 9.5,
+      "per_type": {
+       "PERSON": {
+        "n": 221,
+        "caught": 184
+       },
+       "CARD": {
+        "n": 65,
+        "caught": 52
+       },
+       "EMAIL": {
+        "n": 120,
+        "caught": 120
+       },
+       "PHONE": {
+        "n": 107,
+        "caught": 101
+       },
+       "US_SSN": {
+        "n": 43,
+        "caught": 43
+       },
+       "ADDRESS": {
+        "n": 105,
+        "caught": 20
+       },
+       "POSTCODE": {
+        "n": 105,
+        "caught": 33
+       },
+       "DOB": {
+        "n": 89,
+        "caught": 6
+       },
+       "PASSWORD": {
+        "n": 27,
+        "caught": 4
+       },
+       "IBAN": {
+        "n": 63,
+        "caught": 61
+       },
+       "API_KEY": {
+        "n": 88,
+        "caught": 7
+       },
+       "IP": {
+        "n": 43,
+        "caught": 43
+       }
+      }
+     }
+    },
+    "head_to_head": {
+     "presidio": {
+      "both": 716,
+      "only_jnvoy": 132,
+      "only_presidio": 68,
+      "neither": 160,
+      "mcnemar_p": 7e-06
+     },
+     "presidio_tuned": {
+      "both": 628,
+      "only_jnvoy": 220,
+      "only_presidio_tuned": 46,
+      "neither": 182,
+      "mcnemar_p": 0.0
+     }
+    }
+   }
+  }
+ }
+}
