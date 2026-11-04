@@ -50,7 +50,7 @@ def test_mcnemar_exact_known_values():
 
 # ---- the datasets --------------------------------------------------------------------------
 
-@pytest.mark.parametrize("name, docs", [("large.jsonl", 1000), ("large_heldout.jsonl", 600), ("large_fresh.jsonl", 600)])
+@pytest.mark.parametrize("name, docs", [("large.jsonl", 1000), ("large_heldout.jsonl", 600), ("large_fresh.jsonl", 600), ("large_fresh2.jsonl", 600)])
 def test_dataset_is_well_formed(name, docs):
     rows = load_rows(EVAL / name)
     assert len(rows) == docs
@@ -68,13 +68,13 @@ def test_the_sets_share_no_document_that_contains_a_sensitive_value():
     # A harmless-only sentence can coincide (a handful of fixed templates), which cannot inflate a score.
     # A shared document with a sensitive value could, so none may be shared.
     sets = [{r["text"] for r in load_rows(EVAL / n) if r["sensitive"]}
-            for n in ("large.jsonl", "large_heldout.jsonl", "large_fresh.jsonl")]
-    assert not (sets[0] & sets[1]) and not (sets[0] & sets[2]) and not (sets[1] & sets[2])
+            for n in ("large.jsonl", "large_heldout.jsonl", "large_fresh.jsonl", "large_fresh2.jsonl")]
+    assert all(not (a & b) for i, a in enumerate(sets) for b in sets[i + 1:])
 
 
 def test_secret_looking_values_cannot_trip_a_secret_scanner():
     # Keys and passwords carry a "<>" break so the repository holds no unbroken secret-shaped string.
-    for name in ("large.jsonl", "large_heldout.jsonl", "large_fresh.jsonl"):
+    for name in ("large.jsonl", "large_heldout.jsonl", "large_fresh.jsonl", "large_fresh2.jsonl"):
         text = (EVAL / name).read_text(encoding="utf-8")
         assert not re.search(r"\bsk-[A-Za-z0-9]{20,}", text)
         assert not re.search(r"\bAKIA[0-9A-Z]{16}\b", text)
@@ -82,7 +82,7 @@ def test_secret_looking_values_cannot_trip_a_secret_scanner():
 
 
 @pytest.mark.parametrize("key, name", [("large", "large.jsonl"), ("large_heldout", "large_heldout.jsonl"),
-                                       ("large_fresh", "large_fresh.jsonl")])
+                                       ("large_fresh", "large_fresh.jsonl"), ("large_fresh2", "large_fresh2.jsonl")])
 def test_results_file_describes_the_committed_datasets(key, name):
     md5 = hashlib.md5((EVAL / name).read_bytes()).hexdigest()
     assert RESULTS["sets"][key]["md5"] == md5, (
@@ -105,6 +105,17 @@ def test_the_same_seed_regenerates_the_same_file(tmp_path):
     subprocess.run([sys.executable, str(EVAL / "generate_large.py"), "--seed", "9090", "--docs", "600",
                     "--phrasing", "fresh", "--out", str(fresh)], check=True, capture_output=True, timeout=300)
     assert hashlib.md5(fresh.read_bytes()).hexdigest() == RESULTS["sets"]["large_fresh"]["md5"]
+    fresh2 = tmp_path / "fresh2.jsonl"
+    subprocess.run([sys.executable, str(EVAL / "generate_large.py"), "--seed", "31337", "--docs", "600",
+                    "--phrasing", "fresh2", "--out", str(fresh2)], check=True, capture_output=True, timeout=300)
+    assert hashlib.md5(fresh2.read_bytes()).hexdigest() == RESULTS["sets"]["large_fresh2"]["md5"]
+
+
+def test_the_generator_does_not_depend_on_todays_date():
+    # Faker's date_of_birth counts back from today, which made the same seed give a different file each day.
+    source = (EVAL / "generate_large.py").read_text(encoding="utf-8")
+    assert ".date_of_birth(" not in source
+    assert "REFERENCE_DAY" in source and "date.today" not in source and "datetime.now" not in source
 
 
 def test_the_fresh_set_really_uses_different_wording():
@@ -115,6 +126,7 @@ def test_the_fresh_set_really_uses_different_wording():
     # none of the sentence templates of the fresh set appear in the development set
     assert not any("Parcel for" in t or "Cc'd" in t or "Wi-Fi key" in t for t in original)
     assert any("Parcel for" in t or "Cc'd" in t or "Wi-Fi key" in t for t in fresh)
+    assert generate_large.FRESH2.keys() >= {"PERSON", "PHONE", "ADDRESS", "CARD", "PASSWORD", "DOB", "SSN"}
     assert generate_large.FRESH.keys() >= {"PERSON", "EMAIL", "PHONE", "ADDRESS", "CARD", "PASSWORD", "DOB", "API_KEY"}
 
 

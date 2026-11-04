@@ -40,15 +40,25 @@ def test_the_page_section_is_exactly_what_the_results_file_produces():
 
 
 def test_the_headline_numbers_are_on_the_page():
-    j = RESULTS["sets"]["large_fresh"]["en_core_web_lg"]["systems"]["jnvoy"]
+    j = RESULTS["sets"]["large_fresh2"]["en_core_web_lg"]["systems"]["jnvoy"]
     assert f'{j["caught"]:,} of {j["n"]:,}' in PAGE
     assert f'{100 * j["caught"] / j["n"]:.1f}%' in _section(PAGE)
 
 
-def test_the_rounded_figure_at_the_top_of_the_page_matches_the_third_set():
-    j = RESULTS["sets"]["large_fresh"]["en_core_web_lg"]["systems"]["jnvoy"]
+def test_the_rounded_figure_at_the_top_of_the_page_matches_the_unseen_set():
+    j = RESULTS["sets"]["large_fresh2"]["en_core_web_lg"]["systems"]["jnvoy"]
     m = re.search(r"it gives about (\d+)%", PAGE)
     assert m and int(m.group(1)) == round(100 * j["caught"] / j["n"])
+
+
+def test_the_page_says_round_two_barely_moved_the_unseen_set():
+    r1 = RESULTS["round1"]["large_fresh2"]
+    now = RESULTS["sets"]["large_fresh2"]["en_core_web_lg"]["systems"]["jnvoy"]
+    gain_unseen = now["caught"] / now["n"] - r1["caught"] / r1["n"]
+    g1, g2 = RESULTS["round1"]["large_fresh"], RESULTS["sets"]["large_fresh"]["en_core_web_lg"]["systems"]["jnvoy"]
+    gain_tuned = g2["caught"] / g2["n"] - g1["caught"] / g1["n"]
+    assert gain_unseen < gain_tuned / 3, "if this fails the page's explanation of round two needs rewriting"
+    assert "why the unseen set moved so little" in _section(PAGE)
 
 
 def test_the_page_says_which_set_to_trust_and_that_it_was_never_tuned_on():
@@ -58,7 +68,7 @@ def test_the_page_says_which_set_to_trust_and_that_it_was_never_tuned_on():
 
 
 def test_the_before_and_after_numbers_are_both_shown():
-    for key in ("large", "large_heldout", "large_fresh"):
+    for key in ("large", "large_heldout", "large_fresh", "large_fresh2"):
         b = RESULTS["before_fixes"][key]
         assert f'{b["caught"]:,} of {b["n"]:,}' in _section(PAGE), key
 
@@ -67,7 +77,7 @@ def test_the_fresh_set_scores_lower_than_the_tuned_sets_and_the_page_says_so():
     d = RESULTS["sets"]
     rate = {k: d[k]["en_core_web_lg"]["systems"]["jnvoy"]["caught"] / d[k]["en_core_web_lg"]["systems"]["jnvoy"]["n"]
             for k in d}
-    assert rate["large_fresh"] < rate["large_heldout"] and rate["large_fresh"] < rate["large"]
+    assert rate["large_fresh2"] < rate["large_heldout"] and rate["large_fresh2"] < rate["large"] and rate["large_fresh2"] < rate["large_fresh"]
     assert "score about" in _section(PAGE) and "points higher" in _section(PAGE)
 
 
@@ -99,7 +109,7 @@ def _lg_available():
 
 @pytest.mark.skipif(not _lg_available(), reason=f"measured with spaCy {_PINNED} and en_core_web_lg; not available here")
 @pytest.mark.parametrize("key, name", [("large", "large.jsonl"), ("large_heldout", "large_heldout.jsonl"),
-                                       ("large_fresh", "large_fresh.jsonl")])
+                                       ("large_fresh", "large_fresh.jsonl"), ("large_fresh2", "large_fresh2.jsonl")])
 def test_the_stored_jnvoy_numbers_still_come_out_of_the_code(key, name):
     rows = load_rows(ROOT / "evaluation" / name)
     s = compare.score_system(rows, compare.jnvoy_system())

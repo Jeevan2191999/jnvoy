@@ -52,7 +52,7 @@ def _caps_name(min_elems: int, max_elems: int = 3) -> str:
 _SURNAME_FIRST = rf"(?:{_ELEM}(?:[ \t]+{_ELEM})?[ \t]*,[ \t]+{_ELEM})"
 # What may follow a "Surname, Given" that was announced only by a weak cue: the end of a clause,
 # or a verb that says what the person did. "Hi Anna, Thanks for..." is not a name.
-_SF_END = (r"(?=[ \t]*(?:[,.;:!?)\n]|$)|[ \t]+(?:joined|has|have|about|and|is|was|will|-|–|—)(?![A-Za-z]))")
+_SF_END = (r"(?=[ \t]*(?:[,.;:!?)\n]|$)|[ \t]+(?:joined|has|have|about|and|is|was|will|on|at|to|please|yesterday|today|tomorrow|-|–|—)(?![A-Za-z]))")
 
 _TITLE = r"(?:Mr|Mrs|Ms|Miss|Mx|Dr|Prof|Professor|Sir|Dame|Lord|Lady|Rev|Revd|Mister|Madam)"
 
@@ -108,7 +108,7 @@ _VERB_CUES = (
     r"spoke with|spoken to|speak to|speak with|talk to|talked to|call|phone|email|e-mail|contact|ring|"
     r"ask|asked|tell|told|meet|met|meeting with|forward to|send to|sent to|deliver to|delivered to|"
     r"belongs to|belonging to|invoice to|invoiced to|welcome|introduce|thanks to|attn|attention|"
-    r"c/o|care of|new hire|new starter|statement of|for|with|from|to|by"
+    r"c/o|care of|new hire|new starter|statement of|taken by|attached for|cc'd|cc’d|lunch with|for|with|from|to|by"
 )
 _GREETING_CUES = r"dear|hi|hello|hey|thanks|thank you|cheers"
 
@@ -133,6 +133,9 @@ def _rules(_name):
         ("cue_verb",
          rf"\b(?i:{_VERB_CUES})"
          rf"[ \t]+(?P<v>{_name(2)})", 0.65, 2, True),
+        # "Could Anna Berg please confirm": a request to a named person.
+        ("request",
+         rf"\b(?:Could|Can|Would|Will|Should)[ \t]+(?P<v>{_name(2)})[ \t]+please\b", 0.7, 2, True),
     ]
 
 
@@ -149,7 +152,7 @@ def _surname_first_rules():
 # (kind, compiled regex, score, minimum words, uses the place veto, mode)
 #   mode "": the normal capitalised name; "caps": a name in capital letters after a cue that is not
 #   itself in capitals; "sf": "Surname, Given".
-_CAPS_KINDS = {"title", "greeting", "signoff", "label", "cue_verb"}
+_CAPS_KINDS = {"title", "greeting", "signoff", "label", "cue_verb", "request"}
 _COMPILED = (
     [(n, re.compile(rx, re.MULTILINE), sc, m, veto, "") for n, rx, sc, m, veto in _rules(_name)]
     + [(n, re.compile(rx, re.MULTILINE), sc, m, veto, "caps")
@@ -217,6 +220,13 @@ class NameCueRecognizer(EntityRecognizer):
             for m in rx.finditer(text):
                 value = m.group("v")
                 start, end = m.start("v"), m.end("v")
+                # "Anna Berg The deadline": the name regex runs on into the next sentence's first word.
+                words = list(re.finditer(r"\S+", value))
+                while len(words) > 1 and words[-1].group(0).strip(".,;:") in _NOT_NAMES \
+                        and words[-1].group(0).strip(".,;:") not in _ORG_WORDS:
+                    words.pop()
+                    value = value[:words[-1].end()]
+                    end = start + len(value)
                 if not _plausible(value, min_words):
                     continue
                 if mode == "caps":

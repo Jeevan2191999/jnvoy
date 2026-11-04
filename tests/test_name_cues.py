@@ -202,6 +202,28 @@ def test_cities_with_their_country_are_not_surname_first_names():
     assert names(text, SimpleNamespace(entities=ents)) == []
 
 
+@pytest.mark.parametrize("text,expected", [
+    ("Could Anna Berg please confirm the booking?", ["Anna Berg"]),
+    ("Could JENNIFER LEWIS please confirm", ["JENNIFER LEWIS"]),
+    ("Cc'd Ladli Tata on the thread.", ["Ladli Tata"]),
+    ("Minutes taken by Alfio Rismondo.", ["Alfio Rismondo"]),
+    ("CV attached for Maria Lopez.", ["Maria Lopez"]),
+    ("Lunch with Johann, Giesela on Thursday", ["Johann, Giesela"]),
+    ("Please welcome Devery, Niall to the team.", ["Devery, Niall"]),
+    ("Spoke to Brian Austin The deadline is Friday", ["Brian Austin"]),   # the next sentence's first word is not part of the name
+])
+def test_everyday_phrasings_announce_a_name(text, expected):
+    assert [n for n in names(text) if n] == expected
+
+
+@pytest.mark.parametrize("text", [
+    "Could you please confirm", "Could New York please confirm?", "Cc'd the team", "Lunch with the team",
+    "Can Support please look at it", "Would Finance please approve",
+])
+def test_those_phrasings_do_not_fire_on_pronouns_places_or_departments(text):
+    assert names(text) == []
+
+
 def test_only_the_name_is_marked_not_the_cue():
     r = rule.analyze("Dear Ms Jane Testington,", ["PERSON"], None)[0]
     assert "Dear Ms Jane Testington,"[r.start:r.end] == "Jane Testington"

@@ -188,8 +188,9 @@ class AddressCueRecognizer(EntityRecognizer):
     _CUE = (r"(?:(?:home|billing|shipping|delivery|postal|mailing|registered|office|work|business|return|"
             r"correspondence)[ \t]+address(?:[ \t]+is)?|address(?:[ \t]+is)?|ship(?:ped)?[ \t]+to|"
             r"deliver(?:ed)?[ \t]+to|lives?[ \t]+at|living[ \t]+at|resides?[ \t]+at|"
-            r"(?:registered[ \t]+)?office[ \t]+at|located[ \t]+at|based[ \t]+at|mail[ \t]+to|post[ \t]+to)")
-    _START = (r"(?:\d+[A-Za-z]?(?:[-/]\d+)?\b|(?:Flat|Unit|Suite|Apt\.?|Apartment|Studio|Room|Floor|Box|"
+            r"(?:registered[ \t]+)?office[ \t]+at|located[ \t]+at|based[ \t]+at|mail[ \t]+to|post[ \t]+(?:it[ \t]+)?to|"
+            r"parcel[ \t]+for|sent[ \t]+to|collection[ \t]+point|(?:flat|house|apartment|home|place)[ \t]+is[ \t]+at)")
+    _START = (r"(?:\d+[A-Za-z]?(?:[-/]\d+)?\b|(?:Flat|Unit|Suite|Apt\.?|Apartment|Studio|Room|Level|Floor|Box|"
               r"P\.?O\.?[ \t]+Box)\b|(?:rue|avenue|boulevard|chemin|via|viale|calle|carrer|rua|plaza|piazza)\b)")
     _RE = re.compile(rf"\b(?i:{_CUE})[ \t]*[:\-]?[ \t]*(?P<v>{_START}[^\n]{{3,120}}?){_ADDR_END}")
     _CAP = re.compile(r"\b[A-ZÀ-ÖØ-Þ][\w'’-]+")
@@ -271,18 +272,32 @@ def make_extra_recognisers() -> list:
 
     passwords = ContextualRecognizer(
         "SECRET_TOKEN",
-        r"\b(?:password|passwd|pwd|pw|passphrase|passcode|secret|api[_ ]?key|token)"
+        r"\b(?:password|passwd|pwd|pw|pass|passphrase|passcode|secret|api[_ ]?key|token|wi-?fi[ -]?(?:key|password|pass)|wpa[ -]?key)"
         r"(?:\s+(?:for|of|to)\s+(?:the\s+|my\s+|our\s+)?\w+)?\s*(?:is|=|:)\s*['\"]?(?P<v>[^\s'\",;]{6,})",
         0.9, "PasswordRecognizer", digit_or_symbol=True,
     )
 
-    # "pwd hunter2Hunter" with no "is" or colon, a common shorthand in notes and chat. "pwd" is also the
+    # "pwd hunter2Hunter" or "pw hunter2Hunter" with no "is" or colon, a common shorthand in notes and chat. "pwd" is also the
     # Unix command, so the value must be on the same line, must not start like a path, and must
     # contain a digit or symbol.
     pwd_shorthand = ContextualRecognizer(
         "SECRET_TOKEN",
-        r"(?<![\w/.-])pwd[ \t]+(?![/~.\\])['\"]?(?P<v>[^\s'\",;]{6,})",
+        r"(?<![\w/.-])(?:pwd|pw)[ \t]+(?![/~.\\])['\"]?(?P<v>[^\s'\",;]{6,})",
         0.85, "PwdShorthandRecognizer", digit_or_symbol=True, case_sensitive=True,
+    )
+
+    credentials_pair = ContextualRecognizer(
+        "SECRET_TOKEN",
+        r"\bcredentials?[ \t]*[:=][ \t]*\S+[ \t]*[/:][ \t]*['\"]?(?P<v>[^\s'\",;]{6,})",
+        0.85, "CredentialsPairRecognizer", digit_or_symbol=True,
+    )
+
+    # A social security number written 123-45-6789 is distinctive enough to hide without a label. The
+    # ranges the Social Security Administration never issues (000, 666, 9xx, group 00, serial 0000) are left alone.
+    dashed_ssn = PatternRecognizer(
+        supported_entity="US_SSN",
+        patterns=[Pattern("dashed_ssn", r"(?<![\d-])(?!000|666|9\d\d)\d{3}-(?!00)\d{2}-(?!0000)\d{4}(?![\d-])", 0.85)],
+        name="DashedSsnRecognizer",
     )
 
     env_assignment = ContextualRecognizer(
@@ -303,7 +318,7 @@ def make_extra_recognisers() -> list:
     )
 
     dob = ContextualRecognizer(
-        "DATE_OF_BIRTH", rf"\b{_DOB_LABEL}\s*[:\-]?\s*(?:the\s+)?(?P<v>{_DATE})", 0.9, "DateOfBirthRecognizer",
+        "DATE_OF_BIRTH", rf"\b{_DOB_LABEL}(?:\s+(?:is|was))?\s*[:\-]?\s*(?:the\s+)?(?P<v>{_DATE})", 0.9, "DateOfBirthRecognizer",
     )
 
     passport = ContextualRecognizer(
@@ -388,7 +403,7 @@ def make_extra_recognisers() -> list:
         name="StreetAddressRecognizer",
     )
 
-    return [secrets, passwords, pwd_shorthand, CardCueRecognizer(), PhoneCueRecognizer(), AddressCueRecognizer(), env_assignment, conn_string, bearer, dob, passport, reference, street]
+    return [secrets, passwords, pwd_shorthand, credentials_pair, dashed_ssn, CardCueRecognizer(), PhoneCueRecognizer(), AddressCueRecognizer(), env_assignment, conn_string, bearer, dob, passport, reference, street]
 
 
 EXTRA_ENTITIES = ["DATE_OF_BIRTH", "STREET_ADDRESS", "ID_NUMBER"]

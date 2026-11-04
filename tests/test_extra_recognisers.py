@@ -212,6 +212,81 @@ def test_words_like_ship_to_do_not_make_everything_after_them_an_address(text):
     assert red(text) == text
 
 
+@pytest.mark.parametrize("text,secret", [
+    ("pass: b7DwbIfp&PN", "b7DwbIfp&PN"),
+    ("pw U4Aorl#S^64", "U4Aorl#S^64"),
+    ("The Wi-Fi key is !@eN3ZwqHmmj", "!@eN3ZwqHmmj"),
+    ("wifi password is changeme!1", "changeme!1"),
+    ("credentials: admin / ssJI8y2WGVhg11", "ssJI8y2WGVhg11"),
+])
+def test_more_ways_of_writing_a_password_are_redacted(text, secret):
+    assert secret not in red(text)
+
+
+@pytest.mark.parametrize("text", [
+    "pass: expired", "pass the salt", "pw reset requested", "pw 2 times",
+    "the Wi-Fi key is on the router", "credentials: stored in the vault",
+])
+def test_pass_pw_and_credentials_in_ordinary_sentences_are_left_alone(text):
+    assert red(text) == text
+
+
+@pytest.mark.parametrize("text,date", [
+    ("DOB was 21 July 2002", "21 July 2002"),
+    ("Her birth date is 28/08/1948.", "28/08/1948"),
+    ("Birthday was 14 March 1985", "14 March 1985"),
+    ("DOB was August 11, 1988", "August 11, 1988"),
+])
+def test_a_date_of_birth_after_is_or_was_is_redacted(text, date):
+    assert date not in red(text)
+
+
+def test_birth_date_with_no_date_after_it_is_left_alone():
+    assert red("birth date is unknown") == "birth date is unknown"
+
+
+@pytest.mark.parametrize("text,ssn", [
+    ("Tax ID 270-69-4743", "270-69-4743"),
+    ("Social: 829-60-3102", "829-60-3102"),
+    ("Employee SSN 123-45-6789 on file", "123-45-6789"),
+])
+def test_a_dashed_social_security_number_is_hidden_without_a_label(text, ssn):
+    out = red(text)
+    assert ssn not in out and "270-" not in out and "829-" not in out and "123-" not in out
+
+
+@pytest.mark.parametrize("text", [
+    "number 000-12-3456", "number 666-12-3456", "number 912-12-3456", "number 123-00-3456", "number 123-45-0000",
+    "call 555-1234", "version 2024-03-15",
+])
+def test_dashed_numbers_in_ranges_that_are_not_social_security_numbers_are_not_hidden_as_such(text):
+    assert "[US_SSN" not in red(text)
+
+
+def test_a_dashed_part_number_in_the_ssn_shape_is_hidden_too():
+    # Known cost of hiding SSNs without a label: a part or order number written 3-2-4 looks the same.
+    assert "[US_SSN" in red("Part number 555-12-3456")
+
+
+@pytest.mark.parametrize("text,street", [
+    ("Parcel for 12 Hill Road, Leeds LS1 4AP. Then lunch.", "12 Hill Road"),
+    ("Please post it to Level 7 790 David Riviera, Smithborough 2991.", "David Riviera"),
+    ("Her flat is at 129 Brenda Crossing, New Shawnaborough 2661.", "Brenda Crossing"),
+    ("Sent to 54249 Mccall Trafficway, Greenehaven 43545 yesterday", "Mccall Trafficway"),
+    ("Collection point: 4 Quay Street, Cork T12 AB34.", "Quay Street"),
+])
+def test_more_address_introductions_are_recognised(text, street):
+    assert street not in red(text)
+
+
+@pytest.mark.parametrize("text", [
+    "Sent to 5 customers, then archived", "Sent to the team on Monday", "post it to the usual place",
+    "The home is at the end of the road", "Parcel for the office",
+])
+def test_those_introductions_do_not_make_ordinary_words_an_address(text):
+    assert red(text) == text
+
+
 def test_only_the_value_is_redacted_not_the_sentence():
     out = red("the password is Tr0ub4dor&3xK9 for staging")
     assert out.startswith("the password is ") and out.endswith(" for staging")

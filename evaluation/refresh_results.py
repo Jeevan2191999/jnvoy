@@ -5,8 +5,9 @@ rendered from (scripts/render_independent_accuracy.py). Takes a few minutes: it 
 
     python evaluation/refresh_results.py
 
-The "before_fixes" block (what the same sets scored before the rules were changed) is kept from the
-existing file. It is history, not something this script can reproduce.
+The "before_fixes" block (what the same sets scored with the rules as they were before any of the
+detection fixes) and the "round1" block (after the first round) are kept from the existing file. They are
+history, not something this script can reproduce.
 """
 import hashlib
 import json
@@ -30,7 +31,11 @@ SETS = {
                       "Never looked at while fixing rules, but it uses the same sentence wordings as the development set, "
                       "so fixes that match those wordings help it too."),
     "large_fresh": ("large_fresh.jsonl", 9090, "fresh",
-                    "Sentence wordings written after the rules were fixed, never used to fix a rule. The figure to trust."),
+                    "Sentence wordings written after round one of the fixes. It was the unseen set until its misses were read "
+                    "and used to fix round two, so it is spent."),
+    "large_fresh2": ("large_fresh2.jsonl", 31337, "fresh2",
+                     "A third set of sentence wordings, written before round two of the fixes and never used to change a rule. "
+                     "The figure to trust."),
 }
 
 
@@ -58,7 +63,7 @@ def main():
         entry["en_core_web_lg"] = compare.run(rows, small=False, presidio=True, out=lambda *_: None)
         if key == "large":
             entry["breakdown_en_core_web_lg"] = breakdown.compute(rows, compare.jnvoy_system())
-        if key == "large_fresh":
+        if key in ("large_fresh", "large_fresh2"):
             entry["breakdown_en_core_web_lg"] = breakdown.compute(rows, compare.jnvoy_system())
         res["sets"][key] = entry
         print("measured", key)
@@ -66,7 +71,7 @@ def main():
     # language model it first loaded, so switching models inside one process would measure the large one twice.
     import subprocess
     import tempfile
-    for key in ("large", "large_fresh"):
+    for key in ("large", "large_fresh2"):
         with tempfile.TemporaryDirectory() as d:
             out = Path(d) / "sm.json"
             subprocess.run([sys.executable, str(HERE / "compare.py"), "--dataset", str(HERE / SETS[key][0]),
@@ -74,8 +79,9 @@ def main():
                            check=True, capture_output=True, timeout=1800)
             res["sets"][key]["en_core_web_sm"] = json.loads(out.read_text(encoding="utf-8"))
         print("measured", key, "with the small model")
-    if "before_fixes" in old:
-        res["before_fixes"] = old["before_fixes"]
+    for k in ("before_fixes", "round1"):
+        if k in old:
+            res[k] = old[k]
     path.write_text(json.dumps(res, indent=1, ensure_ascii=False), encoding="utf-8")
     print("wrote", path)
 
