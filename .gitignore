@@ -10,3 +10,6 @@ eu_ai_act_report*.pdf
 
 # one-off apply scripts used to ship changes
 apply_*.py
+
+# public datasets fetched by evaluation/injection_eval.py --fetch (not committed)
+evaluation/_public/

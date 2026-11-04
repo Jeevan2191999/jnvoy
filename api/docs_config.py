@@ -23,8 +23,8 @@ ACCOUNT = "Your account"
 
 API_DESCRIPTION = """\
 A privacy and security gateway for LLM traffic. Jnvoy finds personal data in prompts, replaces it \
-with tokens before the prompt reaches a model, restores the real values in the reply, blocks prompt \
-injection, and keeps an audit log of what was found.
+with tokens before the prompt reaches a model, restores the real values in the reply, blocks requests that contain well-known prompt \
+injection phrases, and keeps an audit log of what was found.
 
 **Authentication.** Send your key in the `x-api-key` header on every `/v1` request. Choose \
 **Authorize** to try requests from this page. A client key can use the proxy, scanning and MCP \

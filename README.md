@@ -2,7 +2,7 @@
 
 **A privacy and security gateway for LLM traffic.**
 
-Jnvoy sits between your application and a model provider (Anthropic or OpenAI). It finds personal data in prompts, replaces each value with a token before the prompt leaves, puts the real values back into the reply, blocks prompt injection, scans MCP tool traffic, and keeps an audit log of what was found, never the original text.
+Jnvoy sits between your application and a model provider (Anthropic or OpenAI). It finds personal data in prompts, replaces each value with a token before the prompt leaves, puts the real values back into the reply, blocks requests that contain well-known prompt-injection phrases, scans MCP tool traffic, and keeps an audit log of what was found, never the original text.
 
 [Website](https://www.jnvoy.com) | [API docs](https://www.jnvoy.com/docs) | [Privacy and data handling](https://www.jnvoy.com/privacy)
 
@@ -95,7 +95,7 @@ All regions are on by default. Restrict them with `JNVOY_REGIONS` (for example `
 
 **Off by default:** organisations, locations, dates and nationalities. Switch them on with `JNVOY_REDACT_EXTRA`.
 
-**Attacks:** direct injection, jailbreaks, system prompt extraction, role confusion, indirect injection, data exfiltration and obfuscation in prompts, and tool poisoning, secret leakage and injection in MCP traffic.
+**Prompt injection:** 31 fixed phrase patterns (direct injection, jailbreak personas, system-prompt extraction, role changes, fake system tags, data-dump requests) are checked in every message, and a request that matches a critical or high rule is blocked. MCP traffic has its own, shorter list for tool poisoning, plus secret detection. This is a list of known wording, not an understanding of meaning. Measured (`python evaluation/injection_eval.py --fetch --public`): it blocked 20.8% of 740 held-back real jailbreak prompts, 74% of our own attacks worded like the rules, and none of our reworded (0 of 42), translated (0 of 28), obfuscated (0 of 28) or split-across-messages (0 of 6) attacks. Base64 and rot13 wording is noticed but never blocked. It also blocks some harmless text, for example a prompt that begins "Please ignore all previous instructions" or a question about jailbreaking a phone, and there is no per-customer setting yet to turn it off. Use it as a tripwire for the best-known jailbreaks, not as your defence against injection; see the accuracy page.
 
 ## How well does it work
 
@@ -261,7 +261,7 @@ Function calling works through `/v1/chat/completions` with OpenAI models. Send `
 - **Earlier tool-call arguments** in the conversation are redacted too: every string, every object key and every long number. The JSON stays valid.
 - **The model's tool calls** come back with your real values restored, so your code can run the tool. Each value is restored on its own and re-encoded as JSON, so a quote inside a real value cannot break the arguments. They go through the same reply scan as text (`flag`, or `redact` replaces secrets and identifiers).
 - **A tool the model invents** (one not in your `tools`) is never passed on: the request fails with `502 undeclared_tool`.
-- **Injection hidden in a tool result** is blocked like any other injection (`400 prompt_injection_detected`).
+- **Injection hidden in a tool result** goes through the same phrase check as any other message (`400 prompt_injection_detected`), so only well-known wording is caught.
 
 Limits: tool definitions (names, descriptions, parameter schemas) are sent to the model as you wrote them, so keep personal data out of them; at most 64 tools and 100,000 characters of definitions; at most 1,000 values in the tool-call arguments of one request. With tools, `stream: true` does not deliver the reply word by word: it arrives as one complete set of chunks, because arguments cannot be restored while they are half written. Responses are never cached on this path. Claude models are not supported with tools yet and get `400 tools_not_supported_for_provider`. The older `functions` and `function_call` fields are refused; use `tools`.
 

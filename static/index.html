@@ -4,19 +4,19 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Jnvoy: privacy and security gateway for AI models</title>
-<meta name="description" content="Jnvoy sits between your application and a model provider. It redacts personal data before it reaches the model and blocks prompt injection.">
+<meta name="description" content="Jnvoy sits between your application and a model provider. It redacts personal data before it reaches the model and blocks requests that contain well-known jailbreak phrases.">
 <link rel="canonical" href="https://www.jnvoy.com/">
 <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
 <meta name="theme-color" content="#EDEEE9">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Jnvoy">
 <meta property="og:title" content="Jnvoy: privacy and security gateway for AI models">
-<meta property="og:description" content="Jnvoy sits between your application and a model provider. It redacts personal data before it reaches the model and blocks prompt injection.">
+<meta property="og:description" content="Jnvoy sits between your application and a model provider. It redacts personal data before it reaches the model and blocks requests that contain well-known jailbreak phrases.">
 <meta property="og:url" content="https://www.jnvoy.com/">
 <meta property="og:image" content="https://www.jnvoy.com/static/og-image.png">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Jnvoy: privacy and security gateway for AI models">
-<meta name="twitter:description" content="Jnvoy sits between your application and a model provider. It redacts personal data before it reaches the model and blocks prompt injection.">
+<meta name="twitter:description" content="Jnvoy sits between your application and a model provider. It redacts personal data before it reaches the model and blocks requests that contain well-known jailbreak phrases.">
 <meta name="twitter:image" content="https://www.jnvoy.com/static/og-image.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -680,7 +680,7 @@
       <p><b>Why I built Jnvoy.</b> I built Jnvoy so that using AI does not mean handing over your people&rsquo;s, customers&rsquo; and company&rsquo;s data. It is one control point between your applications and the model provider. It replaces personal data and secrets with placeholders before a prompt leaves, puts the real values back in the reply, and keeps an audit log of counts, never text. You can run it on your own servers.</p>
       <p class="sig">Jeevan Nagaraj, founder</p>
     </div>
-    <div class="why-limits"><strong>What it does not do.</strong> It covers traffic you route through it, so it does not stop someone pasting into a chatbot in a browser. It finds patterns and names, not meaning, so proprietary source code, trade secrets and other business-confidential text are not caught. Client and project names you list are always hidden, and only those. Medical terms are hidden only if you switch that on, and rarer conditions and medicines are still missed. Keys and passwords inside code are. <a href="/accuracy">What we measured and what we missed</a></div>
+    <div class="why-limits"><strong>What it does not do.</strong> It covers traffic you route through it, so it does not stop someone pasting into a chatbot in a browser. It finds patterns and names, not meaning, so proprietary source code, trade secrets and other business-confidential text are not caught. Client and project names you list are always hidden, and only those. Medical terms are hidden only if you switch that on, and rarer conditions and medicines are still missed. Injection blocking is a list of well-known phrases: it misses reworded, translated and obfuscated attacks. Keys and passwords inside code are. <a href="/accuracy">What we measured and what we missed</a></div>
   </div>
 </section>
 
@@ -925,8 +925,8 @@
 
       <div class="clause">
         <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 3l9 16H3L12 3z"/><path d="M12 10v4M12 17v.5"/></svg>
-        <h3>Prompt injection blocking</h3>
-        <p>Every request is checked against known injection patterns before anything else happens. A request that matches is blocked and never reaches the model. Pattern checks catch known wording, not every attack.</p>
+        <h3>Known-phrase injection blocking</h3>
+        <p>Every request is checked against 31 well-known injection and jailbreak phrases before anything else happens. A request that matches is blocked and never reaches the model. In our test it blocked about one in five real jailbreak prompts and none that were reworded, translated or split across messages, and it also blocks some harmless requests. It is a tripwire, not a defence. <a href="/accuracy#injection">The numbers</a></p>
       </div>
 
     </div>
@@ -943,7 +943,7 @@
     <div class="included">
       <b>Every plan includes</b>
       <span>50 identifier types</span>
-      <span>Prompt injection detection</span>
+      <span>Known-phrase injection blocking</span>
       <span>Audit logging of what was detected</span>
       <span>Reversible tokens</span>
     </div>
