@@ -279,7 +279,7 @@ Limits: tool definitions (names, descriptions, parameter schemas) are sent to th
 | `JNVOY_FILE_TIMEOUT_S`, `JNVOY_FILE_MEMORY_MB`, `JNVOY_FILE_WORKERS` | Time limit (20), memory limit (768) and number of files read at once (2) for the file reader |
 | `JNVOY_AUTH=off` | Switches authentication off. Local development only |
 | `JNVOY_REGIONS` | National identifier packs: `all` (default), `none`, `eu`, or country codes such as `in,au,sg` |
-| `JNVOY_REDACT_EXTRA` | `ORGANIZATION`, `LOCATION`, `DATE_TIME`, `NRP`, or `all` |
+| `JNVOY_REDACT_EXTRA` | `ORGANIZATION`, `LOCATION`, `DATE_TIME`, `NRP`, `MEDICAL_TERM`, or `all` |
 | `JNVOY_JUDGE_BACKEND` | Second check: `none` (default), `ollama` or `anthropic` |
 | `JNVOY_JUDGE_FAIL_MODE` | If the second check fails: `open` (default) keeps first-pass redaction, `closed` rejects the request |
 | `DATABASE_URL` | PostgreSQL for the audit log. Without it, an in-memory log is used |

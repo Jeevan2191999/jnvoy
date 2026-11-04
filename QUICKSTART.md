@@ -78,6 +78,7 @@ Jnvoy is set up per customer. Tell us and we change your account in minutes:
 - **Countries.** National ID formats are on for many countries by default. If you only need some (for example `uk` or `eu`), we can narrow them.
 - **Your own identifiers.** Things like `EMP-123456` or `CASE-2024-0099` can be added as custom patterns.
 - **Names that must always go.** Client and project names can be listed as protected terms, so they are always replaced. Only the names you list are found.
+- **Medical terms.** Off by default. Switch on `medical_term` and listed conditions, treatments and medicines are replaced, plus everyday words such as "cancer" only after a clinical cue. Rarer conditions and brand names are missed; the accuracy page has the numbers.
 - **Words that must stay.** Your company name, support email or product names can go on an allowlist so they are never replaced.
 - **Reply scanning.** Replies are checked for secrets and card or ID numbers. We can report only (the default), remove them, or switch it off.
 

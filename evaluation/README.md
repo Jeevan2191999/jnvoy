@@ -15,6 +15,7 @@ The numbers on https://www.jnvoy.com/accuracy come from these files.
 | `breakdown.py` | Splits the misses by format (capital-letter names, "pwd" passwords, card lengths). |
 | `check_my_data.py` | Scores Jnvoy on your own labelled text. This is the number that matters. |
 | `results_large.json` | The stored output of the runs above, with library versions and file checksums. |
+| `medical_terms_eval.py` | Measures the opt-in `MEDICAL_TERM` detection on 263 invented sentences: words on its list, words it was not given, medicines with a dose, everyday uses. Writes `medical_terms.jsonl` and `results_medical_terms.json`. |
 | `protected_terms_eval.py` | Measures the `protected_terms` setting on 272 invented client and project names, in forms it is built to find and forms it is not, plus names never listed. Writes `protected_terms.jsonl` and `results_protected_terms.json`. |
 | `run_eval.py` and the other `*.jsonl` files | The older, small, hand-written sets. They are optimistic. |
 

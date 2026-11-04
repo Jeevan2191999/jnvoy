@@ -1,0 +1,263 @@
+{"id": "mt0000", "text": "Her notes say she has diabetes.", "sensitive": [{"value": "diabetes", "type": "listed_condition"}], "keep": []}
+{"id": "mt0001", "text": "He told the team about his type 1 diabetes.", "sensitive": [{"value": "type 1 diabetes", "type": "listed_condition"}], "keep": []}
+{"id": "mt0002", "text": "Notes: patient reports type 2 diabetes since June.", "sensitive": [{"value": "type 2 diabetes", "type": "listed_condition"}], "keep": []}
+{"id": "mt0003", "text": "The file mentions hypertension and a follow-up in March.", "sensitive": [{"value": "hypertension", "type": "listed_condition"}], "keep": []}
+{"id": "mt0004", "text": "Please summarise the asthma case before Friday.", "sensitive": [{"value": "asthma", "type": "listed_condition"}], "keep": ["Friday"]}
+{"id": "mt0005", "text": "Her notes say she has epilepsy.", "sensitive": [{"value": "epilepsy", "type": "listed_condition"}], "keep": []}
+{"id": "mt0006", "text": "He told the team about his schizophrenia.", "sensitive": [{"value": "schizophrenia", "type": "listed_condition"}], "keep": []}
+{"id": "mt0007", "text": "Notes: patient reports bipolar disorder since June.", "sensitive": [{"value": "bipolar disorder", "type": "listed_condition"}], "keep": []}
+{"id": "mt0008", "text": "The file mentions hiv and a follow-up in March.", "sensitive": [{"value": "hiv", "type": "listed_condition"}], "keep": []}
+{"id": "mt0009", "text": "Please summarise the hepatitis case before Friday.", "sensitive": [{"value": "hepatitis", "type": "listed_condition"}], "keep": ["Friday"]}
+{"id": "mt0010", "text": "Her notes say she has leukaemia.", "sensitive": [{"value": "leukaemia", "type": "listed_condition"}], "keep": []}
+{"id": "mt0011", "text": "He told the team about his leukemia.", "sensitive": [{"value": "leukemia", "type": "listed_condition"}], "keep": []}
+{"id": "mt0012", "text": "Notes: patient reports lymphoma since June.", "sensitive": [{"value": "lymphoma", "type": "listed_condition"}], "keep": []}
+{"id": "mt0013", "text": "The file mentions melanoma and a follow-up in March.", "sensitive": [{"value": "melanoma", "type": "listed_condition"}], "keep": []}
+{"id": "mt0014", "text": "Please summarise the copd case before Friday.", "sensitive": [{"value": "copd", "type": "listed_condition"}], "keep": ["Friday"]}
+{"id": "mt0015", "text": "Her notes say she has arthritis.", "sensitive": [{"value": "arthritis", "type": "listed_condition"}], "keep": []}
+{"id": "mt0016", "text": "He told the team about his rheumatoid arthritis.", "sensitive": [{"value": "rheumatoid arthritis", "type": "listed_condition"}], "keep": []}
+{"id": "mt0017", "text": "Notes: patient reports osteoporosis since June.", "sensitive": [{"value": "osteoporosis", "type": "listed_condition"}], "keep": []}
+{"id": "mt0018", "text": "The file mentions migraine and a follow-up in March.", "sensitive": [{"value": "migraine", "type": "listed_condition"}], "keep": []}
+{"id": "mt0019", "text": "Please summarise the dementia case before Friday.", "sensitive": [{"value": "dementia", "type": "listed_condition"}], "keep": ["Friday"]}
+{"id": "mt0020", "text": "Her notes say she has alzheimer's disease.", "sensitive": [{"value": "alzheimer's disease", "type": "listed_condition"}], "keep": []}
+{"id": "mt0021", "text": "He told the team about his alzheimer's.", "sensitive": [{"value": "alzheimer's", "type": "listed_condition"}], "keep": []}
+{"id": "mt0022", "text": "Notes: patient reports parkinson's disease since June.", "sensitive": [{"value": "parkinson's disease", "type": "listed_condition"}], "keep": []}
+{"id": "mt0023", "text": "The file mentions multiple sclerosis and a follow-up in March.", "sensitive": [{"value": "multiple sclerosis", "type": "listed_condition"}], "keep": []}
+{"id": "mt0024", "text": "Please summarise the adhd case before Friday.", "sensitive": [{"value": "adhd", "type": "listed_condition"}], "keep": ["Friday"]}
+{"id": "mt0025", "text": "Her notes say she has ptsd.", "sensitive": [{"value": "ptsd", "type": "listed_condition"}], "keep": []}
+{"id": "mt0026", "text": "He told the team about his anorexia nervosa.", "sensitive": [{"value": "anorexia nervosa", "type": "listed_condition"}], "keep": []}
+{"id": "mt0027", "text": "Notes: patient reports bulimia since June.", "sensitive": [{"value": "bulimia", "type": "listed_condition"}], "keep": []}
+{"id": "mt0028", "text": "The file mentions eczema and a follow-up in March.", "sensitive": [{"value": "eczema", "type": "listed_condition"}], "keep": []}
+{"id": "mt0029", "text": "Please summarise the psoriasis case before Friday.", "sensitive": [{"value": "psoriasis", "type": "listed_condition"}], "keep": ["Friday"]}
+{"id": "mt0030", "text": "Her notes say she has crohn's disease.", "sensitive": [{"value": "crohn's disease", "type": "listed_condition"}], "keep": []}
+{"id": "mt0031", "text": "He told the team about his ulcerative colitis.", "sensitive": [{"value": "ulcerative colitis", "type": "listed_condition"}], "keep": []}
+{"id": "mt0032", "text": "Notes: patient reports coeliac disease since June.", "sensitive": [{"value": "coeliac disease", "type": "listed_condition"}], "keep": []}
+{"id": "mt0033", "text": "The file mentions celiac disease and a follow-up in March.", "sensitive": [{"value": "celiac disease", "type": "listed_condition"}], "keep": []}
+{"id": "mt0034", "text": "Please summarise the cystic fibrosis case before Friday.", "sensitive": [{"value": "cystic fibrosis", "type": "listed_condition"}], "keep": ["Friday"]}
+{"id": "mt0035", "text": "Her notes say she has sickle cell anaemia.", "sensitive": [{"value": "sickle cell anaemia", "type": "listed_condition"}], "keep": []}
+{"id": "mt0036", "text": "He told the team about his hypothyroidism.", "sensitive": [{"value": "hypothyroidism", "type": "listed_condition"}], "keep": []}
+{"id": "mt0037", "text": "Notes: patient reports hyperthyroidism since June.", "sensitive": [{"value": "hyperthyroidism", "type": "listed_condition"}], "keep": []}
+{"id": "mt0038", "text": "The file mentions endometriosis and a follow-up in March.", "sensitive": [{"value": "endometriosis", "type": "listed_condition"}], "keep": []}
+{"id": "mt0039", "text": "Please summarise the polycystic ovary syndrome case before Friday.", "sensitive": [{"value": "polycystic ovary syndrome", "type": "listed_condition"}], "keep": ["Friday"]}
+{"id": "mt0040", "text": "Her notes say she has sleep apnoea.", "sensitive": [{"value": "sleep apnoea", "type": "listed_condition"}], "keep": []}
+{"id": "mt0041", "text": "He told the team about his sleep apnea.", "sensitive": [{"value": "sleep apnea", "type": "listed_condition"}], "keep": []}
+{"id": "mt0042", "text": "Notes: patient reports tuberculosis since June.", "sensitive": [{"value": "tuberculosis", "type": "listed_condition"}], "keep": []}
+{"id": "mt0043", "text": "The file mentions pneumonia and a follow-up in March.", "sensitive": [{"value": "pneumonia", "type": "listed_condition"}], "keep": []}
+{"id": "mt0044", "text": "Please summarise the bronchitis case before Friday.", "sensitive": [{"value": "bronchitis", "type": "listed_condition"}], "keep": ["Friday"]}
+{"id": "mt0045", "text": "Her notes say she has covid-19.", "sensitive": [{"value": "covid-19", "type": "listed_condition"}], "keep": []}
+{"id": "mt0046", "text": "He told the team about his long covid.", "sensitive": [{"value": "long covid", "type": "listed_condition"}], "keep": []}
+{"id": "mt0047", "text": "Notes: patient reports glaucoma since June.", "sensitive": [{"value": "glaucoma", "type": "listed_condition"}], "keep": []}
+{"id": "mt0048", "text": "The file mentions cataracts and a follow-up in March.", "sensitive": [{"value": "cataracts", "type": "listed_condition"}], "keep": []}
+{"id": "mt0049", "text": "Please summarise the chronic kidney disease case before Friday.", "sensitive": [{"value": "chronic kidney disease", "type": "listed_condition"}], "keep": ["Friday"]}
+{"id": "mt0050", "text": "Her notes say she has heart failure.", "sensitive": [{"value": "heart failure", "type": "listed_condition"}], "keep": []}
+{"id": "mt0051", "text": "He told the team about his coronary artery disease.", "sensitive": [{"value": "coronary artery disease", "type": "listed_condition"}], "keep": []}
+{"id": "mt0052", "text": "Notes: patient reports atrial fibrillation since June.", "sensitive": [{"value": "atrial fibrillation", "type": "listed_condition"}], "keep": []}
+{"id": "mt0053", "text": "The file mentions anaphylaxis and a follow-up in March.", "sensitive": [{"value": "anaphylaxis", "type": "listed_condition"}], "keep": []}
+{"id": "mt0054", "text": "Her notes say she has chemotherapy.", "sensitive": [{"value": "chemotherapy", "type": "listed_procedure"}], "keep": []}
+{"id": "mt0055", "text": "He told the team about his radiotherapy.", "sensitive": [{"value": "radiotherapy", "type": "listed_procedure"}], "keep": []}
+{"id": "mt0056", "text": "Notes: patient reports dialysis since June.", "sensitive": [{"value": "dialysis", "type": "listed_procedure"}], "keep": []}
+{"id": "mt0057", "text": "The file mentions mastectomy and a follow-up in March.", "sensitive": [{"value": "mastectomy", "type": "listed_procedure"}], "keep": []}
+{"id": "mt0058", "text": "Please summarise the colonoscopy case before Friday.", "sensitive": [{"value": "colonoscopy", "type": "listed_procedure"}], "keep": ["Friday"]}
+{"id": "mt0059", "text": "Her notes say she has biopsy.", "sensitive": [{"value": "biopsy", "type": "listed_procedure"}], "keep": []}
+{"id": "mt0060", "text": "He told the team about his angioplasty.", "sensitive": [{"value": "angioplasty", "type": "listed_procedure"}], "keep": []}
+{"id": "mt0061", "text": "Notes: patient reports bypass surgery since June.", "sensitive": [{"value": "bypass surgery", "type": "listed_procedure"}], "keep": []}
+{"id": "mt0062", "text": "The file mentions cataract surgery and a follow-up in March.", "sensitive": [{"value": "cataract surgery", "type": "listed_procedure"}], "keep": []}
+{"id": "mt0063", "text": "Please summarise the knee replacement case before Friday.", "sensitive": [{"value": "knee replacement", "type": "listed_procedure"}], "keep": ["Friday"]}
+{"id": "mt0064", "text": "Her notes say she has hip replacement.", "sensitive": [{"value": "hip replacement", "type": "listed_procedure"}], "keep": []}
+{"id": "mt0065", "text": "He told the team about his ivf.", "sensitive": [{"value": "ivf", "type": "listed_procedure"}], "keep": []}
+{"id": "mt0066", "text": "He was prescribed metformin last month.", "sensitive": [{"value": "metformin", "type": "listed_medicine"}], "keep": []}
+{"id": "mt0067", "text": "She takes insulin every morning.", "sensitive": [{"value": "insulin", "type": "listed_medicine"}], "keep": []}
+{"id": "mt0068", "text": "Notes: started ibuprofen in May.", "sensitive": [{"value": "ibuprofen", "type": "listed_medicine"}], "keep": []}
+{"id": "mt0069", "text": "The chart lists paracetamol and a review in March.", "sensitive": [{"value": "paracetamol", "type": "listed_medicine"}], "keep": []}
+{"id": "mt0070", "text": "Please check the amoxicillin supply before Friday.", "sensitive": [{"value": "amoxicillin", "type": "listed_medicine"}], "keep": ["Friday"]}
+{"id": "mt0071", "text": "He was prescribed sertraline last month.", "sensitive": [{"value": "sertraline", "type": "listed_medicine"}], "keep": []}
+{"id": "mt0072", "text": "She takes citalopram every morning.", "sensitive": [{"value": "citalopram", "type": "listed_medicine"}], "keep": []}
+{"id": "mt0073", "text": "Notes: started fluoxetine in May.", "sensitive": [{"value": "fluoxetine", "type": "listed_medicine"}], "keep": []}
+{"id": "mt0074", "text": "The chart lists atorvastatin and a review in March.", "sensitive": [{"value": "atorvastatin", "type": "listed_medicine"}], "keep": []}
+{"id": "mt0075", "text": "Please check the simvastatin supply before Friday.", "sensitive": [{"value": "simvastatin", "type": "listed_medicine"}], "keep": ["Friday"]}
+{"id": "mt0076", "text": "He was prescribed omeprazole last month.", "sensitive": [{"value": "omeprazole", "type": "listed_medicine"}], "keep": []}
+{"id": "mt0077", "text": "She takes lansoprazole every morning.", "sensitive": [{"value": "lansoprazole", "type": "listed_medicine"}], "keep": []}
+{"id": "mt0078", "text": "Notes: started levothyroxine in May.", "sensitive": [{"value": "levothyroxine", "type": "listed_medicine"}], "keep": []}
+{"id": "mt0079", "text": "The chart lists lisinopril and a review in March.", "sensitive": [{"value": "lisinopril", "type": "listed_medicine"}], "keep": []}
+{"id": "mt0080", "text": "Please check the amlodipine supply before Friday.", "sensitive": [{"value": "amlodipine", "type": "listed_medicine"}], "keep": ["Friday"]}
+{"id": "mt0081", "text": "He was prescribed salbutamol last month.", "sensitive": [{"value": "salbutamol", "type": "listed_medicine"}], "keep": []}
+{"id": "mt0082", "text": "She takes warfarin every morning.", "sensitive": [{"value": "warfarin", "type": "listed_medicine"}], "keep": []}
+{"id": "mt0083", "text": "Notes: started apixaban in May.", "sensitive": [{"value": "apixaban", "type": "listed_medicine"}], "keep": []}
+{"id": "mt0084", "text": "The chart lists prednisolone and a review in March.", "sensitive": [{"value": "prednisolone", "type": "listed_medicine"}], "keep": []}
+{"id": "mt0085", "text": "Please check the diazepam supply before Friday.", "sensitive": [{"value": "diazepam", "type": "listed_medicine"}], "keep": ["Friday"]}
+{"id": "mt0086", "text": "He was prescribed codeine last month.", "sensitive": [{"value": "codeine", "type": "listed_medicine"}], "keep": []}
+{"id": "mt0087", "text": "She takes morphine every morning.", "sensitive": [{"value": "morphine", "type": "listed_medicine"}], "keep": []}
+{"id": "mt0088", "text": "Notes: started tramadol in May.", "sensitive": [{"value": "tramadol", "type": "listed_medicine"}], "keep": []}
+{"id": "mt0089", "text": "The chart lists methotrexate and a review in March.", "sensitive": [{"value": "methotrexate", "type": "listed_medicine"}], "keep": []}
+{"id": "mt0090", "text": "Please check the gabapentin supply before Friday.", "sensitive": [{"value": "gabapentin", "type": "listed_medicine"}], "keep": ["Friday"]}
+{"id": "mt0091", "text": "He was prescribed propranolol last month.", "sensitive": [{"value": "propranolol", "type": "listed_medicine"}], "keep": []}
+{"id": "mt0092", "text": "She takes loratadine every morning.", "sensitive": [{"value": "loratadine", "type": "listed_medicine"}], "keep": []}
+{"id": "mt0093", "text": "Notes: started cetirizine in May.", "sensitive": [{"value": "cetirizine", "type": "listed_medicine"}], "keep": []}
+{"id": "mt0094", "text": "Her notes say she has gout.", "sensitive": [{"value": "gout", "type": "unseen_condition"}], "keep": []}
+{"id": "mt0095", "text": "He told the team about his lupus.", "sensitive": [{"value": "lupus", "type": "unseen_condition"}], "keep": []}
+{"id": "mt0096", "text": "Notes: patient reports fibromyalgia since June.", "sensitive": [{"value": "fibromyalgia", "type": "unseen_condition"}], "keep": []}
+{"id": "mt0097", "text": "The file mentions sciatica and a follow-up in March.", "sensitive": [{"value": "sciatica", "type": "unseen_condition"}], "keep": []}
+{"id": "mt0098", "text": "Please summarise the tinnitus case before Friday.", "sensitive": [{"value": "tinnitus", "type": "unseen_condition"}], "keep": ["Friday"]}
+{"id": "mt0099", "text": "Her notes say she has vertigo.", "sensitive": [{"value": "vertigo", "type": "unseen_condition"}], "keep": []}
+{"id": "mt0100", "text": "He told the team about his rosacea.", "sensitive": [{"value": "rosacea", "type": "unseen_condition"}], "keep": []}
+{"id": "mt0101", "text": "Notes: patient reports shingles since June.", "sensitive": [{"value": "shingles", "type": "unseen_condition"}], "keep": []}
+{"id": "mt0102", "text": "The file mentions glandular fever and a follow-up in March.", "sensitive": [{"value": "glandular fever", "type": "unseen_condition"}], "keep": []}
+{"id": "mt0103", "text": "Please summarise the appendicitis case before Friday.", "sensitive": [{"value": "appendicitis", "type": "unseen_condition"}], "keep": ["Friday"]}
+{"id": "mt0104", "text": "Her notes say she has cirrhosis.", "sensitive": [{"value": "cirrhosis", "type": "unseen_condition"}], "keep": []}
+{"id": "mt0105", "text": "He told the team about his pancreatitis.", "sensitive": [{"value": "pancreatitis", "type": "unseen_condition"}], "keep": []}
+{"id": "mt0106", "text": "Notes: patient reports scoliosis since June.", "sensitive": [{"value": "scoliosis", "type": "unseen_condition"}], "keep": []}
+{"id": "mt0107", "text": "The file mentions carpal tunnel syndrome and a follow-up in March.", "sensitive": [{"value": "carpal tunnel syndrome", "type": "unseen_condition"}], "keep": []}
+{"id": "mt0108", "text": "Please summarise the restless legs syndrome case before Friday.", "sensitive": [{"value": "restless legs syndrome", "type": "unseen_condition"}], "keep": ["Friday"]}
+{"id": "mt0109", "text": "Her notes say she has narcolepsy.", "sensitive": [{"value": "narcolepsy", "type": "unseen_condition"}], "keep": []}
+{"id": "mt0110", "text": "He told the team about his hypoglycaemia.", "sensitive": [{"value": "hypoglycaemia", "type": "unseen_condition"}], "keep": []}
+{"id": "mt0111", "text": "Notes: patient reports thrombosis since June.", "sensitive": [{"value": "thrombosis", "type": "unseen_condition"}], "keep": []}
+{"id": "mt0112", "text": "The file mentions sepsis and a follow-up in March.", "sensitive": [{"value": "sepsis", "type": "unseen_condition"}], "keep": []}
+{"id": "mt0113", "text": "Please summarise the meningitis case before Friday.", "sensitive": [{"value": "meningitis", "type": "unseen_condition"}], "keep": ["Friday"]}
+{"id": "mt0114", "text": "Her notes say she has measles.", "sensitive": [{"value": "measles", "type": "unseen_condition"}], "keep": []}
+{"id": "mt0115", "text": "He told the team about his malaria.", "sensitive": [{"value": "malaria", "type": "unseen_condition"}], "keep": []}
+{"id": "mt0116", "text": "Notes: patient reports endocarditis since June.", "sensitive": [{"value": "endocarditis", "type": "unseen_condition"}], "keep": []}
+{"id": "mt0117", "text": "The file mentions gallstones and a follow-up in March.", "sensitive": [{"value": "gallstones", "type": "unseen_condition"}], "keep": []}
+{"id": "mt0118", "text": "Please summarise the diverticulitis case before Friday.", "sensitive": [{"value": "diverticulitis", "type": "unseen_condition"}], "keep": ["Friday"]}
+{"id": "mt0119", "text": "Her notes say she has hepatitis c.", "sensitive": [{"value": "hepatitis c", "type": "unseen_condition"}], "keep": []}
+{"id": "mt0120", "text": "He told the team about his cholesterol.", "sensitive": [{"value": "cholesterol", "type": "unseen_condition"}], "keep": []}
+{"id": "mt0121", "text": "Notes: patient reports tonsillitis since June.", "sensitive": [{"value": "tonsillitis", "type": "unseen_condition"}], "keep": []}
+{"id": "mt0122", "text": "The file mentions pleurisy and a follow-up in March.", "sensitive": [{"value": "pleurisy", "type": "unseen_condition"}], "keep": []}
+{"id": "mt0123", "text": "Please summarise the urticaria case before Friday.", "sensitive": [{"value": "urticaria", "type": "unseen_condition"}], "keep": ["Friday"]}
+{"id": "mt0124", "text": "Her notes say she has osteoarthritis.", "sensitive": [{"value": "osteoarthritis", "type": "unseen_condition"}], "keep": []}
+{"id": "mt0125", "text": "He told the team about his emphysema.", "sensitive": [{"value": "emphysema", "type": "unseen_condition"}], "keep": []}
+{"id": "mt0126", "text": "Notes: patient reports hyperlipidaemia since June.", "sensitive": [{"value": "hyperlipidaemia", "type": "unseen_condition"}], "keep": []}
+{"id": "mt0127", "text": "The file mentions dyslexia and a follow-up in March.", "sensitive": [{"value": "dyslexia", "type": "unseen_condition"}], "keep": []}
+{"id": "mt0128", "text": "Please summarise the autism case before Friday.", "sensitive": [{"value": "autism", "type": "unseen_condition"}], "keep": ["Friday"]}
+{"id": "mt0129", "text": "Her notes say she has appendectomy.", "sensitive": [{"value": "appendectomy", "type": "unseen_procedure"}], "keep": []}
+{"id": "mt0130", "text": "He told the team about his tonsillectomy.", "sensitive": [{"value": "tonsillectomy", "type": "unseen_procedure"}], "keep": []}
+{"id": "mt0131", "text": "Notes: patient reports endoscopy since June.", "sensitive": [{"value": "endoscopy", "type": "unseen_procedure"}], "keep": []}
+{"id": "mt0132", "text": "The file mentions hysterectomy and a follow-up in March.", "sensitive": [{"value": "hysterectomy", "type": "unseen_procedure"}], "keep": []}
+{"id": "mt0133", "text": "Please summarise the laparoscopy case before Friday.", "sensitive": [{"value": "laparoscopy", "type": "unseen_procedure"}], "keep": ["Friday"]}
+{"id": "mt0134", "text": "Her notes say she has cystoscopy.", "sensitive": [{"value": "cystoscopy", "type": "unseen_procedure"}], "keep": []}
+{"id": "mt0135", "text": "He told the team about his angiogram.", "sensitive": [{"value": "angiogram", "type": "unseen_procedure"}], "keep": []}
+{"id": "mt0136", "text": "Notes: patient reports skin graft since June.", "sensitive": [{"value": "skin graft", "type": "unseen_procedure"}], "keep": []}
+{"id": "mt0137", "text": "He was prescribed ramipril last month.", "sensitive": [{"value": "ramipril", "type": "unseen_medicine_with_ending"}], "keep": []}
+{"id": "mt0138", "text": "She takes bisoprolol every morning.", "sensitive": [{"value": "bisoprolol", "type": "unseen_medicine_with_ending"}], "keep": []}
+{"id": "mt0139", "text": "Notes: started rosuvastatin in May.", "sensitive": [{"value": "rosuvastatin", "type": "unseen_medicine_with_ending"}], "keep": []}
+{"id": "mt0140", "text": "The chart lists pravastatin and a review in March.", "sensitive": [{"value": "pravastatin", "type": "unseen_medicine_with_ending"}], "keep": []}
+{"id": "mt0141", "text": "Please check the losartan supply before Friday.", "sensitive": [{"value": "losartan", "type": "unseen_medicine_with_ending"}], "keep": ["Friday"]}
+{"id": "mt0142", "text": "He was prescribed candesartan last month.", "sensitive": [{"value": "candesartan", "type": "unseen_medicine_with_ending"}], "keep": []}
+{"id": "mt0143", "text": "She takes atenolol every morning.", "sensitive": [{"value": "atenolol", "type": "unseen_medicine_with_ending"}], "keep": []}
+{"id": "mt0144", "text": "Notes: started metoprolol in May.", "sensitive": [{"value": "metoprolol", "type": "unseen_medicine_with_ending"}], "keep": []}
+{"id": "mt0145", "text": "The chart lists esomeprazole and a review in March.", "sensitive": [{"value": "esomeprazole", "type": "unseen_medicine_with_ending"}], "keep": []}
+{"id": "mt0146", "text": "Please check the pantoprazole supply before Friday.", "sensitive": [{"value": "pantoprazole", "type": "unseen_medicine_with_ending"}], "keep": ["Friday"]}
+{"id": "mt0147", "text": "He was prescribed clarithromycin last month.", "sensitive": [{"value": "clarithromycin", "type": "unseen_medicine_with_ending"}], "keep": []}
+{"id": "mt0148", "text": "She takes azithromycin every morning.", "sensitive": [{"value": "azithromycin", "type": "unseen_medicine_with_ending"}], "keep": []}
+{"id": "mt0149", "text": "Notes: started flucloxacillin in May.", "sensitive": [{"value": "flucloxacillin", "type": "unseen_medicine_with_ending"}], "keep": []}
+{"id": "mt0150", "text": "The chart lists doxycycline and a review in March.", "sensitive": [{"value": "doxycycline", "type": "unseen_medicine_with_ending"}], "keep": []}
+{"id": "mt0151", "text": "Please check the fluconazole supply before Friday.", "sensitive": [{"value": "fluconazole", "type": "unseen_medicine_with_ending"}], "keep": ["Friday"]}
+{"id": "mt0152", "text": "He was prescribed aciclovir last month.", "sensitive": [{"value": "aciclovir", "type": "unseen_medicine_with_ending"}], "keep": []}
+{"id": "mt0153", "text": "She takes levetiracetam every morning.", "sensitive": [{"value": "levetiracetam", "type": "unseen_medicine_with_ending"}], "keep": []}
+{"id": "mt0154", "text": "Notes: started olanzapine in May.", "sensitive": [{"value": "olanzapine", "type": "unseen_medicine_with_ending"}], "keep": []}
+{"id": "mt0155", "text": "The chart lists mirtazapine and a review in March.", "sensitive": [{"value": "mirtazapine", "type": "unseen_medicine_with_ending"}], "keep": []}
+{"id": "mt0156", "text": "Please check the escitalopram supply before Friday.", "sensitive": [{"value": "escitalopram", "type": "unseen_medicine_with_ending"}], "keep": ["Friday"]}
+{"id": "mt0157", "text": "He was prescribed lorazepam last month.", "sensitive": [{"value": "lorazepam", "type": "unseen_medicine_with_ending"}], "keep": []}
+{"id": "mt0158", "text": "She takes sumatriptan every morning.", "sensitive": [{"value": "sumatriptan", "type": "unseen_medicine_with_ending"}], "keep": []}
+{"id": "mt0159", "text": "Notes: started montelukast in May.", "sensitive": [{"value": "montelukast", "type": "unseen_medicine_with_ending"}], "keep": []}
+{"id": "mt0160", "text": "The chart lists ranitidine and a review in March.", "sensitive": [{"value": "ranitidine", "type": "unseen_medicine_with_ending"}], "keep": []}
+{"id": "mt0161", "text": "Please check the rivaroxaban supply before Friday.", "sensitive": [{"value": "rivaroxaban", "type": "unseen_medicine_with_ending"}], "keep": ["Friday"]}
+{"id": "mt0162", "text": "He was prescribed enoxaparin last month.", "sensitive": [{"value": "enoxaparin", "type": "unseen_medicine_with_ending"}], "keep": []}
+{"id": "mt0163", "text": "She takes sitagliptin every morning.", "sensitive": [{"value": "sitagliptin", "type": "unseen_medicine_with_ending"}], "keep": []}
+{"id": "mt0164", "text": "Notes: started empagliflozin in May.", "sensitive": [{"value": "empagliflozin", "type": "unseen_medicine_with_ending"}], "keep": []}
+{"id": "mt0165", "text": "The chart lists semaglutide and a review in March.", "sensitive": [{"value": "semaglutide", "type": "unseen_medicine_with_ending"}], "keep": []}
+{"id": "mt0166", "text": "Please check the anastrozole supply before Friday.", "sensitive": [{"value": "anastrozole", "type": "unseen_medicine_with_ending"}], "keep": ["Friday"]}
+{"id": "mt0167", "text": "He was prescribed imatinib last month.", "sensitive": [{"value": "imatinib", "type": "unseen_medicine_with_ending"}], "keep": []}
+{"id": "mt0168", "text": "She takes cisplatin every morning.", "sensitive": [{"value": "cisplatin", "type": "unseen_medicine_with_ending"}], "keep": []}
+{"id": "mt0169", "text": "Notes: started venlafaxine in May.", "sensitive": [{"value": "venlafaxine", "type": "unseen_medicine_with_ending"}], "keep": []}
+{"id": "mt0170", "text": "He was prescribed clopidogrel last month.", "sensitive": [{"value": "clopidogrel", "type": "unseen_medicine_without_ending"}], "keep": []}
+{"id": "mt0171", "text": "She takes lamotrigine every morning.", "sensitive": [{"value": "lamotrigine", "type": "unseen_medicine_without_ending"}], "keep": []}
+{"id": "mt0172", "text": "Notes: started carbamazepine in May.", "sensitive": [{"value": "carbamazepine", "type": "unseen_medicine_without_ending"}], "keep": []}
+{"id": "mt0173", "text": "The chart lists quetiapine and a review in March.", "sensitive": [{"value": "quetiapine", "type": "unseen_medicine_without_ending"}], "keep": []}
+{"id": "mt0174", "text": "Please check the risperidone supply before Friday.", "sensitive": [{"value": "risperidone", "type": "unseen_medicine_without_ending"}], "keep": ["Friday"]}
+{"id": "mt0175", "text": "He was prescribed zopiclone last month.", "sensitive": [{"value": "zopiclone", "type": "unseen_medicine_without_ending"}], "keep": []}
+{"id": "mt0176", "text": "She takes naproxen every morning.", "sensitive": [{"value": "naproxen", "type": "unseen_medicine_without_ending"}], "keep": []}
+{"id": "mt0177", "text": "Notes: started diclofenac in May.", "sensitive": [{"value": "diclofenac", "type": "unseen_medicine_without_ending"}], "keep": []}
+{"id": "mt0178", "text": "The chart lists hydroxychloroquine and a review in March.", "sensitive": [{"value": "hydroxychloroquine", "type": "unseen_medicine_without_ending"}], "keep": []}
+{"id": "mt0179", "text": "Please check the tamoxifen supply before Friday.", "sensitive": [{"value": "tamoxifen", "type": "unseen_medicine_without_ending"}], "keep": ["Friday"]}
+{"id": "mt0180", "text": "He was prescribed methylphenidate last month.", "sensitive": [{"value": "methylphenidate", "type": "unseen_medicine_without_ending"}], "keep": []}
+{"id": "mt0181", "text": "She takes fexofenadine every morning.", "sensitive": [{"value": "fexofenadine", "type": "unseen_medicine_without_ending"}], "keep": []}
+{"id": "mt0182", "text": "Notes: started domperidone in May.", "sensitive": [{"value": "domperidone", "type": "unseen_medicine_without_ending"}], "keep": []}
+{"id": "mt0183", "text": "The chart lists furosemide and a review in March.", "sensitive": [{"value": "furosemide", "type": "unseen_medicine_without_ending"}], "keep": []}
+{"id": "mt0184", "text": "Please check the spironolactone supply before Friday.", "sensitive": [{"value": "spironolactone", "type": "unseen_medicine_without_ending"}], "keep": ["Friday"]}
+{"id": "mt0185", "text": "He was prescribed digoxin last month.", "sensitive": [{"value": "digoxin", "type": "unseen_medicine_without_ending"}], "keep": []}
+{"id": "mt0186", "text": "She takes amiodarone every morning.", "sensitive": [{"value": "amiodarone", "type": "unseen_medicine_without_ending"}], "keep": []}
+{"id": "mt0187", "text": "Notes: started oxycodone in May.", "sensitive": [{"value": "oxycodone", "type": "unseen_medicine_without_ending"}], "keep": []}
+{"id": "mt0188", "text": "The chart lists fentanyl and a review in March.", "sensitive": [{"value": "fentanyl", "type": "unseen_medicine_without_ending"}], "keep": []}
+{"id": "mt0189", "text": "Please check the buprenorphine supply before Friday.", "sensitive": [{"value": "buprenorphine", "type": "unseen_medicine_without_ending"}], "keep": ["Friday"]}
+{"id": "mt0190", "text": "He was prescribed naloxone last month.", "sensitive": [{"value": "naloxone", "type": "unseen_medicine_without_ending"}], "keep": []}
+{"id": "mt0191", "text": "She takes gliclazide every morning.", "sensitive": [{"value": "gliclazide", "type": "unseen_medicine_without_ending"}], "keep": []}
+{"id": "mt0192", "text": "Notes: started bumetanide in May.", "sensitive": [{"value": "bumetanide", "type": "unseen_medicine_without_ending"}], "keep": []}
+{"id": "mt0193", "text": "The chart lists tacrolimus and a review in March.", "sensitive": [{"value": "tacrolimus", "type": "unseen_medicine_without_ending"}], "keep": []}
+{"id": "mt0194", "text": "He was prescribed Prozac last month.", "sensitive": [{"value": "Prozac", "type": "unseen_brand_name"}], "keep": []}
+{"id": "mt0195", "text": "She takes Ventolin every morning.", "sensitive": [{"value": "Ventolin", "type": "unseen_brand_name"}], "keep": []}
+{"id": "mt0196", "text": "Notes: started Lipitor in May.", "sensitive": [{"value": "Lipitor", "type": "unseen_brand_name"}], "keep": []}
+{"id": "mt0197", "text": "The chart lists Zoloft and a review in March.", "sensitive": [{"value": "Zoloft", "type": "unseen_brand_name"}], "keep": []}
+{"id": "mt0198", "text": "Please check the Nurofen supply before Friday.", "sensitive": [{"value": "Nurofen", "type": "unseen_brand_name"}], "keep": ["Friday"]}
+{"id": "mt0199", "text": "He was prescribed Calpol last month.", "sensitive": [{"value": "Calpol", "type": "unseen_brand_name"}], "keep": []}
+{"id": "mt0200", "text": "She takes Xanax every morning.", "sensitive": [{"value": "Xanax", "type": "unseen_brand_name"}], "keep": []}
+{"id": "mt0201", "text": "Notes: started Ozempic in May.", "sensitive": [{"value": "Ozempic", "type": "unseen_brand_name"}], "keep": []}
+{"id": "mt0202", "text": "The chart lists Viagra and a review in March.", "sensitive": [{"value": "Viagra", "type": "unseen_brand_name"}], "keep": []}
+{"id": "mt0203", "text": "Please check the Panadol supply before Friday.", "sensitive": [{"value": "Panadol", "type": "unseen_brand_name"}], "keep": ["Friday"]}
+{"id": "mt0204", "text": "She was diagnosed with cancer.", "sensitive": [{"value": "cancer", "type": "cue_gated_with_cue"}], "keep": []}
+{"id": "mt0205", "text": "He has a history of depression.", "sensitive": [{"value": "depression", "type": "cue_gated_with_cue"}], "keep": []}
+{"id": "mt0206", "text": "Treated for anxiety last spring.", "sensitive": [{"value": "anxiety", "type": "cue_gated_with_cue"}], "keep": []}
+{"id": "mt0207", "text": "Her mother died of stroke.", "sensitive": [{"value": "stroke", "type": "cue_gated_with_cue"}], "keep": []}
+{"id": "mt0208", "text": "He is living with flu.", "sensitive": [{"value": "flu", "type": "cue_gated_with_cue"}], "keep": []}
+{"id": "mt0209", "text": "She was diagnosed with infection.", "sensitive": [{"value": "infection", "type": "cue_gated_with_cue"}], "keep": []}
+{"id": "mt0210", "text": "He has a history of injury.", "sensitive": [{"value": "injury", "type": "cue_gated_with_cue"}], "keep": []}
+{"id": "mt0211", "text": "Treated for fracture last spring.", "sensitive": [{"value": "fracture", "type": "cue_gated_with_cue"}], "keep": []}
+{"id": "mt0212", "text": "Her mother died of pregnancy.", "sensitive": [{"value": "pregnancy", "type": "cue_gated_with_cue"}], "keep": []}
+{"id": "mt0213", "text": "He is living with obesity.", "sensitive": [{"value": "obesity", "type": "cue_gated_with_cue"}], "keep": []}
+{"id": "mt0214", "text": "She was diagnosed with addiction.", "sensitive": [{"value": "addiction", "type": "cue_gated_with_cue"}], "keep": []}
+{"id": "mt0215", "text": "He has a history of heart attack.", "sensitive": [{"value": "heart attack", "type": "cue_gated_with_cue"}], "keep": []}
+{"id": "mt0216", "text": "Treated for heart disease last spring.", "sensitive": [{"value": "heart disease", "type": "cue_gated_with_cue"}], "keep": []}
+{"id": "mt0217", "text": "Her mother died of kidney disease.", "sensitive": [{"value": "kidney disease", "type": "cue_gated_with_cue"}], "keep": []}
+{"id": "mt0218", "text": "He is living with kidney failure.", "sensitive": [{"value": "kidney failure", "type": "cue_gated_with_cue"}], "keep": []}
+{"id": "mt0219", "text": "She was diagnosed with liver disease.", "sensitive": [{"value": "liver disease", "type": "cue_gated_with_cue"}], "keep": []}
+{"id": "mt0220", "text": "He has a history of high blood pressure.", "sensitive": [{"value": "high blood pressure", "type": "cue_gated_with_cue"}], "keep": []}
+{"id": "mt0221", "text": "Treated for panic attacks last spring.", "sensitive": [{"value": "panic attacks", "type": "cue_gated_with_cue"}], "keep": []}
+{"id": "mt0222", "text": "Her mother died of insomnia.", "sensitive": [{"value": "insomnia", "type": "cue_gated_with_cue"}], "keep": []}
+{"id": "mt0223", "text": "He is living with mental health condition.", "sensitive": [{"value": "mental health condition", "type": "cue_gated_with_cue"}], "keep": []}
+{"id": "mt0224", "text": "He takes clopidogrel 5 mg daily.", "sensitive": [{"value": "clopidogrel", "type": "unseen_name_with_dose"}], "keep": ["daily"]}
+{"id": "mt0225", "text": "He takes lamotrigine 10 mg daily.", "sensitive": [{"value": "lamotrigine", "type": "unseen_name_with_dose"}], "keep": ["daily"]}
+{"id": "mt0226", "text": "He takes carbamazepine 20 mg daily.", "sensitive": [{"value": "carbamazepine", "type": "unseen_name_with_dose"}], "keep": ["daily"]}
+{"id": "mt0227", "text": "He takes quetiapine 40 mg daily.", "sensitive": [{"value": "quetiapine", "type": "unseen_name_with_dose"}], "keep": ["daily"]}
+{"id": "mt0228", "text": "He takes risperidone 100 mg daily.", "sensitive": [{"value": "risperidone", "type": "unseen_name_with_dose"}], "keep": ["daily"]}
+{"id": "mt0229", "text": "He takes zopiclone 5 mg daily.", "sensitive": [{"value": "zopiclone", "type": "unseen_name_with_dose"}], "keep": ["daily"]}
+{"id": "mt0230", "text": "He takes naproxen 10 mg daily.", "sensitive": [{"value": "naproxen", "type": "unseen_name_with_dose"}], "keep": ["daily"]}
+{"id": "mt0231", "text": "He takes diclofenac 20 mg daily.", "sensitive": [{"value": "diclofenac", "type": "unseen_name_with_dose"}], "keep": ["daily"]}
+{"id": "mt0232", "text": "He takes hydroxychloroquine 40 mg daily.", "sensitive": [{"value": "hydroxychloroquine", "type": "unseen_name_with_dose"}], "keep": ["daily"]}
+{"id": "mt0233", "text": "He takes tamoxifen 100 mg daily.", "sensitive": [{"value": "tamoxifen", "type": "unseen_name_with_dose"}], "keep": ["daily"]}
+{"id": "mt0234", "text": "He takes methylphenidate 5 mg daily.", "sensitive": [{"value": "methylphenidate", "type": "unseen_name_with_dose"}], "keep": ["daily"]}
+{"id": "mt0235", "text": "He takes fexofenadine 10 mg daily.", "sensitive": [{"value": "fexofenadine", "type": "unseen_name_with_dose"}], "keep": ["daily"]}
+{"id": "mt0236", "text": "He takes Prozac 20 mg daily.", "sensitive": [{"value": "Prozac", "type": "unseen_name_with_dose"}], "keep": ["daily"]}
+{"id": "mt0237", "text": "He takes Ventolin 40 mg daily.", "sensitive": [{"value": "Ventolin", "type": "unseen_name_with_dose"}], "keep": ["daily"]}
+{"id": "mt0238", "text": "He takes Lipitor 100 mg daily.", "sensitive": [{"value": "Lipitor", "type": "unseen_name_with_dose"}], "keep": ["daily"]}
+{"id": "mt0239", "text": "He takes Zoloft 5 mg daily.", "sensitive": [{"value": "Zoloft", "type": "unseen_name_with_dose"}], "keep": ["daily"]}
+{"id": "mt0240", "text": "He takes Nurofen 10 mg daily.", "sensitive": [{"value": "Nurofen", "type": "unseen_name_with_dose"}], "keep": ["daily"]}
+{"id": "mt0241", "text": "He takes Calpol 20 mg daily.", "sensitive": [{"value": "Calpol", "type": "unseen_name_with_dose"}], "keep": ["daily"]}
+{"id": "mt0242", "text": "A cold call about a stroke of luck.", "sensitive": [], "keep": ["cold call", "stroke of luck"]}
+{"id": "mt0243", "text": "The depression of 1929 changed the economy.", "sensitive": [], "keep": ["depression of 1929"]}
+{"id": "mt0244", "text": "My cancer horoscope says to rest.", "sensitive": [], "keep": ["cancer horoscope"]}
+{"id": "mt0245", "text": "Anxiety about the deadline grew all week.", "sensitive": [], "keep": ["Anxiety about the deadline"]}
+{"id": "mt0246", "text": "The pregnancy of the project was long.", "sensitive": [], "keep": ["pregnancy of the project"]}
+{"id": "mt0247", "text": "Take 2 tablets 500 mg after food.", "sensitive": [], "keep": ["tablets"]}
+{"id": "mt0248", "text": "Heart disease charities raised money this year.", "sensitive": [], "keep": ["Heart disease charities"]}
+{"id": "mt0249", "text": "The flu season story ran on page two.", "sensitive": [], "keep": ["flu season story"]}
+{"id": "mt0250", "text": "An injury report was filed by the venue.", "sensitive": [], "keep": ["injury report"]}
+{"id": "mt0251", "text": "A fracture in the plan became obvious.", "sensitive": [], "keep": ["fracture in the plan"]}
+{"id": "mt0252", "text": "Addiction to caffeine is a common joke.", "sensitive": [], "keep": ["Addiction to caffeine"]}
+{"id": "mt0253", "text": "An infection of the build server stopped the release.", "sensitive": [], "keep": ["infection of the build server"]}
+{"id": "mt0254", "text": "Insomnia Cookies opened a shop nearby.", "sensitive": [], "keep": ["Insomnia Cookies"]}
+{"id": "mt0255", "text": "Meet in April at the Alpine lodge in Capri.", "sensitive": [], "keep": ["April", "Alpine", "Capri"]}
+{"id": "mt0256", "text": "The Platinum plan includes the program review.", "sensitive": [], "keep": ["Platinum", "program review"]}
+{"id": "mt0257", "text": "The cancer of corruption spread through the firm.", "sensitive": [], "keep": ["corruption spread"]}
+{"id": "mt0258", "text": "The stroke of midnight ended the party.", "sensitive": [], "keep": ["stroke of midnight"]}
+{"id": "mt0259", "text": "The injury time goal came in the 92nd minute.", "sensitive": [], "keep": ["injury time goal"]}
+{"id": "mt0260", "text": "The flu jab queue was short at the shop.", "sensitive": [], "keep": ["flu jab queue"]}
+{"id": "mt0261", "text": "The bypass road opened to traffic last week.", "sensitive": [], "keep": ["bypass road"]}
+{"id": "mt0262", "text": "She wrote a history of the depression in Europe.", "sensitive": [], "keep": ["depression in Europe"]}

@@ -242,6 +242,7 @@
         <li><a href="#result">The result</a></li>
                 <li><a href="#larger-test">Larger test</a></li>
         <li><a href="#protected-terms">Names you list</a></li>
+        <li><a href="#medical-terms">Medical terms</a></li>
         <li><a href="#types">By type of data</a></li>
         <li><a href="#wrong">What it gets wrong</a></li>
         <li><a href="#limits">Limits of this test</a></li>
@@ -355,6 +356,20 @@
           <li><strong>Harmless words:</strong> 466 of 466 were left readable, with or without the list.</li>
         </ul>
         <p>Practical meaning: list every name, spelling and short form you care about. Reproduce this with <code>python evaluation/protected_terms_eval.py</code>.</p>
+      </section>
+
+      <section id="medical-terms">
+        <h2>Medical terms, switched on by choice</h2>
+        <p>A condition or a medicine is not personal data until it is tied to a person, so Jnvoy does not hide medical words by default. A customer can switch on the type <code>MEDICAL_TERM</code> (policy <code>redact_extra</code> set to <code>medical_term</code>). It is a word list plus three rules: listed conditions, treatments and medicines; everyday words such as &ldquo;cancer&rdquo; or &ldquo;stroke&rdquo; only right after a clinical cue such as &ldquo;diagnosed with&rdquo;; and words that end like a medicine name (&ldquo;-statin&rdquo;, &ldquo;-pril&rdquo;, &ldquo;-olol&rdquo;) or sit beside a dose (&ldquo;Ramipril 5 mg&rdquo;). It does not understand medicine. 263 invented sentences were measured with the setting off and on, using the large language model.</p>
+        <ul class="plain">
+          <li><strong>Words on its own list</strong> (54 conditions, 12 procedures, 28 medicines): with the setting on it hid 94 of 94 (100.0%). Off, 1 of 94. This only shows that the list works.</li>
+          <li><strong>Everyday words after a clinical cue</strong> (&ldquo;history of&rdquo;, &ldquo;died of&rdquo;): 20 of 20 hidden on, 0 of 20 off.</li>
+          <li><strong>Medicines not on the list that end like a medicine:</strong> 29 of 33 (87.9%, range 73 to 95). We chose these knowing which endings the rule uses, so a stranger&rsquo;s list of medicines would do worse.</li>
+          <li><strong>Medicines and brand names with a dose beside them</strong> (&ldquo;Prozac 20 mg&rdquo;): 18 of 18 hidden. The same names with no dose and no medicine ending were not found.</li>
+          <li><strong>Conditions, procedures, brand names and medicines with no medicine ending, not on the list and with no dose:</strong> 4 of 77 (5.2%), against 2 of 77 with the setting off. In practice they are not found. Examples it misses: gout, lupus, shingles, Ventolin, Prozac, clopidogrel, appendectomy.</li>
+          <li><strong>Harmless words:</strong> 79 of 80 stayed readable with the setting on, against 80 of 80 off. The one it hid is a clinical cue followed by a non-medical use: &ldquo;a history of the depression in Europe&rdquo;. Words such as &ldquo;cold call&rdquo;, &ldquo;stroke of luck&rdquo; and &ldquo;April&rdquo; stayed readable.</li>
+        </ul>
+        <p>Practical meaning: switch it on when you want most mentions of common conditions and medicines hidden and can accept that rarer ones are not. It is not a medical-data control and it is not suitable as the only protection for health records. The held-out words were written by us in the same sitting as the list, so these figures are an upper bound. Reproduce with <code>python evaluation/medical_terms_eval.py</code>.</p>
       </section>
 
       <section id="types">

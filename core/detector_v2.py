@@ -111,7 +111,7 @@ DEFAULT_ENTITIES = [
 ]
 
 # Often not personal data on their own. Off by default, switched on with JNVOY_REDACT_EXTRA.
-OPTIONAL_ENTITIES = ["ORGANIZATION", "LOCATION", "DATE_TIME", "NRP"]
+OPTIONAL_ENTITIES = ["ORGANIZATION", "LOCATION", "DATE_TIME", "NRP", "MEDICAL_TERM"]
 
 
 def resolve_entities(entities=None, env=None):
@@ -213,6 +213,9 @@ def _build_analyzer() -> AnalyzerEngine:
 
     from core.name_cues import NameCueRecognizer
     registry.add_recognizer(NameCueRecognizer())
+
+    from core.medical_terms import MedicalTermRecognizer
+    registry.add_recognizer(MedicalTermRecognizer())
 
     from core.regions import make_region_recognisers
     for recogniser in make_region_recognisers():

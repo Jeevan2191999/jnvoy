@@ -1,0 +1,106 @@
+{
+  "documents": 263,
+  "systems": {
+    "off": {
+      "n": 242,
+      "caught": 6,
+      "keep_total": 80,
+      "keep_kept": 80,
+      "per_type": {
+        "cue_gated_with_cue": {
+          "n": 20,
+          "caught": 0
+        },
+        "listed_condition": {
+          "n": 54,
+          "caught": 0
+        },
+        "listed_medicine": {
+          "n": 28,
+          "caught": 1
+        },
+        "listed_procedure": {
+          "n": 12,
+          "caught": 0
+        },
+        "unseen_brand_name": {
+          "n": 10,
+          "caught": 1
+        },
+        "unseen_condition": {
+          "n": 35,
+          "caught": 1
+        },
+        "unseen_medicine_with_ending": {
+          "n": 33,
+          "caught": 2
+        },
+        "unseen_medicine_without_ending": {
+          "n": 24,
+          "caught": 0
+        },
+        "unseen_name_with_dose": {
+          "n": 18,
+          "caught": 1
+        },
+        "unseen_procedure": {
+          "n": 8,
+          "caught": 0
+        }
+      },
+      "over_redacted": []
+    },
+    "on": {
+      "n": 242,
+      "caught": 165,
+      "keep_total": 80,
+      "keep_kept": 79,
+      "per_type": {
+        "cue_gated_with_cue": {
+          "n": 20,
+          "caught": 20
+        },
+        "listed_condition": {
+          "n": 54,
+          "caught": 54
+        },
+        "listed_medicine": {
+          "n": 28,
+          "caught": 28
+        },
+        "listed_procedure": {
+          "n": 12,
+          "caught": 12
+        },
+        "unseen_brand_name": {
+          "n": 10,
+          "caught": 1
+        },
+        "unseen_condition": {
+          "n": 35,
+          "caught": 2
+        },
+        "unseen_medicine_with_ending": {
+          "n": 33,
+          "caught": 29
+        },
+        "unseen_medicine_without_ending": {
+          "n": 24,
+          "caught": 1
+        },
+        "unseen_name_with_dose": {
+          "n": 18,
+          "caught": 18
+        },
+        "unseen_procedure": {
+          "n": 8,
+          "caught": 0
+        }
+      },
+      "over_redacted": [
+        "depression in Europe"
+      ]
+    }
+  },
+  "model": "en_core_web_lg"
+}
