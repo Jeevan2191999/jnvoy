@@ -9,6 +9,7 @@ falls back to the server's environment settings, so an empty policy behaves like
     judge            "default" (server setting), "on", or "off" (no text goes to the judge)
     judge_fail_mode  "default", "open" (keep first-pass redaction) or "closed" (reject request)
     output_scan      what to do with the model's reply: "off", "flag" or "redact"
+    injection        "block" (default) refuses a request that contains a known injection phrase; "off" skips that check
     custom_patterns  the customer's own types, e.g. [{"name": "employee_id", "pattern": "EMP-\\d{6}"}]
     allowlist        text that must never be redacted, e.g. ["Acme Ltd", "support@acme.com"]
     protected_terms  words that must always be redacted, e.g. ["Project Falcon", "Globex"]
@@ -25,7 +26,7 @@ from typing import Optional
 from core.detector_v2 import OPTIONAL_ENTITIES, resolve_entities
 from core import regions as _regions
 
-POLICY_FIELDS = ("regions", "redact_extra", "judge", "judge_fail_mode", "output_scan",
+POLICY_FIELDS = ("regions", "redact_extra", "judge", "judge_fail_mode", "output_scan", "injection",
                  "custom_patterns", "allowlist", "protected_terms")
 _LIST_FIELDS = ("custom_patterns", "allowlist", "protected_terms")
 _DETECTION_FIELDS = ("regions", "redact_extra", "judge", "judge_fail_mode", "custom_patterns", "allowlist",
@@ -34,8 +35,10 @@ _CHOICES = {
     "judge": ("default", "on", "off"),
     "judge_fail_mode": ("default", "open", "closed"),
     "output_scan": ("off", "flag", "redact"),
+    "injection": ("block", "off"),
 }
 DEFAULT_OUTPUT_SCAN = "flag"
+DEFAULT_INJECTION = "block"
 
 
 def validate_policy(raw) -> dict:
@@ -84,6 +87,7 @@ FIELD_HELP = {
     "judge": "default, on, or off. Off means no text, even redacted, goes to a second provider.",
     "judge_fail_mode": "If the second check fails: default, open (keep the first redaction) or closed (refuse).",
     "output_scan": "What to do with the model's reply: off, flag or redact.",
+    "injection": "block (default) refuses a request that contains a well-known injection phrase; off skips that check. It is a list of known phrases, so it also refuses some harmless text.",
     "custom_patterns": "Your own types: a list of {name, pattern, ignore_case}. At most 20.",
     "allowlist": "Words or phrases that must never be redacted. At most 100.",
     "protected_terms": "Client, project or product names that must always be redacted, exactly as listed. At most 100.",
@@ -109,6 +113,10 @@ def plan_changes(changes) -> tuple:
 
 def output_scan_mode(policy: Optional[dict]) -> str:
     return (policy or {}).get("output_scan", DEFAULT_OUTPUT_SCAN)
+
+
+def injection_mode(policy: Optional[dict]) -> str:
+    return (policy or {}).get("injection", DEFAULT_INJECTION)
 
 
 def entities_for(policy: Optional[dict]):

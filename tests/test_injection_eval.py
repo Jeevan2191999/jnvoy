@@ -65,7 +65,7 @@ def test_the_page_numbers_are_the_stored_numbers():
 
 def test_the_page_says_what_it_is_and_is_not():
     sec = _section()
-    for phrase in ("tripwire", "do not rely on it for an agent", "no setting per customer", "About four in five real jailbreak prompts get through",
+    for phrase in ("tripwire", "do not rely on it for an agent", "A customer can turn the check off in their settings", "About four in five real jailbreak prompts get through",
                    "We have not compared Jnvoy with any"):
         assert phrase in sec, phrase
 

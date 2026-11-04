@@ -46,7 +46,7 @@ from core import detector_v2 as detector_module
 from core.detector_v2 import PIIDetectorV2
 from core.judged_detector import JudgedPIIDetector
 from core.auth import install_api_key_auth
-from core.policy import PolicyDetectors, output_scan_mode
+from core.policy import PolicyDetectors, injection_mode, output_scan_mode
 from core.output_scan import OutputScanner
 from core.tenancy import Caller, DEFAULT_TENANT
 logger = logging.getLogger("jnvoy")
@@ -571,6 +571,13 @@ def _cache_key(tenant: str, request, redacted_messages: list) -> str:
     return hashlib.sha256(blob.encode("utf-8")).hexdigest()
 
 
+async def _check_injection(messages: list, policy: Optional[dict]) -> None:
+    """Refuses the request when it holds a known injection phrase, unless this customer switched the check off."""
+    if injection_mode(policy) == "off":
+        return
+    _raise_if_injection(await run_in_threadpool(injection_detector.scan_messages, messages))
+
+
 def _raise_if_injection(injection_result) -> None:
     if injection_result.blocked:
         raise HTTPException(
@@ -613,11 +620,7 @@ async def _prepare_request(request: ProxyRequest, tenant: str, policy: Optional[
     conversation, and the cache key. Shared by the normal and the streaming path.
     """
     # Step 0: Scan for prompt injection before anything else
-    injection_result = await run_in_threadpool(
-        injection_detector.scan_messages,
-        [{"role": m.role, "content": m.content} for m in request.messages],
-    )
-    _raise_if_injection(injection_result)
+    await _check_injection([{"role": m.role, "content": m.content} for m in request.messages], policy)
 
     # Step 1: Scan and redact all messages
     redacted_messages = []
@@ -792,11 +795,7 @@ async def run_tool_pipeline(parsed: dict, tenant: str, policy: Optional[dict],
     start_time = time.time()
     messages = parsed["messages"]
 
-    injection_result = await run_in_threadpool(
-        injection_detector.scan_messages,
-        [{"role": m["role"], "content": m["content"]} for m in messages],
-    )
-    _raise_if_injection(injection_result)
+    await _check_injection([{"role": m["role"], "content": m["content"]} for m in messages], policy)
 
     texts, plan = [], []
     for m in messages:
