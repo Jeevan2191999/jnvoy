@@ -78,6 +78,173 @@ class ContextualRecognizer(EntityRecognizer):
         return out
 
 
+def _luhn_ok(digits: str) -> bool:
+    total, flip = 0, False
+    for ch in reversed(digits):
+        d = int(ch)
+        if flip:
+            d = d * 2 - 9 if d > 4 else d * 2
+        total += d
+        flip = not flip
+    return total % 10 == 0
+
+
+class CardCueRecognizer(EntityRecognizer):
+    """
+    A payment card number announced by a word like "card", "visa" or "charge", of any length from 12 to
+    19 digits, that passes the Luhn check. Presidio's own card rule covers the common 13 to 16 digit
+    brands and misses 12 and 19 digit cards (Maestro, UnionPay), some 15 digit ranges and the 2-series
+    Mastercard numbers (2221 to 2720). Only the digits are redacted. The Luhn check and the cue word
+    together keep order numbers and phone numbers out.
+    """
+
+    _CUE = re.compile(
+        r"\b(?:credit|debit|card|visa|mastercard|master[ \t]+card|amex|american[ \t]+express|maestro|"
+        r"discover|diners|jcb|unionpay|cc|pan|charge|charged|pay|paid)\b"
+        r"(?:[ \t]+(?:card|number|no\.?|num|on[ \t]+file|with|to|details?))*[ \t]*[:#=\-]?[ \t]*",
+        re.IGNORECASE)
+    _DIGITS = re.compile(r"(?<![\d.])\d(?:[ -]?\d){11,18}(?![\d])")
+
+    def __init__(self):
+        super().__init__(supported_entities=["CREDIT_CARD"], supported_language="en", name="CardCueRecognizer")
+
+    def load(self) -> None:  # noqa: D102
+        pass
+
+    def analyze(self, text: str, entities: List[str], nlp_artifacts=None) -> List[RecognizerResult]:
+        out = []
+        for cue in self._CUE.finditer(text):
+            m = self._DIGITS.match(text, cue.end())
+            if not m:
+                continue
+            start, raw = m.start(), m.group(0)
+            # The match can run on into a following number ("4111 1111 1111 1111 2024"): shorten it from
+            # the right, one group at a time, until the card checks out.
+            while raw:
+                digits = re.sub(r"\D", "", raw)
+                if 12 <= len(digits) <= 19 and _luhn_ok(digits):
+                    out.append(RecognizerResult(entity_type="CREDIT_CARD", start=start,
+                                                end=start + len(raw), score=0.9))
+                    break
+                cut = max(raw.rfind(" "), raw.rfind("-"))
+                raw = raw[:cut] if cut > 0 else ""
+        return out
+
+
+_DATE_ONLY = re.compile(r"^(?:\d{4}[-/.]\d{1,2}[-/.]\d{1,2}|\d{1,2}[-/.]\d{1,2}[-/.]\d{2,4})$")
+
+
+class PhoneCueRecognizer(EntityRecognizer):
+    """
+    A phone number announced by a word such as "phone", "mobile", "WhatsApp", "call" or "ring", in any
+    layout (+44 7911 123456, 001-429-410-1007, (560)985-1713x00812, +4428 9018407) with 8 to 15 digits.
+    Presidio's phone rule needs a plausible number for a known country. The cue word makes a looser
+    layout safe. Dates are not phone numbers.
+    """
+
+    _RE = re.compile(
+        r"\b(?:phone|tel|telephone|mobile|mob|cell|whatsapp|fax|call(?:[ \t]+me)?(?:[ \t]+(?:on|at))?|ring|"
+        r"text[ \t]+me[ \t]+(?:on|at)|reach[ \t]+me[ \t]+(?:on|at)|contact[ \t]+number)"
+        r"(?:[ \t]+(?:number|no\.?|is))?[ \t]*[:\-]?[ \t]*"
+        r"(?P<v>\+?\(?\d[\d ()./\-]{6,22}\d(?:[ \t]?(?:x|ext\.?)[ \t]?\d{1,6})?)(?![\d])",
+        re.IGNORECASE)
+
+    def __init__(self):
+        super().__init__(supported_entities=["PHONE_NUMBER"], supported_language="en", name="PhoneCueRecognizer")
+
+    def load(self) -> None:  # noqa: D102
+        pass
+
+    def analyze(self, text: str, entities: List[str], nlp_artifacts=None) -> List[RecognizerResult]:
+        out = []
+        for m in self._RE.finditer(text):
+            value = m.group("v")
+            number = re.split(r"[ \t]?(?:x|ext)", value, flags=re.IGNORECASE)[0]
+            digits = re.sub(r"\D", "", number)
+            if not 8 <= len(digits) <= 15 or _DATE_ONLY.match(number.strip()):
+                continue
+            out.append(RecognizerResult(entity_type="PHONE_NUMBER", start=m.start("v"),
+                                        end=m.end("v"), score=0.8))
+        return out
+
+
+_ADDR_ABBREV = "".join(f"(?<!{a})" for a in ("St", "Apt", "Ave", "Rd", "Dr", "Mt", "No", "Ste", "Fl", "Bldg", "Blvd"))
+_ADDR_END = (
+    rf"(?=\n|$|{_ADDR_ABBREV}\.(?=[ \t]+[A-Z])|[ \t]+[-–—][ \t]|;|[ \t]+(?:before|after|by|please|thanks)\b"
+    r"|[ \t]+(?:The|A|An|Her|His|She|He|We|They|It|Our|Please|Thanks|Shipping|Refund|Call|Phone|Tel|"
+    r"Email|Contact|DOB|Born|Date|Signed|Name|Login|Reply|Invoice)[ \t:]|[ \t]+[Ii]f[ \t])"
+)
+
+
+class AddressCueRecognizer(EntityRecognizer):
+    """
+    A postal address announced by a word such as "address", "ship to", "lives at" or "registered
+    office at", whatever its layout. The address must start like one (a house number, a flat or suite
+    word, or a street word such as "rue") and contain at least two capitalised words, so "Ship to 5
+    boxes of widgets" is not an address. The whole address, postcode included, is redacted up to the end
+    of the line, the sentence, a dash, or words like "before" and "please".
+    """
+
+    _CUE = (r"(?:(?:home|billing|shipping|delivery|postal|mailing|registered|office|work|business|return|"
+            r"correspondence)[ \t]+address(?:[ \t]+is)?|address(?:[ \t]+is)?|ship(?:ped)?[ \t]+to|"
+            r"deliver(?:ed)?[ \t]+to|lives?[ \t]+at|living[ \t]+at|resides?[ \t]+at|"
+            r"(?:registered[ \t]+)?office[ \t]+at|located[ \t]+at|based[ \t]+at|mail[ \t]+to|post[ \t]+to)")
+    _START = (r"(?:\d+[A-Za-z]?(?:[-/]\d+)?\b|(?:Flat|Unit|Suite|Apt\.?|Apartment|Studio|Room|Floor|Box|"
+              r"P\.?O\.?[ \t]+Box)\b|(?:rue|avenue|boulevard|chemin|via|viale|calle|carrer|rua|plaza|piazza)\b)")
+    _RE = re.compile(rf"\b(?i:{_CUE})[ \t]*[:\-]?[ \t]*(?P<v>{_START}[^\n]{{3,120}}?){_ADDR_END}")
+    _CAP = re.compile(r"\b[A-ZÀ-ÖØ-Þ][\w'’-]+")
+
+    def __init__(self):
+        super().__init__(supported_entities=["STREET_ADDRESS"], supported_language="en", name="AddressCueRecognizer")
+
+    def load(self) -> None:  # noqa: D102
+        pass
+
+    def analyze(self, text: str, entities: List[str], nlp_artifacts=None) -> List[RecognizerResult]:
+        out = []
+        for m in self._RE.finditer(text):
+            value = m.group("v").rstrip(" \t.,")
+            if len(self._CAP.findall(value)) < 2 or not (any(c.isdigit() for c in value) or "," in value):
+                continue
+            base = m.start("v")
+            for a, b in self._parts(value):
+                out.append(RecognizerResult(entity_type="STREET_ADDRESS", start=base + a, end=base + b, score=0.9))
+        return out
+
+    @staticmethod
+    def _parts(value: str) -> list:
+        """
+        The pieces of an address to redact, as (start, end) offsets. Place names stay readable, as everywhere
+        else in Jnvoy: "12 Acacia Avenue, Leeds LS1 4AP" gives "12 Acacia Avenue" and "LS1 4AP", and "Leeds"
+        is left. When the last part does not look like a city and a postcode, the whole address is redacted.
+        """
+        whole = [(0, len(value))]
+        comma = value.rfind(",")
+        if comma < 1:
+            return whole
+        tail = value[comma + 1:]
+        offset = comma + 1
+        tokens = [(t.start() + offset, t.end() + offset, t.group(0)) for t in re.finditer(r"\S+", tail)]
+        if not tokens:
+            return whole
+        first_digit = next((i for i, t in enumerate(tokens) if any(c.isdigit() for c in t[2])), None)
+        city = tokens if first_digit is None else tokens[:first_digit]
+        if len(city) > 4 or not all(re.fullmatch(r"[^\W\d_][\w'’.\-]*", t[2]) and not any(c.isdigit() for c in t[2]) for t in city):
+            return whole
+        head = (0, comma)
+        if first_digit is None:
+            return [head] if city else whole
+        postcode = []
+        for t in tokens[first_digit:]:
+            if not any(c.isdigit() for c in t[2]):
+                break
+            postcode.append(t)   # "75001 Paris": the postcode is only the part with digits
+        digits = re.sub(r"\D", "", postcode[0][2])
+        if len(postcode[0][2]) < 3 or (not city and len(digits) < 4):
+            return whole   # "27 Acacia Avenue": the rest of the street, not a postcode
+        return [head, (postcode[0][0], postcode[-1][1])]
+
+
 _MONTH = r"(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:t(?:ember)?)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)"
 _DATE = (
     rf"(?:\d{{1,2}}[/\-.]\d{{1,2}}[/\-.]\d{{2,4}}"
@@ -107,6 +274,15 @@ def make_extra_recognisers() -> list:
         r"\b(?:password|passwd|pwd|pw|passphrase|passcode|secret|api[_ ]?key|token)"
         r"(?:\s+(?:for|of|to)\s+(?:the\s+|my\s+|our\s+)?\w+)?\s*(?:is|=|:)\s*['\"]?(?P<v>[^\s'\",;]{6,})",
         0.9, "PasswordRecognizer", digit_or_symbol=True,
+    )
+
+    # "pwd hunter2Hunter" with no "is" or colon, a common shorthand in notes and chat. "pwd" is also the
+    # Unix command, so the value must be on the same line, must not start like a path, and must
+    # contain a digit or symbol.
+    pwd_shorthand = ContextualRecognizer(
+        "SECRET_TOKEN",
+        r"(?<![\w/.-])pwd[ \t]+(?![/~.\\])['\"]?(?P<v>[^\s'\",;]{6,})",
+        0.85, "PwdShorthandRecognizer", digit_or_symbol=True, case_sensitive=True,
     )
 
     env_assignment = ContextualRecognizer(
@@ -212,7 +388,7 @@ def make_extra_recognisers() -> list:
         name="StreetAddressRecognizer",
     )
 
-    return [secrets, passwords, env_assignment, conn_string, bearer, dob, passport, reference, street]
+    return [secrets, passwords, pwd_shorthand, CardCueRecognizer(), PhoneCueRecognizer(), AddressCueRecognizer(), env_assignment, conn_string, bearer, dob, passport, reference, street]
 
 
 EXTRA_ENTITIES = ["DATE_OF_BIRTH", "STREET_ADDRESS", "ID_NUMBER"]

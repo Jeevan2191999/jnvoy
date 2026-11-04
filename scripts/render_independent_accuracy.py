@@ -42,17 +42,47 @@ def cls(k, n):
     return "no" if p >= 0.9 else ("mid" if p >= 0.75 else "yes")
 
 
+def _sys(res, key, model="en_core_web_lg", name="jnvoy"):
+    return res["sets"][key][model]["systems"][name]
+
+
+def _t(sysd, typ):
+    v = sysd["per_type"][typ]
+    return v["caught"], v["n"]
+
+
 def render(res=None):
     res = res or json.loads(RESULTS.read_text(encoding="utf-8"))
-    big = res["sets"]["large"]
-    lg, sm = big["en_core_web_lg"], big["en_core_web_sm"]
-    ho = res["sets"]["large_heldout"]["en_core_web_lg"]
-    J, P, T = (lg["systems"][k] for k in ("jnvoy", "presidio", "presidio_tuned"))
-    Js, Jh = sm["systems"]["jnvoy"], ho["systems"]["jnvoy"]
-    bd = big["breakdown_en_core_web_lg"]
+    B = res["before_fixes"]
+    dev, ho, fr = (_sys(res, k) for k in ("large", "large_heldout", "large_fresh"))
+    fr_sm = _sys(res, "large_fresh", "en_core_web_sm")
+    P, T = _sys(res, "large_fresh", name="presidio"), _sys(res, "large_fresh", name="presidio_tuned")
+    h2h = res["sets"]["large_fresh"]["en_core_web_lg"]["head_to_head"]["presidio"]
+    docs = {k: res["sets"][k]["en_core_web_lg"]["documents"] for k in ("large", "large_heldout", "large_fresh")}
+    bd_b, bd_a = B["large"]["breakdown"], res["sets"]["large"]["breakdown_en_core_web_lg"]
+
+    def before(key):
+        return B[key]["caught"], B[key]["n"]
+
+    def setrow(name, text, key, sysd):
+        k, n = sysd["caught"], sysd["n"]
+        bk, bn = before(key)
+        return (f'          <div class="row"><div class="k">{name}</div><div class="v">{text} '
+                f'Before the fixes: {bk:,} of {bn:,} ({pc(bk, bn)}). Now: {k:,} of {n:,} ({pc(k, n)}, range {rng(k, n)}). '
+                f'Harmless words kept: {pc(sysd["keep_kept"], sysd["keep_total"])}.</div>'
+                f'<div class="s {cls(k, n)}">{pc(k, n)}</div></div>')
+
+    sets_rows = "\n".join([
+        setrow("Development set", f'{docs["large"]:,} documents, {dev["n"]:,} sensitive values. We fixed the rules by looking at '
+               "its misses, so this score is optimistic.", "large", dev),
+        setrow("Second set, same wording", f'{docs["large_heldout"]} documents. Used only to check totals, its misses were never read, but its sentences '
+               "use the same wordings as the development set, so a fix written for those wordings helps it too.", "large_heldout", ho),
+        setrow("Third set, new wording", f'{docs["large_fresh"]} documents, {fr["n"]:,} sensitive values. Sentences written after the fixes '
+               "and never used to change a rule. <strong>This is the figure to trust.</strong>", "large_fresh", fr),
+    ])
 
     rows = []
-    for t, v in sorted(J["per_type"].items(), key=lambda kv: kv[1]["caught"] / kv[1]["n"]):
+    for t, v in sorted(fr["per_type"].items(), key=lambda kv: kv[1]["caught"] / kv[1]["n"]):
         pv = P["per_type"][t]
         rows.append(
             f'          <div class="row"><div class="k">{t}</div><div class="v">{v["n"]} values. '
@@ -60,7 +90,7 @@ def render(res=None):
             f'<div class="s {cls(v["caught"], v["n"])}">{pc(v["caught"], v["n"])}</div></div>')
 
     ahead, behind, level = [], [], []
-    for t, v in J["per_type"].items():
+    for t, v in fr["per_type"].items():
         pv = P["per_type"][t]
         if v["caught"] / v["n"] >= 0.999 and pv["caught"] / pv["n"] >= 0.999:
             continue
@@ -69,43 +99,70 @@ def render(res=None):
         text = f'{t} ({pc(v["caught"], v["n"])} against {pc(pv["caught"], pv["n"])})'
         (ahead if jlo > phi else behind if jhi < plo else level).append(text)
 
-    def part(k):
-        return f'{bd[k]["caught"]} of {bd[k]["n"]} ({pc(bd[k]["caught"], bd[k]["n"])})'
+    def pt(typ, sysd):
+        k, n = _t(sysd, typ)
+        return f"{k} of {n}"
 
-    cards = bd["card_by_digit_count"]
-    card_bits = ", ".join(f'{d}-digit {c["caught"]} of {c["n"]}' for d, c in cards.items())
+    def bpart(key, which):
+        v = which[key]
+        return f'{v["caught"]} of {v["n"]}'
+
+    cards_b, cards_a = bd_b["card_by_digit_count"], bd_a["card_by_digit_count"]
+    odd = [d for d in cards_b if d not in ("13", "14", "16")]
+    card_bits = ", ".join(f'{d}-digit {cards_b[d]["caught"]} of {cards_b[d]["n"]} to {cards_a[d]["caught"]} of {cards_a[d]["n"]}'
+                          for d in odd)
+    dev_b = B["large"]["per_type"]
+
+    def dv(typ):
+        return (f'{dev_b[typ]["caught"]} of {dev_b[typ]["n"]} to {dev["per_type"][typ]["caught"]} of {dev["per_type"][typ]["n"]}')
+
+    gap = 100 * (ho["caught"] / ho["n"] - fr["caught"] / fr["n"])
 
     return f'''{START}
       <section id="larger-test">
         <h2>A larger test: 1,000 documents with generated values</h2>
-        <p>The sets above were written by the person who wrote the detector, so they flatter it. To see how much, we built a larger set where the values (names, emails, phone numbers, addresses, card numbers, bank numbers, dates of birth, IP addresses, keys and passwords) are generated by Faker, a public library, in formats from several countries. We still wrote the sentences around them, so this is not an independent evaluation, only a harder and larger one. It has {lg["documents"]:,} documents, {J["n"]:,} sensitive values and {J["keep_total"]} harmless words that should stay readable, and it is made from a fixed seed so anyone can regenerate it.</p>
-        <p><strong>Result.</strong> Jnvoy hid {J["caught"]:,} of {J["n"]:,} sensitive values ({pc(J["caught"], J["n"])}; the likely range is {rng(J["caught"], J["n"])}). With the small language model that the hosted service runs it hid {pc(Js["caught"], Js["n"])} (range {rng(Js["caught"], Js["n"])}). On a second set of {ho["documents"]} documents that nobody looked at while fixing rules, it hid {pc(Jh["caught"], Jh["n"])} (range {rng(Jh["caught"], Jh["n"])}). <strong>This is lower than the 86% to 92% on the hand-written sets above, and it is the figure to trust more.</strong> Roughly one sensitive value in four was still visible afterwards.</p>
+        <p>The sets above were written by the person who wrote the detector, so they flatter it. To see how much, we built larger sets where the values (names, emails, phone numbers, addresses, card numbers, bank numbers, dates of birth, IP addresses, keys and passwords) are generated by Faker, a public library, in formats from several countries. We still wrote the sentences around them, so this is not an independent evaluation, only a harder and larger one. The sets are made from fixed seeds, so anyone can regenerate them.</p>
+        <p><strong>Result.</strong> On sentence wordings the rules were not tuned on, Jnvoy hid {fr["caught"]:,} of {fr["n"]:,} sensitive values ({pc(fr["caught"], fr["n"])}; the likely range is {rng(fr["caught"], fr["n"])}). With the small language model that the hosted service runs it hid {pc(fr_sm["caught"], fr_sm["n"])} (range {rng(fr_sm["caught"], fr_sm["n"])}). <strong>Roughly one sensitive value in five was still visible afterwards.</strong> The first two sets score about {gap:.0f} points higher because the fixes were written against their wordings; that gap is how much of the improvement is familiarity and not general ability.</p>
+        <div class="ledger">
+          <div class="row head"><div>Set</div><div>What it is, and the score before and after the latest fixes</div><div>Hidden now</div></div>
+{sets_rows}
+        </div>
+        <h3>By type of data, on the third set</h3>
         <div class="ledger">
           <div class="row head"><div>Type</div><div>Result, with the 95% range in brackets</div><div>Jnvoy hid</div></div>
 {chr(10).join(rows)}
         </div>
-        <p><strong>Harmless words kept readable.</strong> Jnvoy kept {full(J["keep_kept"], J["keep_total"])}. Presidio with its default settings kept {full(P["keep_kept"], P["keep_total"])}, because it hides dates and places by default. With those switched off it kept {full(T["keep_kept"], T["keep_total"])} and hid {pc(T["caught"], T["n"])} of the sensitive values against Jnvoy's {pc(J["caught"], J["n"])}; without a date type it cannot see a birth date at all.</p>
+        <p><strong>Harmless words kept readable.</strong> Jnvoy kept {full(fr["keep_kept"], fr["keep_total"])}. Presidio with its default settings kept {full(P["keep_kept"], P["keep_total"])}, because it hides dates and places by default. With those switched off it kept {full(T["keep_kept"], T["keep_total"])} and hid {pc(T["caught"], T["n"])} of the sensitive values; without a date type it cannot see a birth date at all.</p>
         <h3>Where Jnvoy is ahead, behind, or too close to call</h3>
         <ul class="plain">
           <li><strong>Clearly ahead of Presidio's defaults</strong> (the ranges do not overlap): {", ".join(ahead) or "none"}.</li>
           <li><strong>Clearly behind:</strong> {", ".join(behind) or "none"}.</li>
           <li><strong>Too close to call at this sample size</strong> (the ranges overlap, so a difference in either direction could be chance): {", ".join(level) or "none"}.</li>
         </ul>
-        <p>The comparison is with Presidio on its own, using the same language model, and is not any product's configuration. Overall, Jnvoy hid {pc(J["caught"], J["n"])} against {pc(P["caught"], P["n"])} for Presidio's defaults, and the difference is not chance (McNemar test, p below 0.001).</p>
-        <h3>What it misses most, in the formats that cause it</h3>
+        <p>The comparison is with Presidio on its own, using the same language model, and is not any product's configuration. Overall, Jnvoy hid {pc(fr["caught"], fr["n"])} against {pc(P["caught"], P["n"])} for Presidio's defaults on this set; of the values only one of them hid, Jnvoy hid {h2h["only_jnvoy"]} and Presidio {h2h["only_presidio"]}.</p>
+        <h3>What the latest fixes changed, measured on the development set</h3>
         <ul class="plain">
-          <li><strong>Names written in capital letters:</strong> {part("person_all_capitals")} hidden, against {part("person_plain")} for ordinary "First Last" names.</li>
-          <li><strong>Names written "Surname, First":</strong> {part("person_surname_first")} hidden.</li>
-          <li><strong>Passwords introduced by "pwd":</strong> {part("password_after_pwd")} hidden, against {part("password_after_the_word_password")} when the word "password" is used.</li>
-          <li><strong>Card numbers of some lengths:</strong> hidden, by number of digits: {card_bits}.</li>
-          <li><strong>Street addresses</strong> in forms other than the common UK, US, French and German patterns, such as "895 Smith Corner", and <strong>postcodes outside the UK and US</strong> (for example five-digit German codes).</li>
+          <li><strong>Names in capital letters</strong> (after a cue such as "Dear" or "Patient:"): {bpart("person_all_capitals", bd_b)} hidden before, {bpart("person_all_capitals", bd_a)} now. <strong>"Surname, First" names:</strong> {bpart("person_surname_first", bd_b)} before, {bpart("person_surname_first", bd_a)} now.</li>
+          <li><strong>Passwords written "pwd secret":</strong> {bpart("password_after_pwd", bd_b)} before, {bpart("password_after_pwd", bd_a)} now.</li>
+          <li><strong>Card numbers of 12, 15 and 19 digits and the newer 2-series Mastercards</strong>, when a word such as "card" or "visa" is next to them: cards overall {dv("CARD")}; by length, {card_bits}.</li>
+          <li><strong>Phone numbers and street addresses after a label</strong> such as "phone", "WhatsApp", "ship to" or "lives at", in any layout: phones {dv("PHONE")}, street addresses {dv("ADDRESS")}, postcodes {dv("POSTCODE")}.</li>
+          <li><strong>A bug in an older rule:</strong> a weak name cue ("to", "from", "with") followed by an unfamiliar place, such as "Ann Arbor", was being redacted as a person, because the check that should have stopped it looked for the wrong labels. It now works, and a test covers it.</li>
+        </ul>
+        <h3>What it still misses</h3>
+        <p>Measured on the third set, where the fixes above did not reach:</p>
+        <ul class="plain">
+          <li><strong>Passwords not introduced by "password" or "pwd":</strong> hidden {pt("PASSWORD", fr)}. Wordings such as "pass:", "pw", "the Wi-Fi key is" and "credentials: admin /" are not recognised.</li>
+          <li><strong>Dates of birth worded as "DOB was" or "her birth date is":</strong> hidden {pt("DOB", fr)}.</li>
+          <li><strong>US social security numbers labelled "Tax ID" or "Social":</strong> hidden {pt("US_SSN", fr)}.</li>
+          <li><strong>Street addresses</strong> hidden {pt("ADDRESS", fr)} and <strong>postcodes</strong> {pt("POSTCODE", fr)}: addresses that are not introduced by a label word such as "address", "ship to" or "lives at" are mostly missed, for example "Parcel for ...", "Sent to ... yesterday" and "Her flat is at ...".</li>
+          <li><strong>Names</strong> hidden {pt("PERSON", fr)}: names introduced only by everyday phrasing ("Could ... please", "Cc'd ...", "Lunch with ...", "invoice query from ..."), and some "Surname, First" names.</li>
         </ul>
         <p>These are measured gaps, not fixed ones. When rules change, this section is measured again and replaced.</p>
         <h3>How to read it</h3>
         <ul class="plain">
           <li>The values are synthetic and were not chosen by us, but the sentences around them were. Real documents are messier, so expect real accuracy to differ, probably downwards.</li>
           <li>A value counts as hidden only if neither the whole value nor any recognisable part of it is still visible. This is strict: a street name left behind a hidden house number counts as a leak.</li>
-          <li>The second set is kept unseen: rules are fixed by looking at misses on the first set only, and the second set is used to check that a fix helps on text it was not tuned on.</li>
+          <li>Only the development set was used to decide what to fix. The second and third sets were used to check totals. We did read the third set's misses, to describe them above and not to change a rule, so it stops being fresh the moment we fix them: each round of fixes needs a new set.</li>
           <li>The best figure is the one you get on your own text. <code>python evaluation/check_my_data.py your_file.csv</code> measures it on your machine without sending anything anywhere.</li>
         </ul>
       </section>

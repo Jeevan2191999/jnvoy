@@ -50,7 +50,7 @@ def test_mcnemar_exact_known_values():
 
 # ---- the datasets --------------------------------------------------------------------------
 
-@pytest.mark.parametrize("name, docs", [("large.jsonl", 1000), ("large_heldout.jsonl", 600)])
+@pytest.mark.parametrize("name, docs", [("large.jsonl", 1000), ("large_heldout.jsonl", 600), ("large_fresh.jsonl", 600)])
 def test_dataset_is_well_formed(name, docs):
     rows = load_rows(EVAL / name)
     assert len(rows) == docs
@@ -64,24 +64,25 @@ def test_dataset_is_well_formed(name, docs):
     assert any(not r["sensitive"] for r in rows), "the set must include documents with nothing sensitive"
 
 
-def test_the_two_sets_share_no_document_that_contains_a_sensitive_value():
+def test_the_sets_share_no_document_that_contains_a_sensitive_value():
     # A harmless-only sentence can coincide (a handful of fixed templates), which cannot inflate a score.
     # A shared document with a sensitive value could, so none may be shared.
-    a = {r["text"] for r in load_rows(EVAL / "large.jsonl") if r["sensitive"]}
-    b = {r["text"] for r in load_rows(EVAL / "large_heldout.jsonl") if r["sensitive"]}
-    assert not (a & b)
+    sets = [{r["text"] for r in load_rows(EVAL / n) if r["sensitive"]}
+            for n in ("large.jsonl", "large_heldout.jsonl", "large_fresh.jsonl")]
+    assert not (sets[0] & sets[1]) and not (sets[0] & sets[2]) and not (sets[1] & sets[2])
 
 
 def test_secret_looking_values_cannot_trip_a_secret_scanner():
     # Keys and passwords carry a "<>" break so the repository holds no unbroken secret-shaped string.
-    for name in ("large.jsonl", "large_heldout.jsonl"):
+    for name in ("large.jsonl", "large_heldout.jsonl", "large_fresh.jsonl"):
         text = (EVAL / name).read_text(encoding="utf-8")
         assert not re.search(r"\bsk-[A-Za-z0-9]{20,}", text)
         assert not re.search(r"\bAKIA[0-9A-Z]{16}\b", text)
         assert not re.search(r"\bghp_[A-Za-z0-9]{30,}", text)
 
 
-@pytest.mark.parametrize("key, name", [("large", "large.jsonl"), ("large_heldout", "large_heldout.jsonl")])
+@pytest.mark.parametrize("key, name", [("large", "large.jsonl"), ("large_heldout", "large_heldout.jsonl"),
+                                       ("large_fresh", "large_fresh.jsonl")])
 def test_results_file_describes_the_committed_datasets(key, name):
     md5 = hashlib.md5((EVAL / name).read_bytes()).hexdigest()
     assert RESULTS["sets"][key]["md5"] == md5, (
@@ -100,6 +101,21 @@ def test_the_same_seed_regenerates_the_same_file(tmp_path):
     subprocess.run([sys.executable, str(EVAL / "generate_large.py"), "--out", str(out)], check=True,
                    capture_output=True, timeout=300)
     assert hashlib.md5(out.read_bytes()).hexdigest() == RESULTS["sets"]["large"]["md5"]
+    fresh = tmp_path / "fresh.jsonl"
+    subprocess.run([sys.executable, str(EVAL / "generate_large.py"), "--seed", "9090", "--docs", "600",
+                    "--phrasing", "fresh", "--out", str(fresh)], check=True, capture_output=True, timeout=300)
+    assert hashlib.md5(fresh.read_bytes()).hexdigest() == RESULTS["sets"]["large_fresh"]["md5"]
+
+
+def test_the_fresh_set_really_uses_different_wording():
+    pytest.importorskip("faker")
+    import generate_large
+    original = {r["text"] for r in load_rows(EVAL / "large.jsonl")}
+    fresh = [r["text"] for r in load_rows(EVAL / "large_fresh.jsonl")]
+    # none of the sentence templates of the fresh set appear in the development set
+    assert not any("Parcel for" in t or "Cc'd" in t or "Wi-Fi key" in t for t in original)
+    assert any("Parcel for" in t or "Cc'd" in t or "Wi-Fi key" in t for t in fresh)
+    assert generate_large.FRESH.keys() >= {"PERSON", "EMAIL", "PHONE", "ADDRESS", "CARD", "PASSWORD", "DOB", "API_KEY"}
 
 
 # ---- the scoring rule ----------------------------------------------------------------------

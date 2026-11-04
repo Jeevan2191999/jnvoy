@@ -119,6 +119,89 @@ def test_the_language_models_place_tags_veto_the_weak_cues():
     assert names(text, SimpleNamespace(entities=[org])) == ["Milton Keynes"]   # unfamiliar names are often called ORG
 
 
+def test_the_place_veto_understands_the_labels_the_detector_really_passes():
+    # Presidio hands the recogniser LOCATION, not spaCy's GPE. Before this was checked, a weak cue plus
+    # an unfamiliar place ("Ann Arbor") was redacted as a person.
+    text = "We drove to Ann Arbor yesterday"
+    place = SimpleNamespace(label_="LOCATION", start_char=text.index("Ann"), end_char=text.index(" yesterday"))
+    assert names(text) == ["Ann Arbor"]
+    assert names(text, SimpleNamespace(entities=[place])) == []
+
+
+# ── names in capital letters ──────────────────────────────────────────────────
+
+@pytest.mark.parametrize("text,expected", [
+    ("Dear LYNN STEPHENS,", ["LYNN STEPHENS"]),
+    ("Patient: AMY GUINEVAN", ["AMY GUINEVAN"]),
+    ("Signed: JEREMIAH RICHARDS\nthanks", ["JEREMIAH RICHARDS"]),
+    ("Assigned to VICTOIRE MENARD.", ["VICTOIRE MENARD"]),
+    ("Spoke to BRIAN AUSTIN about the renewal", ["BRIAN AUSTIN"]),
+    ("Please forward this to HARSHIL KRISHNA.", ["HARSHIL KRISHNA"]),
+    ("Dr SMITH will see you", ["SMITH"]),
+    ("Name: MARÍA PETERSSON", ["MARÍA PETERSSON"]),
+])
+def test_a_name_in_capitals_is_found_after_a_cue(text, expected):
+    assert names(text) == expected
+
+
+@pytest.mark.parametrize("text", [
+    "FOR MORE INFORMATION CONTACT SALES TEAM",       # a shouted sentence, cue in capitals
+    "PLEASE SEND TO JOHN SMITH TOMORROW",            # likewise: a capitals sentence is not read as names
+    "Send this to IT SUPPORT today",                 # SUPPORT is a role word
+    "contact HR DEPARTMENT for details",
+    "Meeting with ACME CORP",
+    "Assigned to NEW YORK OFFICE",
+    "from UNITED KINGDOM to GERMANY",
+    "See ACCOUNTS PAYABLE for refunds",
+    "Call Jo AB",                                     # two-letter words are not names
+])
+def test_capitals_that_are_not_names_are_left_alone(text):
+    assert names(text) == []
+
+
+def test_a_name_in_capitals_that_the_model_calls_an_organisation_is_refused():
+    text = "Call NASA ESA for details"
+    org = SimpleNamespace(label_="ORGANIZATION", start_char=text.index("NASA"), end_char=text.index(" for"))
+    assert names(text, SimpleNamespace(entities=[org])) == []
+    assert names(text) == ["NASA ESA"]   # without the model's opinion the rule alone cannot tell
+
+
+# ── "Surname, Given" ──────────────────────────────────────────────────────────
+
+@pytest.mark.parametrize("text,expected", [
+    ("Name: Klotz, Katrin", ["Klotz, Katrin"]),
+    ("Patient: Graf, Emilia", ["Graf, Emilia"]),
+    ("Dear Smith, Nathan,", ["Smith, Nathan"]),
+    ("Spoke to Behl, Chandani about the renewal.", ["Behl, Chandani"]),
+    ("Reference requested for Holmberg, Olle.", ["Holmberg, Olle"]),
+    ("Dear van Wickerode, Pien,", ["van Wickerode, Pien"]),
+    ("Gour, Vrinda joined the team in March", ["Gour, Vrinda"]),
+    ("Signed: Étienne, Édith Login from", ["Étienne, Édith"]),
+])
+def test_surname_first_names_are_found_after_a_cue(text, expected):
+    assert [n for n in names(text) if "," in n] == expected
+
+
+@pytest.mark.parametrize("text", [
+    "Hi Anna, Thanks for the update.",
+    "Hi Anna, Meeting notes attached.",
+    "Tuesday, March 3rd",
+    "Hello, World",
+    "Dear Sir, Madam,",
+    "Thanks, Bob",
+    "Reference: the Smith, Jones agreement is ready",
+])
+def test_a_comma_between_two_capitalised_words_is_not_always_a_name(text):
+    for n in names(text):
+        assert "," not in n, n
+
+
+def test_cities_with_their_country_are_not_surname_first_names():
+    text = "Please forward to Paris, France."
+    ents = [SimpleNamespace(label_="LOCATION", start_char=text.index("Paris"), end_char=text.index("."))]
+    assert names(text, SimpleNamespace(entities=ents)) == []
+
+
 def test_only_the_name_is_marked_not_the_cue():
     r = rule.analyze("Dear Ms Jane Testington,", ["PERSON"], None)[0]
     assert "Dear Ms Jane Testington,"[r.start:r.end] == "Jane Testington"

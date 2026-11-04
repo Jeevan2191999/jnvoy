@@ -16,6 +16,7 @@ character, as in the other data files, so secret scanners do not mistake them fo
 Needs:   pip install faker        (only to regenerate; the committed file is what the tests read)
 Run:     python evaluation/generate_large.py            (always writes the same file: fixed seed)
          python evaluation/generate_large.py --seed 4242 --docs 600 --out evaluation/large_heldout.jsonl
+         python evaluation/generate_large.py --seed 9090 --docs 600 --phrasing fresh --out evaluation/large_fresh.jsonl
 """
 
 import json
@@ -48,6 +49,31 @@ AMOUNTS = ["£1,250.00", "$4,300", "€899", "£75", "$12.50", "€2,010.40"]
 WHEN = ["14 March", "Q3 2026", "next Tuesday", "end of April", "the second week of June", "Monday"]
 ROLES = ["Head of Finance", "Support Engineer", "Account Manager", "Data Analyst", "Nurse Practitioner"]
 
+# A second wording for every kind of value, used by --phrasing fresh. The sentences in `snippet` below
+# were the ones the detector was tuned on. These were written afterwards, as a person would phrase it
+# in a message, so a set made with them shows how much of the score comes from familiar wording.
+FRESH = {
+    "PERSON": ["Could {n} please confirm the booking?", "Minutes taken by {n}.", "CV attached for {n}.",
+               "{n} (Operations) has asked for access.", "Spoke with {n} yesterday.", "Re: invoice query from {n}",
+               "Cc'd {n} on the thread.", "Please welcome {n} to the team.", "Lunch with {n} on Thursday."],
+    "EMAIL": ["You can reach me at {e}.", "email: {e}", "Her work address is {e}.", "Send invoices to {e}",
+              "Mailing list: {e}", "(contact {e})"],
+    "PHONE": ["Reachable on {p}.", "My number is {p}.", "Mobile: {p}", "You can ring me - {p}",
+              "Call back on {p} please", "tel. {p}", "Phone number {p}", "Text me on {p}"],
+    "ADDRESS": ["Please post it to {a}.", "Parcel for {a}.", "Her flat is at {a}.", "New address: {a}",
+                "Collection point: {a}.", "Invoice address - {a}", "Sent to {a} yesterday"],
+    "CARD": ["Use my Mastercard {c} for this.", "The number on the card is {c}.", "CC: {c}", "Payment card: {c}",
+             "Amex {c}", "Card details: {c}"],
+    "IBAN": ["Bank details: {i}", "Pay into {i}", "IBAN: {i}", "Account number {i} for the refund."],
+    "SSN": ["SSN: {s}", "Social: {s}", "Her social security number is {s}.", "Tax ID {s}"],
+    "DOB": ["Birthday: {d}", "Date of birth - {d}", "Born {d}.", "DOB was {d}", "Her birth date is {d}."],
+    "IP": ["Seen from {i}", "Source IP: {i}", "host {i}", "Requests from {i} were throttled."],
+    "API_KEY": ["token {k}", "Set OPENAI_API_KEY={k}", "secret = '{k}'", "curl -H 'Authorization: Bearer {k}'",
+                "Here is the key: {k}"],
+    "PASSWORD": ["My password for the VPN is {p}", "pass: {p}", "pw {p}", "credentials: admin / {p}", "password {p}",
+                 "The Wi-Fi key is {p}", "passcode: {p}"],
+}
+
 
 def _tok(rng, n, alphabet=string.ascii_letters + string.digits):
     return "".join(rng.choice(alphabet) for _ in range(n))
@@ -59,7 +85,8 @@ def _break(secret):
 
 
 class Maker:
-    def __init__(self, seed):
+    def __init__(self, seed, fresh=False):
+        self.fresh = fresh
         self.rng = random.Random(seed)
         Faker.seed(seed)
         self.fk = {}
@@ -196,49 +223,71 @@ class Maker:
                 "Applicant {n} has passed the first screen.", "Reference requested for {n}.",
                 "Hi {n}, thanks for getting back to us.", "Signed: {n}", "Assigned to {n}.",
             ])
+            if self.fresh:
+                t = r.choice(FRESH["PERSON"])
             return t.format(n=v), [(v, "PERSON")]
         if kind == "EMAIL":
             e = self.email()
             t = r.choice(["Reply to {e} when ready.", "cc: {e}", "My email is {e}.", "Send the file to {e} please.",
                           "Contact: {e}", "From: {e}", "forward to {e} and copy finance"])
+            if self.fresh:
+                t = r.choice(FRESH["EMAIL"])
             return t.format(e=e), [(e, "EMAIL")]
         if kind == "PHONE":
             p = self.phone()
             t = r.choice(["Call me on {p}.", "Tel: {p}", "His mobile is {p}.", "Ring {p} after 5pm.", "phone {p}", "WhatsApp {p}"])
+            if self.fresh:
+                t = r.choice(FRESH["PHONE"])
             return t.format(p=p), [(p, "PHONE")]
         if kind == "ADDRESS":
             street, city, pc = self.address()
             full = f"{street}, {city} {pc}"
             t = r.choice(["Ship to {a}.", "Home address: {a}", "Registered office at {a}.", "Deliver to {a} before noon.",
                           "She lives at {a}.", "Billing address {a}"])
+            if self.fresh:
+                t = r.choice(FRESH["ADDRESS"])
             return t.format(a=full), [(street, "ADDRESS"), (pc, "POSTCODE")]
         if kind == "CARD":
             c = self.card()
             t = r.choice(["Card number {c}.", "Paid with card {c}", "Please charge {c}.", "visa: {c}", "card on file {c}"])
+            if self.fresh:
+                t = r.choice(FRESH["CARD"])
             return t.format(c=c), [(c, "CARD")]
         if kind == "IBAN":
             i = self.iban()
             t = r.choice(["IBAN {i}", "Transfer to {i}.", "Account (IBAN): {i}", "Refund to {i} please."])
+            if self.fresh:
+                t = r.choice(FRESH["IBAN"])
             return t.format(i=i), [(i, "IBAN")]
         if kind == "SSN":
             s = self.ssn()
             t = r.choice(["SSN {s}", "Social security number: {s}", "Her SSN is {s}.", "Tax record for SSN {s}."])
+            if self.fresh:
+                t = r.choice(FRESH["SSN"])
             return t.format(s=s), [(s, "US_SSN")]
         if kind == "DOB":
             d = self.dob()
             t = r.choice(["DOB {d}", "Date of birth: {d}", "Born on {d}.", "She was born {d}.", "dob: {d}"])
+            if self.fresh:
+                t = r.choice(FRESH["DOB"])
             return t.format(d=d), [(d, "DOB")]
         if kind == "IP":
             i = self.ip()
             t = r.choice(["Login from {i} at 09:14.", "Server {i} is down.", "IP address {i}", "Blocked {i} after repeated failures."])
+            if self.fresh:
+                t = r.choice(FRESH["IP"])
             return t.format(i=i), [(i, "IP")]
         if kind == "API_KEY":
             k = self.api_key()
             t = r.choice(["key = {k}", "Authorization: Bearer {k}", "export API_KEY={k}", "Use this token: {k}", "api_key: \"{k}\""])
+            if self.fresh:
+                t = r.choice(FRESH["API_KEY"])
             return t.format(k=k), [(k, "API_KEY")]
         if kind == "PASSWORD":
             p = self.password()
             t = r.choice(["password: {p}", "The password is {p}", "login with password={p}", "pwd {p}"])
+            if self.fresh:
+                t = r.choice(FRESH["PASSWORD"])
             return t.format(p=p), [(p, "PASSWORD")]
         raise ValueError(kind)
 
@@ -280,9 +329,11 @@ def main():
     ap.add_argument("--seed", type=int, default=SEED)
     ap.add_argument("--docs", type=int, default=N_DOCS)
     ap.add_argument("--out", default=str(OUT))
+    ap.add_argument("--phrasing", choices=["original", "fresh"], default="original",
+                    help="fresh: the second set of sentence wordings, written after the detector was tuned")
     a = ap.parse_args()
     out = Path(a.out)
-    m = Maker(a.seed)
+    m = Maker(a.seed, fresh=a.phrasing == "fresh")
     rows = [m.doc(i + 1) for i in range(a.docs)]
     with out.open("w", encoding="utf-8") as f:
         for row in rows:

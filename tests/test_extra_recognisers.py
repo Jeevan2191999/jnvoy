@@ -74,6 +74,144 @@ def test_passwords_and_credentials(text, secret):
     assert secret not in red(text)
 
 
+@pytest.mark.parametrize("text,secret", [
+    ("pwd 80A_rged!UxDNQ", "80A_rged!UxDNQ"),
+    ("login ok, pwd JImhnUlx9F@Z14r, thanks", "JImhnUlx9F@Z14r"),
+    ("Contact: bob@example.org pwd 7kbddeuGTTOwVx8Q", "7kbddeuGTTOwVx8Q"),
+    ("pwd 'k3y#Stone99'", "k3y#Stone99"),
+])
+def test_pwd_shorthand_without_a_separator_is_redacted(text, secret):
+    assert secret not in red(text)
+
+
+@pytest.mark.parametrize("text", [
+    "run pwd /usr/local/bin/python3 to see where you are",
+    "$ pwd\n/home/jeevan/projects",
+    "type pwd and press enter",
+    "pwd ~/code/notes",
+    "use pwd ./scripts/build.sh",
+    "pwd is the print working directory command",
+    "the pwd command prints a path",
+])
+def test_pwd_the_unix_command_is_left_alone(text):
+    assert red(text) == text
+
+
+@pytest.mark.parametrize("text,digits", [
+    ("visa: 630421613047", "630421613047"),                           # 12 digits (Maestro)
+    ("card on file 4248531927806669332", "4248531927806669332"),     # 19 digits
+    ("Card number 2720147601757093.", "2720147601757093"),           # Mastercard 2-series
+    ("Card number 2712 9307 1519 6492", "2712 9307 1519 6492"),
+    ("Please charge 2277 2706 9684 7681.", "2277 2706 9684 7681"),
+    ("Paid with card 213173644442400", "213173644442400"),           # 15 digits, JCB range
+    ("debit card: 2379-0418-7179-2951 expires 09/28", "2379-0418-7179-2951"),
+])
+def test_cards_of_any_common_length_are_redacted_after_a_cue(text, digits):
+    out = red(text)
+    assert digits not in out
+    assert out.count("[") == 1 or "expires" in out   # only the number is replaced
+
+
+def test_a_card_followed_by_another_number_keeps_the_following_number():
+    out = red("card 2720147601757093 2024")
+    assert "2720147601757093" not in out and out.endswith("2024")
+
+
+@pytest.mark.parametrize("text", [
+    "card 1234 5678 9012 3456",                 # fails the Luhn check, so not a card
+    "paid invoice 20240315123456 yesterday",
+    "charge code 123456789012",
+    "pay 12 days",
+    "the card was declined",
+    "Order 8841 7732 paid in full",
+])
+def test_numbers_that_are_not_cards_are_left_alone(text):
+    assert red(text) == text
+
+
+@pytest.mark.parametrize("text,number", [
+    ("Call me on +914680861610.", "+914680861610"),
+    ("Ring +44292018374 after 5pm.", "+44292018374"),
+    ("WhatsApp 001-429-410-1007 - login", "001-429-410-1007"),
+    ("His mobile is +61.8.1853.6389.", "+61.8.1853.6389"),
+    ("phone 3829.3070", "3829.3070"),
+    ("Tel: 00100 87921", "00100 87921"),
+    ("Call me on (560)985-1713x00812.", "(560)985-1713x00812"),
+    ("WhatsApp +4428 9018407", "+4428 9018407"),
+])
+def test_a_labelled_phone_number_is_redacted_in_any_layout(text, number):
+    assert number not in red(text)
+
+
+@pytest.mark.parametrize("text", [
+    "call 911",
+    "call 12.03.2024 meeting",
+    "Please call 2024-03-15 for the date",   # a date is not a phone number (another rule may still mark it)
+    "ring 2 times then hang up",
+    "phone support is open until 17:30",
+    "call 20240315123456789012",
+])
+def test_digits_after_phone_words_that_are_not_phone_numbers_are_left_alone(text):
+    out = red(text)
+    assert "[PHONE_NUMBER" not in out
+
+
+@pytest.mark.parametrize("text,street", [
+    ("Deliver to 306 Sanchez Hollow, Lake William 82372 before noon.", "306 Sanchez Hollow"),
+    ("Home address: 169 Rodney Hills, Lake Kara N1H5H5", "169 Rodney Hills"),
+    ("Registered office at Studio 45, Cross Terrace, Waynestad", "Studio 45"),
+    ("She lives at 12 Acacia Avenue, Leeds LS1 4AP. Then went home.", "12 Acacia Avenue"),
+    ("Lives at 9 Rue de Rivoli, 75001 Paris", "9 Rue de Rivoli"),
+    ("Delivered to 7 Spring Garden Road, Halifax NS B3J 3Z5 - signed", "7 Spring Garden Road"),
+    ("Home address: chemin de Gaillard, Weiss-sur-Salmon 63883 before noon.", "chemin de Gaillard"),
+])
+def test_a_labelled_address_is_redacted_whatever_its_layout(text, street):
+    out = red(text)
+    assert street not in out
+
+
+@pytest.mark.parametrize("text,city,hidden", [
+    ("She lives at 12 Acacia Avenue, Leeds LS1 4AP. Then went home.", "Leeds", "LS1 4AP"),
+    ("Lives at 9 Rue de Rivoli, 75001 Paris", "Paris", "75001"),
+    ("Delivered to 7 Spring Garden Road, Halifax NS B3J 3Z5 - signed", "Halifax", "B3J 3Z5"),
+    ("Her address is 5 Corso Buenos Aires, Milano", "Milano", "Corso Buenos Aires"),
+    ("The client lives at 221B Baker Street, London.", "London", "Baker Street"),
+])
+def test_the_city_in_an_address_stays_readable_as_it_does_everywhere_else(text, city, hidden):
+    out = red(text)
+    assert city in out and hidden not in out
+
+
+def test_a_second_street_line_is_not_mistaken_for_a_postcode():
+    out = red("Home address: Flat 3, 27 Acacia Avenue")
+    assert "Acacia" not in out and "27" not in out
+
+
+def test_a_number_after_the_words_number_is_is_not_taken_for_a_phone_number():
+    # An Aadhaar number, an account number: the labelled-phone rule needs a phone word, not just "number is".
+    assert "[PHONE_NUMBER" not in red("My Aadhaar number is 7260 1815 9082.")
+
+
+def test_the_address_stops_where_the_address_ends():
+    out = red("Ship to 4 Elm Road, Leeds LS1 4AP. The Head of Finance will pick this up.")
+    assert "The Head of Finance will pick this up." in out
+    out = red("Home address: 169 Rodney Hills, Lake Kara N1H5H5 The deadline is 14 March.")
+    assert out.endswith("The deadline is 14 March.")
+
+
+@pytest.mark.parametrize("text", [
+    "Ship to the warehouse by 5pm",
+    "Ship to 5 boxes of widgets, urgent",
+    "Ship to Germany takes about a week.",
+    "The address is wrong in the database",
+    "address 4 fields are required",
+    "lives at home",
+    "deliver to 3 customers, then rest",
+])
+def test_words_like_ship_to_do_not_make_everything_after_them_an_address(text):
+    assert red(text) == text
+
+
 def test_only_the_value_is_redacted_not_the_sentence():
     out = red("the password is Tr0ub4dor&3xK9 for staging")
     assert out.startswith("the password is ") and out.endswith(" for staging")

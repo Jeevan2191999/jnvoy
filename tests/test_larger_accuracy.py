@@ -40,8 +40,35 @@ def test_the_page_section_is_exactly_what_the_results_file_produces():
 
 
 def test_the_headline_numbers_are_on_the_page():
-    j = RESULTS["sets"]["large"]["en_core_web_lg"]["systems"]["jnvoy"]
+    j = RESULTS["sets"]["large_fresh"]["en_core_web_lg"]["systems"]["jnvoy"]
     assert f'{j["caught"]:,} of {j["n"]:,}' in PAGE
+    assert f'{100 * j["caught"] / j["n"]:.1f}%' in _section(PAGE)
+
+
+def test_the_rounded_figure_at_the_top_of_the_page_matches_the_third_set():
+    j = RESULTS["sets"]["large_fresh"]["en_core_web_lg"]["systems"]["jnvoy"]
+    m = re.search(r"it gives about (\d+)%", PAGE)
+    assert m and int(m.group(1)) == round(100 * j["caught"] / j["n"])
+
+
+def test_the_page_says_which_set_to_trust_and_that_it_was_never_tuned_on():
+    section = _section(PAGE)
+    assert "This is the figure to trust" in section
+    assert "never used to change a rule" in section
+
+
+def test_the_before_and_after_numbers_are_both_shown():
+    for key in ("large", "large_heldout", "large_fresh"):
+        b = RESULTS["before_fixes"][key]
+        assert f'{b["caught"]:,} of {b["n"]:,}' in _section(PAGE), key
+
+
+def test_the_fresh_set_scores_lower_than_the_tuned_sets_and_the_page_says_so():
+    d = RESULTS["sets"]
+    rate = {k: d[k]["en_core_web_lg"]["systems"]["jnvoy"]["caught"] / d[k]["en_core_web_lg"]["systems"]["jnvoy"]["n"]
+            for k in d}
+    assert rate["large_fresh"] < rate["large_heldout"] and rate["large_fresh"] < rate["large"]
+    assert "score about" in _section(PAGE) and "points higher" in _section(PAGE)
 
 
 def test_the_page_does_not_call_its_own_test_independent():
@@ -50,7 +77,7 @@ def test_the_page_does_not_call_its_own_test_independent():
     assert "an independent test" not in section
 
 
-def test_the_old_overclaim_free_limits_are_stated():
+def test_the_limits_say_nothing_here_is_independent():
     assert "None of it is an independent evaluation" in PAGE
     assert "href=\"#larger-test\"" in PAGE
 
@@ -71,7 +98,8 @@ def _lg_available():
 
 
 @pytest.mark.skipif(not _lg_available(), reason=f"measured with spaCy {_PINNED} and en_core_web_lg; not available here")
-@pytest.mark.parametrize("key, name", [("large", "large.jsonl"), ("large_heldout", "large_heldout.jsonl")])
+@pytest.mark.parametrize("key, name", [("large", "large.jsonl"), ("large_heldout", "large_heldout.jsonl"),
+                                       ("large_fresh", "large_fresh.jsonl")])
 def test_the_stored_jnvoy_numbers_still_come_out_of_the_code(key, name):
     rows = load_rows(ROOT / "evaluation" / name)
     s = compare.score_system(rows, compare.jnvoy_system())
