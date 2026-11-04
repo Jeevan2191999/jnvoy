@@ -241,6 +241,7 @@
       <ul>
         <li><a href="#result">The result</a></li>
                 <li><a href="#larger-test">Larger test</a></li>
+        <li><a href="#protected-terms">Names you list</a></li>
         <li><a href="#types">By type of data</a></li>
         <li><a href="#wrong">What it gets wrong</a></li>
         <li><a href="#limits">Limits of this test</a></li>
@@ -343,6 +344,18 @@
         </ul>
       </section>
 <!-- larger-test:end -->
+
+      <section id="protected-terms">
+        <h2>Names you list: client and project names</h2>
+        <p>Jnvoy does not understand what is confidential. A client name or a project code name is just a word to it. So there is a setting, <code>protected_terms</code>, where a customer lists the names that must always be hidden. This section measures what that setting does and does not do. The names are invented and the sentences were written by us with the matcher in mind, so the first line below shows that the matcher does what it says. It is not a measure of real documents.</p>
+        <ul class="plain">
+          <li><strong>Listed names, in the forms the setting is built to find</strong> (exact, lower case, upper case, with a hyphen or underscore, run together, with &rsquo;s, or inside an identifier such as <code>get_project_falcon_report</code>): the setting hid 160 of 160 (100.0%). With no list, Jnvoy hid 4 of 160 (2.5%).</li>
+          <li><strong>Listed names, in forms it is not built to find</strong> (initials, plurals, a misspelling, or one word of a two-word name): 21 of 80, the same as with no list. These are not found, and some of the hits come from the ordinary name detector, not from the list.</li>
+          <li><strong>Names that were never listed:</strong> 9 of 32, again only by the ordinary name detector. The setting finds what you list and nothing else. A name you forget to list is not protected.</li>
+          <li><strong>Harmless words:</strong> 466 of 466 were left readable, with or without the list.</li>
+        </ul>
+        <p>Practical meaning: list every name, spelling and short form you care about. Reproduce this with <code>python evaluation/protected_terms_eval.py</code>.</p>
+      </section>
 
       <section id="types">
         <h2>By type of data</h2>

@@ -1,10 +1,13 @@
 """
-The detector with one customer's own rules on top: their custom patterns and their allowlist.
+The detector with one customer's own rules on top: their custom patterns, their protected
+terms and their allowlist.
 
 Order of precedence, strongest first:
-  1. allowlist       text the customer says is never sensitive is left as written
-  2. custom pattern  the customer's own types win over a built-in guess at the same text
-  3. built-in detection (and the optional judge)
+  1. protected term  a word the customer says is always sensitive is always redacted, even if
+                     it is also on the allowlist
+  2. allowlist       text the customer says is never sensitive is left as written
+  3. custom pattern  the customer's own types win over a built-in guess at the same text
+  4. built-in detection (and the optional judge)
 
 Everything else about detection is unchanged. With no rules set, PolicyDetectors does not use
 this class at all.
@@ -22,6 +25,7 @@ from core.judged_detector import JudgedPIIDetector
 log = logging.getLogger("jnvoy.custom")
 
 MATCH_SECONDS = 0.25     # per pattern, per message
+PROTECTED_ENTITY = "PROTECTED_TERM"
 
 
 class CustomPatternError(Exception):
@@ -29,8 +33,9 @@ class CustomPatternError(Exception):
 
 
 class CustomisedDetector(JudgedPIIDetector):
-    def __init__(self, *args, allowlist=(), custom_patterns=(), **kwargs):
+    def __init__(self, *args, allowlist=(), custom_patterns=(), protected_terms=(), **kwargs):
         super().__init__(*args, **kwargs)
+        self._protected = custom_rules.compile_protected_terms(protected_terms)
         self._patterns = [
             (f"CUSTOM_{p['name'].upper()}", custom_rules.compile_pattern(p["pattern"], p.get("ignore_case", False)))
             for p in custom_patterns
@@ -59,6 +64,9 @@ class CustomisedDetector(JudgedPIIDetector):
     def _with_custom(self, base) -> list:
         text = base.original_text
         found = []
+        if self._protected is not None:
+            for m in self._protected.finditer(text):
+                found.append((m.start(), m.end(), PROTECTED_ENTITY))
         for entity, compiled in self._patterns:
             try:
                 for m in compiled.finditer(text, timeout=MATCH_SECONDS):
@@ -76,6 +84,15 @@ class CustomisedDetector(JudgedPIIDetector):
             if start >= last_end:
                 chosen.append((start, end, entity))
                 last_end = end
+        # A protected term that sits inside a longer built-in match (a name, an organisation) takes
+        # the whole match, so no part of the longer value is left readable.
+        widened = [self._widened(c, base.matches) if c[2] == PROTECTED_ENTITY else c for c in chosen]
+        widened.sort(key=lambda t: (t[0], -(t[1] - t[0])))
+        chosen, last_end = [], -1
+        for start, end, entity in widened:           # widening can make two spans overlap
+            if start >= last_end:
+                chosen.append((start, end, entity))
+                last_end = end
         spans = [(s, e) for s, e, _ in chosen]
         kept = [m for m in base.matches
                 if not any(m.start < e and s < m.end for s, e in spans)]
@@ -84,14 +101,23 @@ class CustomisedDetector(JudgedPIIDetector):
                                  token=self._make_token(entity), start=start, end=end, score=1.0))
         return kept
 
+    @staticmethod
+    def _widened(span, base_matches):
+        start, end, entity = span
+        for m in base_matches:
+            if m.start < end and start < m.end:
+                start, end = min(start, m.start), max(end, m.end)
+        return (start, end, entity)
+
     def _without_allowed(self, text: str, matches: list) -> list:
         if self._allow is None:
             return matches
-        protected = [m.span() for m in self._allow.finditer(text)]
-        if not protected:
+        allowed = [m.span() for m in self._allow.finditer(text)]
+        if not allowed:
             return matches
         return [m for m in matches
-                if not any(s <= m.start and m.end <= e for s, e in protected)]
+                if m.pii_type == PROTECTED_ENTITY
+                or not any(s <= m.start and m.end <= e for s, e in allowed)]
 
     @staticmethod
     def _rebuilt(result, matches: list):

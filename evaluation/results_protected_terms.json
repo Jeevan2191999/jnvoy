@@ -1,0 +1,151 @@
+{
+  "documents": 272,
+  "listed_terms": 20,
+  "systems": {
+    "without_list": {
+      "n": 272,
+      "caught": 34,
+      "keep_total": 466,
+      "keep_kept": 466,
+      "per_form": {
+        "abbreviation": {
+          "n": 20,
+          "caught": 0
+        },
+        "exact": {
+          "n": 20,
+          "caught": 2
+        },
+        "hyphenated": {
+          "n": 20,
+          "caught": 0
+        },
+        "in_identifier": {
+          "n": 20,
+          "caught": 0
+        },
+        "joined": {
+          "n": 20,
+          "caught": 0
+        },
+        "lowercase": {
+          "n": 20,
+          "caught": 0
+        },
+        "misspelt": {
+          "n": 20,
+          "caught": 10
+        },
+        "not_listed": {
+          "n": 32,
+          "caught": 9
+        },
+        "one_word_of_two": {
+          "n": 20,
+          "caught": 1
+        },
+        "plural": {
+          "n": 20,
+          "caught": 10
+        },
+        "possessive": {
+          "n": 20,
+          "caught": 0
+        },
+        "underscored": {
+          "n": 20,
+          "caught": 0
+        },
+        "uppercase": {
+          "n": 20,
+          "caught": 2
+        }
+      },
+      "supported": {
+        "n": 160,
+        "caught": 4
+      },
+      "unsupported": {
+        "n": 80,
+        "caught": 21
+      },
+      "not_listed": {
+        "n": 32,
+        "caught": 9
+      }
+    },
+    "with_list": {
+      "n": 272,
+      "caught": 190,
+      "keep_total": 466,
+      "keep_kept": 466,
+      "per_form": {
+        "abbreviation": {
+          "n": 20,
+          "caught": 0
+        },
+        "exact": {
+          "n": 20,
+          "caught": 20
+        },
+        "hyphenated": {
+          "n": 20,
+          "caught": 20
+        },
+        "in_identifier": {
+          "n": 20,
+          "caught": 20
+        },
+        "joined": {
+          "n": 20,
+          "caught": 20
+        },
+        "lowercase": {
+          "n": 20,
+          "caught": 20
+        },
+        "misspelt": {
+          "n": 20,
+          "caught": 10
+        },
+        "not_listed": {
+          "n": 32,
+          "caught": 9
+        },
+        "one_word_of_two": {
+          "n": 20,
+          "caught": 1
+        },
+        "plural": {
+          "n": 20,
+          "caught": 10
+        },
+        "possessive": {
+          "n": 20,
+          "caught": 20
+        },
+        "underscored": {
+          "n": 20,
+          "caught": 20
+        },
+        "uppercase": {
+          "n": 20,
+          "caught": 20
+        }
+      },
+      "supported": {
+        "n": 160,
+        "caught": 160
+      },
+      "unsupported": {
+        "n": 80,
+        "caught": 21
+      },
+      "not_listed": {
+        "n": 32,
+        "caught": 9
+      }
+    }
+  },
+  "model": "en_core_web_lg"
+}

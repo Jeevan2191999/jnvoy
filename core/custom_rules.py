@@ -8,6 +8,11 @@ the tests all agree on what is allowed.
     allowlist         ["Acme Ltd", "support@acme.com"]
                       Whole words or phrases, matched ignoring case. Anything the detector
                       finds inside one of these is left as written.
+    protected_terms   ["Project Falcon", "Globex"]
+                      Words or phrases that are always redacted, as PROTECTED_TERM, e.g.
+                      [PROTECTED_TERM_1]. Matched ignoring case, as whole words (not inside a
+                      longer word), and a space in a term also matches a hyphen, an underscore or nothing.
+                      Protected terms win over the allowlist.
 
 Patterns are written by the operator, so they are checked hard: length, count, that they compile,
 that they cannot match nothing, and that they do not run away on hostile input. They are also run
@@ -29,6 +34,10 @@ MAX_PATTERNS = 20
 MAX_PATTERN_CHARS = 300
 MAX_ALLOWLIST = 100
 MAX_ALLOW_CHARS = 200
+MAX_PROTECTED = 100
+MAX_PROTECTED_CHARS = 200
+MIN_PROTECTED_CHARS = 2
+_TERM_SEPARATORS = re.compile(r"[\s_\-]+")
 MAX_PATTERN_SIZE = 2000      # a pattern's size once its counted repeats are written out
 CHECK_BUDGET_SECONDS = 3.0   # time allowed to check one whole list of patterns
 NAME_RE = re.compile(r"^[a-z][a-z0-9_]{0,29}$")
@@ -143,3 +152,50 @@ def validate_allowlist(raw) -> list:
             seen.add(item.casefold())
             clean.append(item)
     return clean
+
+
+def _term_words(term: str) -> list:
+    return [w for w in _TERM_SEPARATORS.split(term.strip()) if w]
+
+
+def validate_protected_terms(raw) -> list:
+    """Cleans a list of terms that must always be redacted. See compile_protected_terms for how they match."""
+    if not isinstance(raw, list):
+        raise ValueError("policy.protected_terms must be a list of strings")
+    if len(raw) > MAX_PROTECTED:
+        raise ValueError(f"policy.protected_terms can hold at most {MAX_PROTECTED} entries")
+    clean, seen = [], set()
+    for i, item in enumerate(raw):
+        where = f"policy.protected_terms[{i}]"
+        if not isinstance(item, str) or not item.strip():
+            raise ValueError(f"{where} must be a non-empty string")
+        item = " ".join(item.split())
+        if len(item) > MAX_PROTECTED_CHARS:
+            raise ValueError(f"{where} is longer than {MAX_PROTECTED_CHARS} characters")
+        if len(item) < MIN_PROTECTED_CHARS or not any(c.isalnum() for c in item):
+            raise ValueError(f"{where} must have at least {MIN_PROTECTED_CHARS} characters and contain a "
+                             "letter or digit")
+        key = " ".join(_term_words(item)).casefold()
+        if key not in seen:
+            seen.add(key)
+            clean.append(item)
+    return clean
+
+
+def compile_protected_terms(terms):
+    """
+    One compiled pattern for a list of protected terms, or None for an empty list.
+
+    A term matches ignoring case and only as a whole word: not when a letter or digit sits
+    right before or after it ("Falconer" does not match "Falcon"), but yes beside an
+    underscore, hyphen, dot or apostrophe ("falcon_service", "FALCON-2", "Falcon's"). Between the
+    words of a term, a space also matches a hyphen, an underscore, several spaces or nothing at all,
+    so "Project Falcon" finds "project-falcon", "PROJECT_FALCON" and "ProjectFalcon". It does not
+    match plurals, abbreviations ("PF"), misspellings, or only one word of a longer term.
+    """
+    words_per_term = sorted({tuple(_term_words(t)) for t in terms if _term_words(t)},
+                            key=lambda ws: (-sum(map(len, ws)), ws))
+    if not words_per_term:
+        return None
+    alternatives = [r"[\s_\-]*".join(re.escape(w) for w in ws) for ws in words_per_term]
+    return re.compile(r"(?<![^\W_])(?:" + "|".join(alternatives) + r")(?![^\W_])", re.IGNORECASE)

@@ -252,3 +252,111 @@ def test_a_bad_pattern_is_refused_when_the_customer_is_created_or_changed(client
     r = client.patch(f"/v1/admin/tenants/{tid}", headers={"x-api-key": ADMIN},
                      json={"policy": {"allowlist": "not a list"}})
     assert r.status_code == 422
+
+
+# ── protected terms: words that must always be redacted ───────────────────────
+
+def protected(terms, allowlist=()):
+    return CustomisedDetector(protected_terms=custom_rules.validate_protected_terms(list(terms)),
+                              allowlist=list(allowlist), judge=None, from_env=False)
+
+
+def test_protected_terms_are_cleaned_and_deduplicated_ignoring_case_and_separators():
+    got = custom_rules.validate_protected_terms(["  Project   Falcon ", "project-falcon", "PROJECT_FALCON", "Globex"])
+    assert got == ["Project Falcon", "Globex"]
+
+
+@pytest.mark.parametrize("bad", [
+    "Globex", [""], ["  "], [3], [["Globex"]], ["A"], ["---"], ["x" * 201],
+    ["term%d" % i for i in range(101)],
+])
+def test_bad_protected_terms_are_rejected(bad):
+    with pytest.raises(ValueError):
+        custom_rules.validate_protected_terms(bad)
+
+
+def test_the_policy_accepts_protected_terms_and_removes_an_empty_list():
+    assert validate_policy({"protected_terms": ["Globex"]}) == {"protected_terms": ["Globex"]}
+    assert validate_policy({"protected_terms": []}) == {}
+    with pytest.raises(ValueError):
+        validate_policy({"protected_terms": "Globex"})
+
+
+def test_a_listed_term_is_always_redacted_whatever_the_case():
+    red = protected(["Project Falcon", "Globex"]).detect(
+        "Pitch Globex on PROJECT FALCON, then globex again.").redacted_text
+    assert "Globex" not in red and "FALCON" not in red and "globex" not in red
+    assert red.count("[PROTECTED_TERM_") == 3
+
+
+def test_a_space_in_a_term_also_matches_a_hyphen_underscore_extra_spaces_or_nothing():
+    red = protected(["Project Falcon"]).detect(
+        "project-falcon, Project_Falcon, project   falcon and ProjectFalcon").redacted_text
+    assert "alcon" not in red and red.count("[PROTECTED_TERM_") == 4
+
+
+def test_a_term_matches_in_identifiers_and_possessives_but_not_inside_longer_words():
+    det = protected(["Globex"])
+    red = det.detect("repo globex_billing, GLOBEX-2 and Globex's team").redacted_text
+    assert "lobex" not in red.lower().replace("protected_term", "") and red.count("[PROTECTED_TERM_") == 3
+    for same in ("Globexx", "Globe", "Moglobex", "unGlobex"):
+        assert "PROTECTED_TERM" not in det.detect(f"We talked about {same} today").redacted_text
+
+
+def test_what_a_listed_term_cannot_do_is_stated_not_hidden():
+    det = protected(["Project Falcon"])
+    assert det.detect("PF budget").redacted_text == "PF budget"                  # abbreviations are not matched
+    assert det.detect("Project Falcons").redacted_text == "Project Falcons"      # plurals are not matched
+    assert det.detect("Falcon").redacted_text == "Falcon"                        # only the whole term is
+
+
+def test_a_protected_term_beats_the_allowlist():
+    red = protected(["Globex"], allowlist=["Globex Corporation", "support@acme.com"]).detect(
+        "Globex Corporation wrote from support@acme.com").redacted_text
+    assert "Globex" not in red and "support@acme.com" in red
+
+
+def test_a_protected_term_inside_a_longer_detected_value_takes_the_whole_value():
+    det = protected(["Falcon"])
+    red = det.detect("Please email falcon.smith@example.com today").redacted_text
+    assert "smith" not in red and "example.com" not in red
+
+
+def test_adjacent_protected_terms_and_the_same_term_twice_get_stable_tokens():
+    det = protected(["Globex", "Initech"])
+    results = asyncio.run(det.detect_conversation_async(["Globex and Initech", "Globex again"]))
+    assert results[0].redacted_text == "[PROTECTED_TERM_1] and [PROTECTED_TERM_2]"
+    assert results[1].redacted_text == "[PROTECTED_TERM_1] again"
+
+
+def test_protected_terms_alone_switch_on_the_customised_detector():
+    from types import SimpleNamespace
+    base = SimpleNamespace(judge=None, confidence_threshold=0.6)
+    pd = PolicyDetectors(base)
+    assert pd.for_policy({"protected_terms": ["Globex"]}).__class__ is CustomisedDetector
+    assert pd.for_policy({"protected_terms": ["Globex"]}) is not pd.for_policy({"protected_terms": ["Initech"]})
+
+
+def test_a_hostile_text_cannot_hold_the_term_matcher_for_long():
+    det = protected([("a " * 40).strip(), "Globex"] + [f"client{i}" for i in range(95)])
+    start = time.monotonic()
+    det.detect(("a " * 20000) + "!")
+    det.detect("a_" * 20000)
+    assert time.monotonic() - start < 5
+
+
+@needs_db
+def test_protected_terms_apply_to_their_own_customer_only(client):
+    made = _customer(client, {"protected_terms": ["Project Falcon", "Globex"]})
+    assert made.status_code == 201, made.text
+    key = made.json()["api_key"]
+    r = client.post("/v1/scan", headers={"x-api-key": key},
+                    json={"text": "Draft the Globex renewal for project falcon"})
+    assert r.status_code == 200, r.text
+    red = r.json()["redacted_text"]
+    assert "Globex" not in red and "falcon" not in red.lower()
+
+    other = _customer(client, {}).json()["api_key"]
+    plain = client.post("/v1/scan", headers={"x-api-key": other},
+                        json={"text": "Draft the Globex renewal for project falcon"}).json()["redacted_text"]
+    assert "Globex" in plain and "PROTECTED_TERM" not in plain

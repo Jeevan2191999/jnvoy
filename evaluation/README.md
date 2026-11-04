@@ -15,6 +15,7 @@ The numbers on https://www.jnvoy.com/accuracy come from these files.
 | `breakdown.py` | Splits the misses by format (capital-letter names, "pwd" passwords, card lengths). |
 | `check_my_data.py` | Scores Jnvoy on your own labelled text. This is the number that matters. |
 | `results_large.json` | The stored output of the runs above, with library versions and file checksums. |
+| `protected_terms_eval.py` | Measures the `protected_terms` setting on 272 invented client and project names, in forms it is built to find and forms it is not, plus names never listed. Writes `protected_terms.jsonl` and `results_protected_terms.json`. |
 | `run_eval.py` and the other `*.jsonl` files | The older, small, hand-written sets. They are optimistic. |
 
 ## Run it
@@ -37,7 +38,7 @@ python evaluation/check_my_data.py evaluation/example_my_data.csv     # the form
 ## What it does not show
 
 - The text is synthetic. Real documents are messier, so expect real accuracy to be lower.
-- It measures patterns and names. It does not measure whether confidential business text, source code or trade secrets would be caught, because Jnvoy does not look for those.
+- It measures patterns and names. It does not measure whether confidential business text, source code or trade secrets would be caught, because Jnvoy does not look for those. The one exception is names a customer lists in `protected_terms`, which `protected_terms_eval.py` measures separately.
 - Nobody outside the project has run it yet. If you do, tell us what you got, including when it is worse.
 
 ## Changing the rules

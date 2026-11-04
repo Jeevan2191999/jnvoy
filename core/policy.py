@@ -11,6 +11,7 @@ falls back to the server's environment settings, so an empty policy behaves like
     output_scan      what to do with the model's reply: "off", "flag" or "redact"
     custom_patterns  the customer's own types, e.g. [{"name": "employee_id", "pattern": "EMP-\\d{6}"}]
     allowlist        text that must never be redacted, e.g. ["Acme Ltd", "support@acme.com"]
+    protected_terms  words that must always be redacted, e.g. ["Project Falcon", "Globex"]
 
 "judge: off" matters to customers who do not want any text, even redacted, to reach a
 second provider.
@@ -25,9 +26,10 @@ from core.detector_v2 import OPTIONAL_ENTITIES, resolve_entities
 from core import regions as _regions
 
 POLICY_FIELDS = ("regions", "redact_extra", "judge", "judge_fail_mode", "output_scan",
-                 "custom_patterns", "allowlist")
-_LIST_FIELDS = ("custom_patterns", "allowlist")
-_DETECTION_FIELDS = ("regions", "redact_extra", "judge", "judge_fail_mode", "custom_patterns", "allowlist")
+                 "custom_patterns", "allowlist", "protected_terms")
+_LIST_FIELDS = ("custom_patterns", "allowlist", "protected_terms")
+_DETECTION_FIELDS = ("regions", "redact_extra", "judge", "judge_fail_mode", "custom_patterns", "allowlist",
+                     "protected_terms")
 _CHOICES = {
     "judge": ("default", "on", "off"),
     "judge_fail_mode": ("default", "open", "closed"),
@@ -52,8 +54,9 @@ def validate_policy(raw) -> dict:
             continue
         if key in _LIST_FIELDS:
             from core import custom_rules
-            checked = (custom_rules.validate_custom_patterns if key == "custom_patterns"
-                       else custom_rules.validate_allowlist)(value)
+            checked = {"custom_patterns": custom_rules.validate_custom_patterns,
+                       "allowlist": custom_rules.validate_allowlist,
+                       "protected_terms": custom_rules.validate_protected_terms}[key](value)
             if checked:
                 clean[key] = checked
             continue
@@ -83,6 +86,7 @@ FIELD_HELP = {
     "output_scan": "What to do with the model's reply: off, flag or redact.",
     "custom_patterns": "Your own types: a list of {name, pattern, ignore_case}. At most 20.",
     "allowlist": "Words or phrases that must never be redacted. At most 100.",
+    "protected_terms": "Client, project or product names that must always be redacted, exactly as listed. At most 100.",
 }
 
 
@@ -157,8 +161,9 @@ class PolicyDetectors:
             )
         common = dict(confidence_threshold=self.base.confidence_threshold,
                       entities=entities_for(p), judge=judge, from_env=False)
-        if p.get("custom_patterns") or p.get("allowlist"):
+        if p.get("custom_patterns") or p.get("allowlist") or p.get("protected_terms"):
             from core.custom_detector import CustomisedDetector
             return CustomisedDetector(allowlist=p.get("allowlist", ()),
-                                      custom_patterns=p.get("custom_patterns", ()), **common)
+                                      custom_patterns=p.get("custom_patterns", ()),
+                                      protected_terms=p.get("protected_terms", ()), **common)
         return JudgedPIIDetector(**common)
