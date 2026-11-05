@@ -23,15 +23,19 @@ OWASP MCP Top 10 coverage:
 - MCP1: Tool Poisoning
 - MCP2: Secret and Credential Leakage
 - MCP3: Prompt Injection via Tool Descriptions
-- MCP4: PII Leakage through Tool Responses
+- MCP4: PII Leakage through Tool Responses (only when a personal-data detector is attached;
+  the Jnvoy API does not attach one, see THREAT_MODEL.md T14)
 - MCP5: Context Over-sharing
 - MCP6: Unauthorised Tool Invocation (detection)
 """
 
+import logging
 import re
 import time
 from dataclasses import dataclass, field
 from typing import Optional, Any
+
+logger = logging.getLogger("jnvoy.mcp")
 
 
 # ── Secret and Credential Patterns ───────────────────────────────────────────
@@ -115,6 +119,9 @@ class MCPScanResult:
     blocked: bool = False
     action: str = "allow"
     detection_time_ms: float = 0.0
+    # True when a personal-data check was attached but raised an error, so the content went on
+    # unchecked for personal data. The result is then at least "flag", never "allow".
+    scan_incomplete: bool = False
 
     @property
     def threat_summary(self) -> dict:
@@ -146,6 +153,11 @@ class MCPSecurityScanner:
         self.confidence_threshold = confidence_threshold
         self.pii_detector = pii_detector
 
+    @property
+    def personal_data_checked(self) -> bool:
+        """False when no personal-data detector is attached, so none of the scans look for it."""
+        return self.pii_detector is not None
+
     def scan_tool_response(
         self,
         tool_name: str,
@@ -162,6 +174,7 @@ class MCPSecurityScanner:
         content_str = self._to_string(response_content)
         threats = []
         pii_detected = {}
+        scan_incomplete = False
         redacted = content_str
 
         # Scan for secrets and credentials
@@ -186,8 +199,10 @@ class MCPSecurityScanner:
                 if pii_result.entities:
                     pii_detected = pii_result.summary
                     redacted = pii_result.redacted_text
-            except Exception:
-                pass
+            except Exception as exc:
+                # Say that the check failed, never what it was checking: the text stays out of logs.
+                scan_incomplete = True
+                logger.warning("MCP personal-data check failed (%s); content passed on unchecked", type(exc).__name__)
 
         # Scan for injection in tool response
         for compiled, attack_type, severity in COMPILED_TOOL_POISONING:
@@ -213,8 +228,9 @@ class MCPSecurityScanner:
             redacted_content=redacted if threat_detected else None,
             highest_severity=highest_severity,
             blocked=blocked,
-            action="block" if blocked else ("flag" if threat_detected else "allow"),
-            detection_time_ms=round((time.time() - start) * 1000, 2)
+            action="block" if blocked else ("flag" if (threat_detected or scan_incomplete) else "allow"),
+            detection_time_ms=round((time.time() - start) * 1000, 2),
+            scan_incomplete=scan_incomplete,
         )
 
     def scan_tool_call(
@@ -231,6 +247,7 @@ class MCPSecurityScanner:
         params_str = self._to_string(parameters)
         threats = []
         pii_detected = {}
+        scan_incomplete = False
         redacted_params = dict(parameters)
 
         # Scan for secrets in outbound parameters
@@ -253,8 +270,10 @@ class MCPSecurityScanner:
                 pii_result = self.pii_detector.detect(params_str)
                 if pii_result.entities:
                     pii_detected = pii_result.summary
-            except Exception:
-                pass
+            except Exception as exc:
+                # Say that the check failed, never what it was checking: the text stays out of logs.
+                scan_incomplete = True
+                logger.warning("MCP personal-data check failed (%s); content passed on unchecked", type(exc).__name__)
 
         threat_detected = len(threats) > 0 or len(pii_detected) > 0
         highest_severity = self._highest_severity(threats)
@@ -267,8 +286,9 @@ class MCPSecurityScanner:
             pii_detected=pii_detected,
             highest_severity=highest_severity,
             blocked=blocked,
-            action="block" if blocked else ("flag" if threat_detected else "allow"),
-            detection_time_ms=round((time.time() - start) * 1000, 2)
+            action="block" if blocked else ("flag" if (threat_detected or scan_incomplete) else "allow"),
+            detection_time_ms=round((time.time() - start) * 1000, 2),
+            scan_incomplete=scan_incomplete,
         )
 
     def scan_tool_description(

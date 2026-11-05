@@ -230,3 +230,68 @@ def test_secret_is_redacted_in_response(scanner):
 def test_detection_time_recorded(scanner):
     result = scanner.scan_tool_response("test_tool", "Normal response content")
     assert result.detection_time_ms >= 0
+
+
+# ── The personal-data check: never silent ─────────────────────────────────────
+
+class _BrokenDetector:
+    """Stands in for a personal-data detector that raises an error."""
+    def detect(self, text):
+        raise RuntimeError("secret customer text should never reach a log: " + text)
+
+
+def test_a_failed_personal_data_check_is_flagged_not_allowed_in_a_response():
+    scanner = MCPSecurityScanner(action="block", pii_detector=_BrokenDetector())
+    result = scanner.scan_tool_response("crm_lookup", "Jane Doe lives at 1 High Street")
+    assert result.scan_incomplete is True
+    assert result.action == "flag"
+
+
+def test_a_failed_personal_data_check_is_flagged_not_allowed_in_a_call():
+    scanner = MCPSecurityScanner(action="block", pii_detector=_BrokenDetector())
+    result = scanner.scan_tool_call("send_email", {"to": "jane@example.com"})
+    assert result.scan_incomplete is True
+    assert result.action == "flag"
+
+
+def test_the_log_names_the_failure_but_never_repeats_the_text(caplog):
+    scanner = MCPSecurityScanner(action="block", pii_detector=_BrokenDetector())
+    with caplog.at_level("WARNING", logger="jnvoy.mcp"):
+        scanner.scan_tool_response("crm_lookup", "Jane Doe lives at 1 High Street")
+    assert "personal-data check failed (RuntimeError)" in caplog.text
+    assert "Jane Doe" not in caplog.text
+    assert "secret customer text" not in caplog.text
+
+
+def test_a_working_check_leaves_scan_incomplete_false(scanner):
+    result = scanner.scan_tool_response("search", "Found 3 results")
+    assert result.scan_incomplete is False
+    assert result.action == "allow"
+
+
+def test_the_scanner_reports_whether_any_personal_data_detector_is_attached():
+    assert MCPSecurityScanner().personal_data_checked is False
+    assert MCPSecurityScanner(pii_detector=_BrokenDetector()).personal_data_checked is True
+
+
+def test_the_api_says_its_mcp_scans_do_not_look_for_personal_data():
+    import os
+    admin = "test-admin-key-" + "0" * 24
+    os.environ.setdefault("JNVOY_ADMIN_KEYS", admin)
+    from fastapi.testclient import TestClient
+    from api.proxy_v2 import app
+    key = os.environ["JNVOY_ADMIN_KEYS"].split(",")[0].strip()
+    client = TestClient(app)
+    for path, body in (("/v1/mcp/scan", {"method": "tools/call", "params": {"name": "x", "arguments": {"a": "jane@example.com"}}}),):
+        r = client.post(path, json=body, headers={"x-api-key": key})
+        assert r.status_code == 200
+        assert r.json()["personal_data_checked"] is False
+        assert r.json()["scan_incomplete"] is False
+    r = client.post("/v1/mcp/scan/tool-response?tool_name=x", json={"a": "Jane Doe"}, headers={"x-api-key": key})
+    assert r.status_code == 200
+    assert r.json()["personal_data_checked"] is False
+    # The documentation the API publishes must not promise what the routes do not do.
+    docs = (client.get("/openapi.json").json())["paths"]
+    text = (docs["/v1/mcp/scan"]["post"].get("description", "") + docs["/v1/mcp/scan/tool-response"]["post"].get("description", ""))
+    assert "does not look" in text and "personal data" in text
+    assert "Prevents PII" not in text and "PII in tool calls" not in text

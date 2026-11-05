@@ -1687,7 +1687,9 @@ async def download_compliance_report(
 async def scan_mcp_payload(payload: dict):
     """
     Scan an MCP tool call, response, or tool description for threats.
-    Detects tool poisoning, secret leakage, PII in tool calls.
+    Looks for tool poisoning phrases, secret-like strings and injection phrases. It does not look
+    for personal data: `personal_data_checked` in the reply says so. Personal data in tool results
+    is redacted on the proxy route instead (messages with role "tool").
     """
     result = await run_in_threadpool(mcp_scanner.scan_mcp_payload, payload)
     return {
@@ -1698,6 +1700,8 @@ async def scan_mcp_payload(payload: dict):
         "highest_severity": result.highest_severity,
         "threats": result.threat_summary,
         "pii_detected": result.pii_detected,
+        "personal_data_checked": mcp_scanner.personal_data_checked,
+        "scan_incomplete": result.scan_incomplete,
         "detection_time_ms": result.detection_time_ms,
     }
 
@@ -1706,7 +1710,8 @@ async def scan_mcp_payload(payload: dict):
 async def scan_tool_response(tool_name: str, payload: dict):
     """
     Scan a tool response before it enters the LLM context.
-    Prevents PII and secrets from flowing into the model context window.
+    Looks for secret-like strings and injection phrases. It does not look for personal data
+    (`personal_data_checked` is false); the proxy route redacts personal data in tool results.
     """
     result = await run_in_threadpool(mcp_scanner.scan_tool_response, tool_name, payload)
     return {
@@ -1717,6 +1722,8 @@ async def scan_tool_response(tool_name: str, payload: dict):
         "threats": result.threat_summary,
         "pii_detected": result.pii_detected,
         "redacted": result.redacted_content is not None,
+        "personal_data_checked": mcp_scanner.personal_data_checked,
+        "scan_incomplete": result.scan_incomplete,
         "detection_time_ms": result.detection_time_ms,
     }
 
