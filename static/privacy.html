@@ -317,7 +317,8 @@
         <ul class="plain">
           <li><strong>Misses happen.</strong> Unusual formats, names with no surrounding context, and addresses written in free text are the likeliest to slip through.</li>
           <li><strong>Over-redaction happens too.</strong> A ten digit number can be read as an NHS number, and a brand name can be read as a person.</li>
-          <li><strong>Our measurements are small.</strong> The labelled test set is in the <a href="https://github.com/Jeevan2191999/jnvoy/tree/main/evaluation">repository</a>, written by us, and you can run it yourself. Treat it as evidence, not proof.</li>
+          <li><strong>About one value in six is missed.</strong> On sentence wordings the rules were never tuned on, Jnvoy hid 835 of 1,009 sensitive values (82.8%). The weakest types were addresses (45 of 90 hidden), postcodes (37 of 90) and passwords (26 of 43). Names were hidden 78% of the time. See <a href="/accuracy#larger-test">the larger test</a>.</li>
+          <li><strong>Our test text is generated.</strong> The documents are short (about 100 characters on average and never more than 300) and were built from sentence patterns we wrote, filled with made-up values. Real text, such as long emails or pasted documents, may score lower. The sets are in the <a href="https://github.com/Jeevan2191999/jnvoy/tree/main/evaluation">repository</a> and you can run them yourself. Treat them as evidence, not proof.</li>
         </ul>
         <p>For that reason Jnvoy's compliance report says no PII <em>detected by Jnvoy</em> was transmitted. It does not say none existed.</p>
       </section>

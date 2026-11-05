@@ -65,7 +65,7 @@ def test_the_page_numbers_are_the_stored_numbers():
 
 def test_the_page_says_what_it_is_and_is_not():
     sec = _section()
-    for phrase in ("tripwire", "do not rely on it for an agent", "A customer can turn the check off in their settings", "About four in five real jailbreak prompts get through",
+    for phrase in ("tripwire", "do not rely on it for an agent", "The check is off by default", "A customer can turn the check on in their settings", "About four in five real jailbreak prompts get through",
                    "We have not compared Jnvoy with any"):
         assert phrase in sec, phrase
 
@@ -79,7 +79,8 @@ def test_the_stated_misses_are_misses():
 
 def test_the_public_claim_is_narrow():
     assert "blocks prompt injection." not in HOME                # the old, unmeasured wording
-    assert "well-known jailbreak phrases" in HOME
+    assert "31 well-known injection and jailbreak phrases" in HOME
+    assert "Off by default." in HOME
     assert "tripwire, not a defence" in HOME
 
 

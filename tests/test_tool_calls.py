@@ -302,7 +302,8 @@ def test_a_tool_the_caller_did_not_declare_is_never_passed_on(client, monkeypatc
     assert r.json()["error"]["code"] == "undeclared_tool"
 
 
-def test_injection_hidden_in_a_tool_result_is_blocked(client, monkeypatch):
+def test_injection_hidden_in_a_tool_result_is_blocked_when_the_check_is_on(client, monkeypatch):
+    monkeypatch.setattr(app_module, "injection_mode", lambda policy: "block")
     fake_model(monkeypatch, lambda m: pytest.fail("the model must not be called"))
     r = post(client, {"model": "gpt-4o", "tools": [LOOKUP], "messages": [
         {"role": "user", "content": "Summarise the page"},

@@ -9,7 +9,7 @@ falls back to the server's environment settings, so an empty policy behaves like
     judge            "default" (server setting), "on", or "off" (no text goes to the judge)
     judge_fail_mode  "default", "open" (keep first-pass redaction) or "closed" (reject request)
     output_scan      what to do with the model's reply: "off", "flag" or "redact"
-    injection        "block" (default) refuses a request that contains a known injection phrase; "off" skips that check
+    injection        "off" (default) skips the known-phrase check; "block" refuses a request that contains one
     custom_patterns  the customer's own types, e.g. [{"name": "employee_id", "pattern": "EMP-\\d{6}"}]
     allowlist        text that must never be redacted, e.g. ["Acme Ltd", "support@acme.com"]
     protected_terms  words that must always be redacted, e.g. ["Project Falcon", "Globex"]
@@ -38,7 +38,9 @@ _CHOICES = {
     "injection": ("block", "off"),
 }
 DEFAULT_OUTPUT_SCAN = "flag"
-DEFAULT_INJECTION = "block"
+# Off by default: the phrase list refuses about one real chatbot prompt in fourteen (accuracy page,
+# #injection) and misses reworded attacks, so it is something a customer chooses, not a default.
+DEFAULT_INJECTION = "off"
 
 
 def validate_policy(raw) -> dict:
@@ -87,7 +89,7 @@ FIELD_HELP = {
     "judge": "default, on, or off. Off means no text, even redacted, goes to a second provider.",
     "judge_fail_mode": "If the second check fails: default, open (keep the first redaction) or closed (refuse).",
     "output_scan": "What to do with the model's reply: off, flag or redact.",
-    "injection": "block (default) refuses a request that contains a well-known injection phrase; off skips that check. It is a list of known phrases, so it also refuses some harmless text.",
+    "injection": "off (default) or block. Block refuses a request that contains a well-known injection phrase. It is a list of known phrases, so it also refuses some harmless text and misses reworded attacks.",
     "custom_patterns": "Your own types: a list of {name, pattern, ignore_case}. At most 20.",
     "allowlist": "Words or phrases that must never be redacted. At most 100.",
     "protected_terms": "Client, project or product names that must always be redacted, exactly as listed. At most 100.",

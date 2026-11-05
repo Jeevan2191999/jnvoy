@@ -253,7 +253,8 @@ def test_refused_features_answer_with_an_openai_style_error(client, monkeypatch)
     assert err["code"] == "unsupported_parameter" and err["param"] == "functions"
 
 
-def test_prompt_injection_is_still_blocked_through_this_door(client, monkeypatch):
+def test_prompt_injection_is_still_blocked_through_this_door_when_the_check_is_on(client, monkeypatch):
+    monkeypatch.setattr(app_module, "injection_mode", lambda policy: "block")
     seen = fake_providers(monkeypatch, echo)
     r = client.post("/v1/chat/completions", headers={"x-api-key": OPERATOR},
                     json={"model": "gpt-4o", "messages": [{"role": "user", "content":

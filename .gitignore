@@ -13,3 +13,6 @@ apply_*.py
 
 # public datasets fetched by evaluation/injection_eval.py --fetch (not committed)
 evaluation/_public/
+
+# Patch files from the batch workflow are applied locally and never committed
+*.patch

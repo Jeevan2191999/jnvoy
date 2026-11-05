@@ -572,7 +572,7 @@ def _cache_key(tenant: str, request, redacted_messages: list) -> str:
 
 
 async def _check_injection(messages: list, policy: Optional[dict]) -> None:
-    """Refuses the request when it holds a known injection phrase, unless this customer switched the check off."""
+    """Refuses the request when it holds a known injection phrase, if this customer turned the check on (it is off by default)."""
     if injection_mode(policy) == "off":
         return
     _raise_if_injection(await run_in_threadpool(injection_detector.scan_messages, messages))

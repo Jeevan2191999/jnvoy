@@ -1,6 +1,6 @@
 name: audit
 
-# Every Monday (and whenever you press "Run workflow"): check every pinned dependency against
+# Every Monday, whenever requirements.txt changes on main, and whenever you press "Run workflow": check every pinned dependency against
 # the public vulnerability databases. A red run means a pinned version has a known problem.
 # GitHub emails the repository owner when a scheduled run fails.
 #
@@ -13,6 +13,13 @@ on:
   schedule:
     - cron: "41 5 * * 1"
   workflow_dispatch:
+  # Also re-check as soon as a dependency change reaches main, so a fix turns the badge green
+  # straight away instead of the badge staying red until the next Monday.
+  push:
+    branches: [main]
+    paths:
+      - requirements.txt
+      - .github/workflows/audit.yml
 
 permissions:
   contents: read
