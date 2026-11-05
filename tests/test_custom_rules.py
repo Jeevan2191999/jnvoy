@@ -338,11 +338,30 @@ def test_protected_terms_alone_switch_on_the_customised_detector():
 
 
 def test_a_hostile_text_cannot_hold_the_term_matcher_for_long():
-    det = protected([("a " * 40).strip(), "Globex"] + [f"client{i}" for i in range(95)])
+    # Most of the time in a scan is the language model reading the text, and that depends on the
+    # machine. So the matcher is timed on its own, with a wide margin (it takes about a millisecond),
+    # and the whole detector is compared with a plain one on the same text, on the same machine.
+    terms = [("a " * 40).strip(), "Globex"] + [f"client{i}" for i in range(95)]
+    texts = [("a " * 20000) + "!", "a_" * 20000]
+
+    matcher = custom_rules.compile_protected_terms(custom_rules.validate_protected_terms(terms))
     start = time.monotonic()
-    det.detect(("a " * 20000) + "!")
-    det.detect("a_" * 20000)
-    assert time.monotonic() - start < 5
+    for text in texts:
+        list(matcher.finditer(text))
+    assert time.monotonic() - start < 1
+
+    hostile, plain = protected(terms), protected(["Globex"])
+    for det in (hostile, plain):
+        det.detect("warm up")                      # the first scan loads the models
+
+    def took(det):
+        start = time.monotonic()
+        for text in texts:
+            det.detect(text)
+        return time.monotonic() - start
+
+    baseline = took(plain)
+    assert took(hostile) < 2 * baseline + 2
 
 
 @needs_db
