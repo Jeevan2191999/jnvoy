@@ -8,7 +8,7 @@ A test (`tests/test_threat_model.py`) fails if a row cites a test that does not 
 
 | Asset | Where it lives | Why it matters |
 |---|---|---|
-| The original text of a request (prompts, files, tool results) | In the memory of the Jnvoy service while one request is processed. Never written to the database. | It holds the personal data and secrets Jnvoy exists to keep from the model provider. |
+| The original text of a request (prompts, files, tool results) | In the memory of the Jnvoy service while one request is processed. Never written to the database. It is also readable in transit by Cloudflare on the hosted service. | It holds the personal data and secrets Jnvoy exists to keep from the model provider. |
 | A customer's Jnvoy key | Shown once. Stored as a SHA-256 hash. | It lets someone act as that customer. |
 | A customer's own model-provider key | Sent in a header with each request. Used for that request. Never stored. | It spends the customer's money. |
 | The audit record | Database. Counts of what was found, by type, with times and model names. | It describes a customer's traffic. |
@@ -30,7 +30,7 @@ Not covered: attacks on a customer's own systems, on the model providers, or on 
 
 ## How a request travels (the trust boundaries)
 
-Application, then Jnvoy over HTTPS (boundary 1: the key is checked here). Jnvoy finds and replaces sensitive values in memory (boundary 2: the original text exists only here). The redacted text goes to the model provider the customer chose, and to the optional second check where one is switched on (boundary 3: only redacted text crosses). The reply is scanned, real values are put back, and it returns to the application. The database receives counts only (boundary 4).
+Application, then Jnvoy over HTTPS (boundary 1: the key is checked here; on the hosted service the request also passes through Cloudflare, which can read it). Jnvoy finds and replaces sensitive values in memory (boundary 2: the original text exists only here). The redacted text goes to the model provider the customer chose, and to the optional second check where one is switched on (boundary 3: only redacted text crosses). The reply is scanned, real values are put back, and it returns to the application. The database receives counts only (boundary 4).
 
 ## Threats
 
@@ -61,7 +61,7 @@ Status words: **built** means a test in this repository shows it works as descri
 | T21 | SQL injection | Queries use bound values. Where a query is assembled from parts, the parts are fixed text in the code and only the values come from a request. | tests/test_security_hardening.py::test_odd_query_values_never_cause_a_server_error | partly | This was checked by reading the code, and by one test that sends odd values. No automated scanner has been run against the service. |
 | T22 | A web page abuses a visitor's browser to call the API | Keys are sent in a header, never in a cookie, so a visiting page cannot ride a signed-in session. Responses carry content-type, framing, referrer and transport-security headers. | tests/test_http_limits.py::test_security_headers_are_present; tests/test_auth.py::test_options_preflight_is_not_blocked | partly | Cross-origin requests are allowed from any origin, which is safe only because there are no cookies. There is no Content-Security-Policy header on the pages yet. |
 | T23 | The operator makes a mistake, or the operator's accounts are taken over | None in this repository. | none | not done | One person has access to the code, the host and the database, and nobody reviews that person's changes. Protection of those accounts (two-factor sign-in, recovery options) is a matter of how the accounts are set up, and this repository cannot show it. A second person with review rights is the fix, and it needs a second person. |
-| T24 | The hosting provider or its staff can see request text in memory | The text is processed in memory and not written to the database. Render publishes its own independent certifications for its platform. Self-hosting removes this exposure. | static/security.html | partly | These certifications cover Render, not Jnvoy. A hosted customer trusts both. |
+| T24 | The hosting provider, its network provider or their staff can read request text | The text is processed in memory and not written to the database. Render publishes its own independent certifications for its platform. Both pages say that Render and Cloudflare can read request text as it arrives. Self-hosting removes this exposure. | static/security.html; tests/test_security_page.py::test_pages_disclose_that_cloudflare_can_read_traffic_in_transit | partly | Web traffic to the hosted service passes through Cloudflare, which Render uses at the edge of its network, and Cloudflare ends the encrypted connection, so the original text is readable there before it reaches Jnvoy. Jnvoy cannot change that on the hosted service. Render's certifications cover Render, not Jnvoy, and a hosted customer trusts Render, Cloudflare and Jnvoy. |
 
 ## What is not on this list
 

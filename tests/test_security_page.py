@@ -87,7 +87,7 @@ def test_security_page_has_a_data_flow_diagram_and_a_text_version():
     assert 'href="#dataflow"' in text
     # the same flow written out, for phones and screen readers
     assert text.count('<ol class="steps">') == 1
-    for phrase in ("only place the original text travels to", "never writes the text"):
+    for phrase in ("travels no further than Jnvoy", "never writes the text"):
         assert phrase in text
 
 
@@ -139,3 +139,16 @@ def test_public_pages_answer_head_requests_too():
         r = client.head(path)
         assert r.status_code == 200, (path, r.status_code)
         assert r.text == ""
+
+
+def test_pages_disclose_that_cloudflare_can_read_traffic_in_transit():
+    # The hosted service sits behind Cloudflare (Render's network provider). It ends the encrypted
+    # connection, so it can read request text on the way in. The pages must not say otherwise.
+    sec = client.get("/security").text
+    priv = client.get("/privacy").text
+    assert "<div class=\"k\">Cloudflare</div>" in sec
+    assert "which can read the traffic on the way in" in sec
+    assert "can read request text in transit" in sec
+    assert "Cloudflare" in priv and "reads the original text in transit" in priv
+    assert "only place the original text travels to" not in sec
+    assert "Only the first two can ever see request text" not in sec

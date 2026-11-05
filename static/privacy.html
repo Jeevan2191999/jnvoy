@@ -217,7 +217,7 @@
     <div class="wrap">
       <h1>Privacy and data handling</h1>
       <p class="lede">What happens to your text when it passes through Jnvoy, what we keep, who else sees it, and where redaction can fall short.</p>
-      <p class="meta">Last updated 26 October 2026</p>
+      <p class="meta">Last updated 5 November 2026</p>
     </div>
   </div>
 
@@ -243,6 +243,7 @@
         <div class="ledger">
           <div class="row head"><div>Question</div><div>Answer</div><div>Status</div></div>
           <div class="row"><div class="k">Is original text saved?</div><div class="v">Not in the database, the audit log, the cache or the logs. It exists in memory while a request is processed.</div><div class="s no">Not stored</div></div>
+          <div class="row"><div class="k">Who can read the original text on its way to Jnvoy?</div><div class="v">On the hosted service, Cloudflare, which Render uses at the edge of its network, can read traffic in transit. Self-hosting removes this.</div><div class="s mid">Cloudflare</div></div>
           <div class="row"><div class="k">What reaches the model provider?</div><div class="v">The redacted text only, sent to the provider you choose.</div><div class="s no">Redacted</div></div>
           <div class="row"><div class="k">Does anyone else see redacted text?</div><div class="v">Only the model provider you choose. The optional second check, a separate model that re-reads redacted text, is off on the hosted service.</div><div class="s no">Provider only</div></div>
           <div class="row"><div class="k">Is detection guaranteed to be complete?</div><div class="v">No. It is strong, and it is measured, but a value can be missed.</div><div class="s yes">Not guaranteed</div></div>
@@ -279,7 +280,7 @@
               <div class="sample tok">Email [PERSON_1] at [EMAIL_ADDRESS_1]</div>
             </div>
           </div>
-          <figcaption>The original text reaches Jnvoy, because Jnvoy has to read it to redact it. It does not travel past Jnvoy.</figcaption>
+          <figcaption>The original text reaches Jnvoy, because Jnvoy has to read it to redact it. On the hosted service it passes through Cloudflare on the way in. It does not travel past Jnvoy.</figcaption>
         </figure>
       </section>
 
@@ -305,6 +306,7 @@
         <ul class="plain">
           <li><strong>The model provider you choose</strong> (for example Anthropic or OpenAI) receives the redacted prompt. Its own terms govern what it does with that text.</li>
           <li><strong>No separate second-check service.</strong> The optional second check is off on the hosted service, so redacted text goes only to the model provider you choose. A self-hosted deployment can run the check on a model on its own machine.</li>
+          <li><strong>Cloudflare</strong> sits in front of the hosted service as part of Render's network. It does not receive redacted text from Jnvoy. It reads the original text in transit, before it reaches Jnvoy, because it ends the encrypted connection to pass each request on.</li>
           <li><strong>Render</strong> hosts the Jnvoy service and its database. Request text is processed in the service's memory, and Jnvoy does not write original text to either. The <a href="/security">security page</a> lists every service we use.</li>
         </ul>
       </section>
