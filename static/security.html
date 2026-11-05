@@ -231,7 +231,7 @@
     <div class="wrap">
       <h1>Security</h1>
       <p class="lede">How Jnvoy protects the text and keys you send it, which services are involved, and what we have not done yet.</p>
-      <p class="meta">Last updated 26 October 2026</p>
+      <p class="meta">Last updated 4 November 2026</p>
     </div>
   </div>
 
@@ -293,7 +293,7 @@
         <h3>The code</h3>
         <ul class="plain">
           <li>The source is published on <a href="https://github.com/Jeevan2191999/jnvoy">GitHub</a> under the Business Source License, so you can read the code and check any statement here against it.</li>
-          <li>More than 500 automated tests run before every change is published.</li>
+          <li>More than 1,000 automated tests run before every change is published.</li>
         </ul>
       </section>
 
@@ -411,15 +411,16 @@
           <li><strong>No certification.</strong> Jnvoy has no SOC 2 or ISO 27001 report of its own.</li>
           <li><strong>No independent penetration test.</strong> The tests are ours. We plan an independent test once there are paying customers.</li>
           <li><strong>One instance, one region.</strong> The service runs as a single instance with no automatic failover. A deploy or a crash can mean a short outage. Uptime is not guaranteed on the free and production plans, and is agreed in writing on Enterprise.</li>
-          <li><strong>Detection is measured on a small set.</strong> See the limits on the <a href="/privacy#limits">privacy page</a>.</li>
+          <li><strong>Detection misses some of what it should find.</strong> Every number, including the lower result on a set kept unseen, is on the <a href="/accuracy">accuracy page</a>, and the limits are on the <a href="/privacy#limits">privacy page</a>.</li>
           <li><strong>Data processing agreement.</strong> Ask for one before you send real data.</li>
         </ul>
+        <p>The <a href="https://github.com/Jeevan2191999/jnvoy/blob/main/THREAT_MODEL.md" rel="noopener">threat model</a> lists each way Jnvoy can go wrong that we could think of, what stops it today, the test that shows it, and what is left. It also lists what has no control yet, including that one person runs everything. It has not been reviewed by anyone outside the company.</p>
         <div class="notice"><strong>This page describes how the software behaves today.</strong> It is not a contract or legal advice. If a statement here is wrong, tell us and we will fix the page.</div>
       </section>
 
       <section id="report">
         <h2>Report a problem</h2>
-        <p>If you find a security problem, write to <a href="mailto:j.nagaraj2109@gmail.com?subject=Jnvoy%20security">j.nagaraj2109@gmail.com</a> with the subject "Jnvoy security". We will acknowledge within two working days, and we will tell affected customers without undue delay if their data is involved. Please do not test against other customers' data. The same details are in our <a href="/.well-known/security.txt">security.txt</a>.</p>
+        <p>If you find a security problem, write to <a href="mailto:j.nagaraj2109@gmail.com?subject=Jnvoy%20security">j.nagaraj2109@gmail.com</a> with the subject "Jnvoy security". We will acknowledge within two working days, and we will tell affected customers without undue delay if their data is involved. Please do not test against other customers' data. The rules for researchers are in <a href="https://github.com/Jeevan2191999/jnvoy/blob/main/SECURITY.md" rel="noopener">SECURITY.md</a>, and the same contact details are in our <a href="/.well-known/security.txt">security.txt</a>.</p>
         <p>Jnvoy is operated by JNVOY LIMITED, a private company limited by shares, registered in England and Wales under company number 17536574.</p>
       </section>
 

@@ -323,6 +323,8 @@ pytest -q
 
 To report a vulnerability, email j.nagaraj2109@gmail.com. Please do not open a public issue for it.
 
+The rules for researchers are in [SECURITY.md](SECURITY.md). [THREAT_MODEL.md](THREAT_MODEL.md) lists the ways Jnvoy can go wrong, what stops each one, the test that shows it, and what is left, including what has no control yet.
+
 Every pinned dependency is checked against public vulnerability databases each week by the `audit` workflow, and the whole API is attacked with malformed and hostile requests in the test suite (`tests/test_security_hardening.py`). Files are read in a locked-down child process, and customers' own regular expressions are size-checked, time-limited and refused if they could exhaust memory.
 
 ## About
