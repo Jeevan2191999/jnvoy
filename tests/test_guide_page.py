@@ -19,7 +19,7 @@ def test_guide_is_served_with_search_metadata():
     assert r.status_code == 200
     html = r.text
     assert f'rel="canonical" href="https://www.jnvoy.com{PATH}"' in html
-    assert "<title>How to remove personal data from prompts before sending them to OpenAI</title>" in html
+    assert "<title>How to remove PII from prompts before sending to OpenAI</title>" in html
     assert 'name="description"' in html and html.count("<h1>") == 1
     assert 'property="og:title"' in html and 'name="twitter:card"' in html
 

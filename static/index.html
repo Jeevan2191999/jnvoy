@@ -3,19 +3,19 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Jnvoy: privacy and security gateway for AI models</title>
+<title>Jnvoy: PII redaction gateway for OpenAI and Anthropic APIs</title>
 <meta name="description" content="Jnvoy sits between your application and a model provider. It replaces personal data and secrets with placeholders before text reaches the model, and puts the real values back in the reply.">
 <link rel="canonical" href="https://www.jnvoy.com/">
 <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
 <meta name="theme-color" content="#EDEEE9">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Jnvoy">
-<meta property="og:title" content="Jnvoy: privacy and security gateway for AI models">
+<meta property="og:title" content="Jnvoy: PII redaction gateway for OpenAI and Anthropic APIs">
 <meta property="og:description" content="Jnvoy sits between your application and a model provider. It replaces personal data and secrets with placeholders before text reaches the model, and puts the real values back in the reply.">
 <meta property="og:url" content="https://www.jnvoy.com/">
 <meta property="og:image" content="https://www.jnvoy.com/static/og-image.png">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Jnvoy: privacy and security gateway for AI models">
+<meta name="twitter:title" content="Jnvoy: PII redaction gateway for OpenAI and Anthropic APIs">
 <meta name="twitter:description" content="Jnvoy sits between your application and a model provider. It replaces personal data and secrets with placeholders before text reaches the model, and puts the real values back in the reply.">
 <meta name="twitter:image" content="https://www.jnvoy.com/static/og-image.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -596,6 +596,43 @@
   .flinks a:hover{ color:var(--ink); }
 
 </style>
+<script type="application/ld+json">
+{
+ "@context": "https://schema.org",
+ "@graph": [
+  {
+   "@type": "Organization",
+   "@id": "https://www.jnvoy.com/#organization",
+   "name": "Jnvoy",
+   "legalName": "JNVOY LIMITED",
+   "url": "https://www.jnvoy.com/",
+   "logo": "https://www.jnvoy.com/static/favicon.svg",
+   "founder": {
+    "@type": "Person",
+    "@id": "https://www.jnvoy.com/#founder",
+    "name": "Jeevan Nagaraj"
+   },
+   "sameAs": [
+    "https://github.com/Jeevan2191999/jnvoy",
+    "https://find-and-update.company-information.service.gov.uk/company/17536574"
+   ]
+  },
+  {
+   "@type": "SoftwareApplication",
+   "@id": "https://www.jnvoy.com/#software",
+   "name": "Jnvoy",
+   "url": "https://www.jnvoy.com/",
+   "applicationCategory": "SecurityApplication",
+   "operatingSystem": "Web service; self-hostable with Docker",
+   "description": "A gateway between an application and OpenAI or Anthropic that replaces personal data and secrets with placeholders before text reaches the model, and puts the real values back in the reply.",
+   "license": "https://github.com/Jeevan2191999/jnvoy/blob/main/LICENSE",
+   "publisher": {
+    "@id": "https://www.jnvoy.com/#organization"
+   }
+  }
+ ]
+}
+</script>
 </head>
 <body>
 

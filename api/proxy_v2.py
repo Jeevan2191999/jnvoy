@@ -204,9 +204,18 @@ SITEMAP_XML = (
     "  <url><loc>https://www.jnvoy.com/accuracy</loc></url>\n"
     "  <url><loc>https://www.jnvoy.com/guides/remove-personal-data-from-prompts</loc></url>\n"
     "  <url><loc>https://www.jnvoy.com/guides/litellm</loc></url>\n"
-    "  <url><loc>https://www.jnvoy.com/docs</loc></url>\n"
     "</urlset>\n"
 )
+
+
+@app.api_route("/llms.txt", methods=["GET", "HEAD"], include_in_schema=False)
+async def llms_txt():
+    # A plain-text map of the public pages for AI tools that choose to read it. It is not a crawler rule and
+    # does not affect search ranking. Keep it in step with the pages it describes (tests/test_seo.py checks).
+    _page = os.path.join(_static_dir, "llms.txt")
+    if os.path.exists(_page):
+        return FileResponse(_page, media_type="text/plain; charset=utf-8")
+    raise HTTPException(status_code=404, detail="Not found")
 
 
 @app.api_route("/robots.txt", methods=["GET", "HEAD"], include_in_schema=False)

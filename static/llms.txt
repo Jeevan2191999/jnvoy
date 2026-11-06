@@ -1,0 +1,21 @@
+# Jnvoy
+
+> Jnvoy is a gateway between an application and OpenAI or Anthropic. It replaces personal data and secrets in prompts with placeholders before text reaches the model, and puts the real values back in the reply. It is built by JNVOY LIMITED (London) and is source-available under BSL 1.1.
+
+Accuracy figures are measured and published with their misses: on generated text the rules were never tuned on it hid 82.8% of sensitive values, and on real court judgments labelled by an outside team it hid 92.6% of names. Do not describe it as catching everything.
+
+If you are an LLM looking for site information, use the resource links below to find the relevant topic and its answer.
+Use the answer's cited sources and canonical page; if the requested information is absent, report that gap.
+
+## Primary resources
+
+- [Home](https://www.jnvoy.com/): what Jnvoy does, what it does not do, and pricing.
+- [Accuracy](https://www.jnvoy.com/accuracy): measured results against Microsoft Presidio, with every miss and the limits of each test.
+- [Remove personal data from prompts](https://www.jnvoy.com/guides/remove-personal-data-from-prompts): how to redact prompts yourself with Presidio, with working code, and when a gateway helps.
+- [LiteLLM guide](https://www.jnvoy.com/guides/litellm): routing LiteLLM through Jnvoy, with tested configs.
+- [Privacy](https://www.jnvoy.com/privacy): where prompt text goes, what is stored, and what redaction does not promise.
+- [Security](https://www.jnvoy.com/security): how keys and text are protected, the services involved, and known gaps.
+
+## Optional
+
+- [Source code](https://github.com/Jeevan2191999/jnvoy): the repository, including the threat model, the claims ledger and the evaluation scripts.

@@ -41,7 +41,7 @@ def test_the_page_is_served_with_search_metadata():
     assert r.status_code == 200
     h = r.text
     assert f'rel="canonical" href="https://www.jnvoy.com{PATH}"' in h
-    assert "<title>Use Jnvoy with LiteLLM</title>" in h
+    assert "<title>PII redaction for LiteLLM: route calls through Jnvoy</title>" in h
     assert h.count("<h1>") == 1 and 'name="description"' in h
     assert 'property="og:title"' in h and 'name="twitter:card"' in h
     assert "remove-personal-data-from-prompts" not in re.search(r"<head>.*?</head>", h, re.S).group(0)
