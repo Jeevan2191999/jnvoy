@@ -73,7 +73,8 @@ def test_the_page_makes_no_overclaim_and_states_the_limits():
 def test_the_page_says_litellm_has_its_own_presidio_guardrail_and_does_not_claim_better_accuracy():
     text = TestClient(app_module.app).get(PATH).text.lower()
     assert "presidio guardrail" in text and "you may not need jnvoy" in text
-    assert "have not compared the detection accuracy" in text
+    assert "we have not tested litellm" in text                # its guardrail as it ships
+    assert 'href="/accuracy#court-judgments"' in text           # the Presidio comparison it points to
     assert "more accurate" not in text and "better than litellm" not in text
 
 

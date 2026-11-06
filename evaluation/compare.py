@@ -20,8 +20,10 @@ Two Presidio baselines, both Microsoft Presidio's analyzer with its built-in rec
 same spaCy model as Jnvoy for that run, with every detected span replaced:
   presidio    default settings: it looks for every entity type it knows, including dates and places.
               This is what a team gets by adding Presidio themselves, and it hides a lot of harmless text.
-  presidio_tuned  the same with dates, places and nationalities switched off (the noisy types Jnvoy
-              also leaves readable), which is what a careful team would do. It then cannot see a birth
+  presidio_tuned  the same with dates, places, nationalities and organisations switched off (the types
+              Jnvoy also leaves readable by default), which is what a careful team would do. Until
+              batch 42 organisations were left on, which made this baseline hide company and court
+              names that Jnvoy keeps, and so overstated Jnvoy's lead on harmless words kept. It then cannot see a birth
               date at all, because Presidio's only date type is DATE_TIME.
 Neither is any particular product's configuration, and neither has recognisers written for this data.
 
@@ -96,12 +98,12 @@ def jnvoy_system():
     return lambda text: det.detect(text).redacted_text
 
 
-NOISY = {"DATE_TIME", "LOCATION", "NRP"}   # entity types Jnvoy leaves readable by default
+NOISY = {"DATE_TIME", "LOCATION", "NRP", "ORGANIZATION"}   # entity types Jnvoy leaves readable by default
 
 
 def presidio_system(model_name: str, tuned: bool = False):
     """tuned=False: Presidio's defaults (every entity it knows). tuned=True: the same, with the noisy
-    types Jnvoy also leaves off (dates, places, nationalities) switched off, which is what a careful
+    types Jnvoy also leaves off (dates, places, nationalities, organisations) switched off, which is what a careful
     team would do. Note that Presidio has no birth-date recogniser: its only date type is DATE_TIME."""
     from presidio_analyzer import AnalyzerEngine
     from presidio_analyzer.nlp_engine import NlpEngineProvider

@@ -127,3 +127,10 @@ def test_the_stored_presidio_numbers_still_come_out_of_the_code():
     for name, tuned in (("presidio", False), ("presidio_tuned", True)):
         s = compare.score_system(rows, compare.presidio_system("en_core_web_lg", tuned=tuned))
         assert (s["caught"], s["keep_kept"]) == (stored[name]["caught"], stored[name]["keep_kept"]), name
+
+
+def test_presidio_set_up_like_jnvoy_leaves_the_same_types_readable():
+    # Jnvoy leaves dates, places, nationalities and organisations readable by default. A baseline that still hides
+    # organisations makes Jnvoy's "harmless words kept" lead look bigger than it is (corrected in batch 42).
+    assert {"DATE_TIME", "LOCATION", "NRP", "ORGANIZATION"} <= compare.NOISY
+    assert "most of the gap in harmless words kept comes from settings, not from better detection" in PAGE

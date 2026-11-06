@@ -1,5 +1,5 @@
 {
- "measured": "2026-11-04",
+ "measured": "2026-11-05",
  "versions": {
   "spacy": "3.7.5",
   "presidio": "2.2.364",
@@ -31,7 +31,7 @@
        0.9102,
        0.9439
       ],
-      "ms_per_doc": 10.1,
+      "ms_per_doc": 8.8,
       "per_type": {
        "DOB": {
         "n": 117,
@@ -96,7 +96,7 @@
        0.4035,
        0.4682
       ],
-      "ms_per_doc": 8.4,
+      "ms_per_doc": 7.3,
       "per_type": {
        "DOB": {
         "n": 117,
@@ -149,19 +149,19 @@
       }
      },
      "presidio_tuned": {
-      "caught": 1078,
+      "caught": 992,
       "n": 1758,
       "caught_ci95": [
-       0.5902,
-       0.6357
+       0.541,
+       0.5873
       ],
-      "keep_kept": 693,
+      "keep_kept": 819,
       "keep_total": 900,
       "keep_ci95": [
-       0.7414,
-       0.7963
+       0.8895,
+       0.927
       ],
-      "ms_per_doc": 7.9,
+      "ms_per_doc": 7.2,
       "per_type": {
        "DOB": {
         "n": 117,
@@ -173,11 +173,11 @@
        },
        "PERSON": {
         "n": 364,
-        "caught": 268
+        "caught": 245
        },
        "API_KEY": {
         "n": 140,
-        "caught": 20
+        "caught": 5
        },
        "IBAN": {
         "n": 100,
@@ -189,7 +189,7 @@
        },
        "PASSWORD": {
         "n": 73,
-        "caught": 9
+        "caught": 2
        },
        "IP": {
         "n": 90,
@@ -197,15 +197,15 @@
        },
        "ADDRESS": {
         "n": 179,
-        "caught": 46
+        "caught": 28
        },
        "POSTCODE": {
         "n": 179,
-        "caught": 51
+        "caught": 29
        },
        "PHONE": {
         "n": 180,
-        "caught": 169
+        "caught": 168
        },
        "CARD": {
         "n": 101,
@@ -223,10 +223,10 @@
       "mcnemar_p": 0.0
      },
      "presidio_tuned": {
-      "both": 1051,
-      "only_jnvoy": 623,
-      "only_presidio_tuned": 27,
-      "neither": 57,
+      "both": 992,
+      "only_jnvoy": 682,
+      "only_presidio_tuned": 0,
+      "neither": 84,
       "mcnemar_p": 0.0
      }
     }
@@ -300,7 +300,7 @@
        0.8919,
        0.929
       ],
-      "ms_per_doc": 10.8,
+      "ms_per_doc": 7.9,
       "per_type": {
        "DOB": {
         "n": 117,
@@ -379,7 +379,7 @@
        0.8907,
        0.9382
       ],
-      "ms_per_doc": 9.1,
+      "ms_per_doc": 8.5,
       "per_type": {
        "PERSON": {
         "n": 221,
@@ -444,7 +444,7 @@
        0.3956,
        0.4805
       ],
-      "ms_per_doc": 9.0,
+      "ms_per_doc": 7.2,
       "per_type": {
        "PERSON": {
         "n": 221,
@@ -497,23 +497,23 @@
       }
      },
      "presidio_tuned": {
-      "caught": 674,
+      "caught": 632,
       "n": 1076,
       "caught_ci95": [
-       0.5971,
-       0.6548
+       0.5577,
+       0.6164
       ],
-      "keep_kept": 395,
+      "keep_kept": 466,
       "keep_total": 521,
       "keep_ci95": [
-       0.7196,
-       0.793
+       0.8651,
+       0.918
       ],
-      "ms_per_doc": 7.5,
+      "ms_per_doc": 6.9,
       "per_type": {
        "PERSON": {
         "n": 221,
-        "caught": 184
+        "caught": 164
        },
        "CARD": {
         "n": 65,
@@ -533,19 +533,19 @@
        },
        "ADDRESS": {
         "n": 105,
-        "caught": 20
+        "caught": 15
        },
        "POSTCODE": {
         "n": 105,
-        "caught": 33
+        "caught": 25
        },
        "DOB": {
         "n": 89,
-        "caught": 6
+        "caught": 5
        },
        "PASSWORD": {
         "n": 27,
-        "caught": 4
+        "caught": 2
        },
        "IBAN": {
         "n": 63,
@@ -553,7 +553,7 @@
        },
        "API_KEY": {
         "n": 88,
-        "caught": 7
+        "caught": 1
        },
        "IP": {
         "n": 43,
@@ -571,10 +571,10 @@
       "mcnemar_p": 0.0
      },
      "presidio_tuned": {
-      "both": 650,
-      "only_jnvoy": 374,
-      "only_presidio_tuned": 24,
-      "neither": 28,
+      "both": 632,
+      "only_jnvoy": 392,
+      "only_presidio_tuned": 0,
+      "neither": 52,
       "mcnemar_p": 0.0
      }
     }
@@ -603,7 +603,7 @@
        0.9093,
        0.9534
       ],
-      "ms_per_doc": 11.1,
+      "ms_per_doc": 7.9,
       "per_type": {
        "PERSON": {
         "n": 250,
@@ -668,7 +668,7 @@
        0.3935,
        0.481
       ],
-      "ms_per_doc": 8.7,
+      "ms_per_doc": 7.3,
       "per_type": {
        "PERSON": {
         "n": 250,
@@ -721,23 +721,23 @@
       }
      },
      "presidio_tuned": {
-      "caught": 692,
+      "caught": 649,
       "n": 1084,
       "caught_ci95": [
-       0.6093,
-       0.6664
+       0.5692,
+       0.6275
       ],
-      "keep_kept": 375,
+      "keep_kept": 446,
       "keep_total": 490,
       "keep_ci95": [
-       0.7258,
-       0.8007
+       0.8816,
+       0.9324
       ],
-      "ms_per_doc": 9.1,
+      "ms_per_doc": 7.1,
       "per_type": {
        "PERSON": {
         "n": 250,
-        "caught": 208
+        "caught": 190
        },
        "PHONE": {
         "n": 101,
@@ -749,15 +749,15 @@
        },
        "API_KEY": {
         "n": 72,
-        "caught": 6
+        "caught": 4
        },
        "PASSWORD": {
         "n": 58,
-        "caught": 7
+        "caught": 3
        },
        "DOB": {
         "n": 88,
-        "caught": 4
+        "caught": 3
        },
        "EMAIL": {
         "n": 115,
@@ -765,11 +765,11 @@
        },
        "ADDRESS": {
         "n": 94,
-        "caught": 20
+        "caught": 16
        },
        "POSTCODE": {
         "n": 94,
-        "caught": 31
+        "caught": 17
        },
        "CARD": {
         "n": 59,
@@ -795,10 +795,10 @@
       "mcnemar_p": 0.0
      },
      "presidio_tuned": {
-      "both": 674,
-      "only_jnvoy": 356,
-      "only_presidio_tuned": 18,
-      "neither": 36,
+      "both": 647,
+      "only_jnvoy": 383,
+      "only_presidio_tuned": 2,
+      "neither": 52,
       "mcnemar_p": 0.0
      }
     }
@@ -879,7 +879,7 @@
        0.8953,
        0.9397
       ],
-      "ms_per_doc": 9.7,
+      "ms_per_doc": 7.7,
       "per_type": {
        "EMAIL": {
         "n": 84,
@@ -944,7 +944,7 @@
        0.39,
        0.4705
       ],
-      "ms_per_doc": 8.8,
+      "ms_per_doc": 6.7,
       "per_type": {
        "EMAIL": {
         "n": 84,
@@ -997,19 +997,19 @@
       }
      },
      "presidio_tuned": {
-      "caught": 631,
+      "caught": 584,
       "n": 1009,
       "caught_ci95": [
-       0.5951,
-       0.6547
+       0.5481,
+       0.6089
       ],
-      "keep_kept": 439,
+      "keep_kept": 526,
       "keep_total": 577,
       "keep_ci95": [
-       0.7244,
-       0.7938
+       0.8856,
+       0.9321
       ],
-      "ms_per_doc": 9.2,
+      "ms_per_doc": 6.6,
       "per_type": {
        "EMAIL": {
         "n": 84,
@@ -1017,7 +1017,7 @@
        },
        "PERSON": {
         "n": 218,
-        "caught": 169
+        "caught": 153
        },
        "PHONE": {
         "n": 114,
@@ -1029,15 +1029,15 @@
        },
        "API_KEY": {
         "n": 87,
-        "caught": 13
+        "caught": 2
        },
        "ADDRESS": {
         "n": 90,
-        "caught": 17
+        "caught": 10
        },
        "POSTCODE": {
         "n": 90,
-        "caught": 25
+        "caught": 15
        },
        "IP": {
         "n": 48,
@@ -1045,7 +1045,7 @@
        },
        "PASSWORD": {
         "n": 43,
-        "caught": 7
+        "caught": 4
        },
        "IBAN": {
         "n": 47,
@@ -1071,10 +1071,10 @@
       "mcnemar_p": 0.0
      },
      "presidio_tuned": {
-      "both": 597,
-      "only_jnvoy": 238,
-      "only_presidio_tuned": 34,
-      "neither": 140,
+      "both": 580,
+      "only_jnvoy": 255,
+      "only_presidio_tuned": 4,
+      "neither": 170,
       "mcnemar_p": 0.0
      }
     }
@@ -1148,7 +1148,7 @@
        0.8589,
        0.9106
       ],
-      "ms_per_doc": 10.2,
+      "ms_per_doc": 8.1,
       "per_type": {
        "EMAIL": {
         "n": 84,

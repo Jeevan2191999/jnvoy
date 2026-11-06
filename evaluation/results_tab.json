@@ -1,0 +1,1035 @@
+{
+ "source": {
+  "url": "https://github.com/NorskRegnesentral/text-anonymization-benchmark",
+  "commit": "558e09e26d6b36f5f78440074e6a233946d98bd9",
+  "licence": "MIT"
+ },
+ "measured": "2026-11-05",
+ "versions": {
+  "spacy": "3.7.5",
+  "presidio-analyzer": "2.2.364"
+ },
+ "model": "en_core_web_lg",
+ "runs": {
+  "test_first": {
+   "documents": 127,
+   "avg_characters": 5100,
+   "systems": {
+    "jnvoy": {
+     "hidden": {
+      "DIRECT": 150,
+      "QUASI": 573
+     },
+     "total": {
+      "DIRECT": 157,
+      "QUASI": 624
+     },
+     "kept": 1158,
+     "keep_n": 1224,
+     "misses": [
+      [
+       "001-57899",
+       "Lord Rodger"
+      ],
+      [
+       "001-57899",
+       "Lord Rodger of Earlsferry"
+      ],
+      [
+       "001-57899",
+       "Maxwell"
+      ],
+      [
+       "001-170347",
+       "Tsotsoria"
+      ],
+      [
+       "001-170347",
+       "Wojtyczek"
+      ],
+      [
+       "001-114240",
+       "Mummery LJ"
+      ],
+      [
+       "001-57990",
+       "Regina"
+      ],
+      [
+       "001-78293",
+       "Abdurrazak İnan"
+      ],
+      [
+       "001-78293",
+       "Erdal Güler"
+      ],
+      [
+       "001-78293",
+       "Mr Abdurrazak İnan"
+      ],
+      [
+       "001-78293",
+       "Mr Erdal Güler"
+      ],
+      [
+       "001-78293",
+       "Mr Resul Sadak"
+      ],
+      [
+       "001-78293",
+       "Mr İzzet Belge"
+      ],
+      [
+       "001-78293",
+       "Resul Sadak"
+      ],
+      [
+       "001-78293",
+       "İzzet Belge"
+      ],
+      [
+       "001-87466",
+       "Figiel"
+      ],
+      [
+       "001-87466",
+       "Mr Wojciech Figiel"
+      ],
+      [
+       "001-79415",
+       "Mecit Aygün"
+      ],
+      [
+       "001-79415",
+       "Mr Mecit Aygün"
+      ],
+      [
+       "001-73360",
+       "Auld LJ"
+      ],
+      [
+       "001-73360",
+       "Mance LJ"
+      ],
+      [
+       "001-58458",
+       "Mr J.-P. Costa"
+      ],
+      [
+       "001-58409",
+       "Mr J.-P. Costa"
+      ],
+      [
+       "001-90250",
+       "W.K"
+      ],
+      [
+       "001-90250",
+       "W.K."
+      ],
+      [
+       "001-57849",
+       "Mrs A. Glover"
+      ],
+      [
+       "001-78427",
+       "Mr J. CROW Counsel"
+      ],
+      [
+       "001-158475",
+       "B.Ӧ."
+      ],
+      [
+       "001-158475",
+       "F.A"
+      ],
+      [
+       "001-158475",
+       "F.A."
+      ],
+      [
+       "001-76453",
+       "Heffy"
+      ],
+      [
+       "001-58410",
+       "Costa"
+      ],
+      [
+       "001-58410",
+       "Mr J.-P"
+      ],
+      [
+       "001-80478",
+       "Mr George Runkee"
+      ],
+      [
+       "001-80478",
+       "Mr Runkee"
+      ],
+      [
+       "001-80478",
+       "Mr S. Right"
+      ],
+      [
+       "001-84580",
+       "J.H."
+      ],
+      [
+       "001-76766",
+       "Mr A. Gask"
+      ],
+      [
+       "001-76303",
+       "Lord Slynn"
+      ],
+      [
+       "001-61680",
+       "Feal-Martinez"
+      ],
+      [
+       "001-61680",
+       "Linden JA"
+      ],
+      [
+       "001-61680",
+       "Lord Justice Buxton"
+      ],
+      [
+       "001-61680",
+       "Lord Justice Kennedy"
+      ],
+      [
+       "001-61680",
+       "Lord Justice Simon Brown"
+      ],
+      [
+       "001-61680",
+       "Mr Feal-Martinez"
+      ],
+      [
+       "001-61680",
+       "Mr Pearson"
+      ],
+      [
+       "001-61680",
+       "Pearson"
+      ],
+      [
+       "001-58095",
+       "Judge Clarke"
+      ],
+      [
+       "001-58095",
+       "Judge Darwall-Smith"
+      ],
+      [
+       "001-58095",
+       "Mr"
+      ],
+      [
+       "001-57901",
+       "Lord Advocate"
+      ],
+      [
+       "001-57901",
+       "Lord Justice Clerk"
+      ],
+      [
+       "001-57901",
+       "Lord Rodger"
+      ],
+      [
+       "001-57901",
+       "Lord Rodger of Earlsferry"
+      ],
+      [
+       "001-57901",
+       "QC"
+      ],
+      [
+       "001-68075",
+       "C.Ç"
+      ],
+      [
+       "001-68075",
+       "C.Ç."
+      ],
+      [
+       "001-79501",
+       "Mr M.N. Özmen"
+      ]
+     ]
+    },
+    "presidio": {
+     "hidden": {
+      "DIRECT": 149,
+      "QUASI": 575
+     },
+     "total": {
+      "DIRECT": 157,
+      "QUASI": 624
+     },
+     "kept": 188,
+     "keep_n": 1224,
+     "only_jnvoy_hid": 21,
+     "only_this_hid": 22
+    },
+    "presidio_tuned": {
+     "hidden": {
+      "DIRECT": 147,
+      "QUASI": 555
+     },
+     "total": {
+      "DIRECT": 157,
+      "QUASI": 624
+     },
+     "kept": 1174,
+     "keep_n": 1224,
+     "only_jnvoy_hid": 21,
+     "only_this_hid": 0
+    }
+   }
+  },
+  "dev_first": {
+   "documents": 127,
+   "avg_characters": 5266,
+   "systems": {
+    "jnvoy": {
+     "hidden": {
+      "DIRECT": 152,
+      "QUASI": 667
+     },
+     "total": {
+      "DIRECT": 160,
+      "QUASI": 711
+     },
+     "kept": 1159,
+     "keep_n": 1197,
+     "misses": [
+      [
+       "001-95183",
+       "Ercan Dikici"
+      ],
+      [
+       "001-95183",
+       "Mr Hasan Dikici"
+      ],
+      [
+       "001-95183",
+       "Mrs Satike Dikici"
+      ],
+      [
+       "001-126979",
+       "Ms A. Pamukçu Yördem"
+      ],
+      [
+       "001-86146",
+       "Kristaq Traja"
+      ],
+      [
+       "001-67466",
+       "Justice Simon Brown"
+      ],
+      [
+       "001-67466",
+       "Mr Justice Mance"
+      ],
+      [
+       "001-97110",
+       "Ms Ö. Engin Terkeş"
+      ],
+      [
+       "001-86867",
+       "Ferit Çengelli"
+      ],
+      [
+       "001-86867",
+       "Mr Ferit Çengelli"
+      ],
+      [
+       "001-69774",
+       "Ms Yüksel Bozkaya"
+      ],
+      [
+       "001-69774",
+       "Yüksel Bozkaya"
+      ],
+      [
+       "001-61100",
+       "Judge Pryor QC"
+      ],
+      [
+       "001-58913",
+       "Cable"
+      ],
+      [
+       "001-58913",
+       "Mr J.-P. Costa"
+      ],
+      [
+       "001-58913",
+       "Mrs N. Vajić"
+      ],
+      [
+       "001-58913",
+       "MrL.Wildhaber"
+      ],
+      [
+       "001-108409",
+       "Mr İ. Akın"
+      ],
+      [
+       "001-57804",
+       "Mrs A. Glover"
+      ],
+      [
+       "001-67582",
+       "Şemsettin Gümüşten"
+      ],
+      [
+       "001-58807",
+       "Mr R. Atter"
+      ],
+      [
+       "001-59205",
+       "Judge Costa"
+      ],
+      [
+       "001-84819",
+       "R.D."
+      ],
+      [
+       "001-88377",
+       "Mr Şeref Turgut"
+      ],
+      [
+       "001-58018",
+       "Judge Hammond"
+      ],
+      [
+       "001-173265",
+       "Mr Krzysztof Ruminski"
+      ],
+      [
+       "001-173265",
+       "Ruminski"
+      ],
+      [
+       "001-102115",
+       "Dr H.B."
+      ],
+      [
+       "001-102115",
+       "Dr S.R."
+      ],
+      [
+       "001-89321",
+       "Mr P.-O. Nordh"
+      ],
+      [
+       "001-57819",
+       "Mrs A. Glover"
+      ],
+      [
+       "001-70364",
+       ", Lord Justice Carswell"
+      ],
+      [
+       "001-60596",
+       "Mr J.-P. Costa"
+      ],
+      [
+       "001-60596",
+       "Ms A. Powick"
+      ],
+      [
+       "001-57563",
+       "Pernille"
+      ],
+      [
+       "001-58841",
+       "B."
+      ],
+      [
+       "001-58841",
+       "Lord Nolan"
+      ],
+      [
+       "001-58841",
+       "Lord Williams"
+      ],
+      [
+       "001-58841",
+       "Mostyn QC"
+      ],
+      [
+       "001-58841",
+       "Mr J. Crow"
+      ],
+      [
+       "001-58841",
+       "N"
+      ],
+      [
+       "001-58841",
+       "N."
+      ],
+      [
+       "001-110322",
+       "C‑G.E"
+      ],
+      [
+       "001-110322",
+       "V.B."
+      ],
+      [
+       "001-61135",
+       "WDC Fletcher"
+      ],
+      [
+       "001-58590",
+       "Mrs M. Tsatsa‑Nikolovska"
+      ],
+      [
+       "001-58284",
+       "Judge Elliott"
+      ],
+      [
+       "001-57721",
+       "Hartley"
+      ],
+      [
+       "001-57721",
+       "Mr Hartley"
+      ],
+      [
+       "001-57721",
+       "Mr M. Wood"
+      ],
+      [
+       "001-57721",
+       "Mr Samuel Hartley"
+      ],
+      [
+       "001-159211",
+       "Mr Jørgen Kristiansen"
+      ]
+     ]
+    },
+    "presidio": {
+     "hidden": {
+      "DIRECT": 156,
+      "QUASI": 667
+     },
+     "total": {
+      "DIRECT": 160,
+      "QUASI": 711
+     },
+     "kept": 225,
+     "keep_n": 1197,
+     "only_jnvoy_hid": 18,
+     "only_this_hid": 22
+    },
+    "presidio_tuned": {
+     "hidden": {
+      "DIRECT": 152,
+      "QUASI": 648
+     },
+     "total": {
+      "DIRECT": 160,
+      "QUASI": 711
+     },
+     "kept": 1168,
+     "keep_n": 1197,
+     "only_jnvoy_hid": 19,
+     "only_this_hid": 0
+    }
+   }
+  },
+  "test_union": {
+   "documents": 127,
+   "avg_characters": 5100,
+   "systems": {
+    "jnvoy": {
+     "hidden": {
+      "DIRECT": 163,
+      "QUASI": 600
+     },
+     "total": {
+      "DIRECT": 170,
+      "QUASI": 702
+     },
+     "kept": 1790,
+     "keep_n": 1895,
+     "misses": [
+      [
+       "001-61253",
+       "Dr Price’s wife"
+      ],
+      [
+       "001-61253",
+       "K"
+      ],
+      [
+       "001-61253",
+       "Lord Justice Nourse"
+      ],
+      [
+       "001-61227",
+       "HM Prison Craiginches"
+      ],
+      [
+       "001-61227",
+       "Lord Justice General, Lord Rodger"
+      ],
+      [
+       "001-61227",
+       "Lord Philip"
+      ],
+      [
+       "001-61227",
+       "Lord Rodger"
+      ],
+      [
+       "001-61227",
+       "W"
+      ],
+      [
+       "001-61227",
+       "W."
+      ],
+      [
+       "001-57899",
+       "Lord Advocate, Mr R. Reed"
+      ],
+      [
+       "001-57899",
+       "Lord Rodger"
+      ],
+      [
+       "001-57899",
+       "Lord Rodger of Earlsferry"
+      ],
+      [
+       "001-57899",
+       "Maxwell"
+      ],
+      [
+       "001-57899",
+       "Mrs G"
+      ],
+      [
+       "001-57899",
+       "Mrs G."
+      ],
+      [
+       "001-57899",
+       "Mrs G.“"
+      ],
+      [
+       "001-59527",
+       "D.R."
+      ],
+      [
+       "001-59527",
+       "Mr D.R."
+      ],
+      [
+       "001-170347",
+       "Judge Kalaydjieva"
+      ],
+      [
+       "001-170347",
+       "Lord Chief Justice"
+      ],
+      [
+       "001-170347",
+       "Tsotsoria"
+      ],
+      [
+       "001-170347",
+       "Wojtyczek"
+      ],
+      [
+       "001-61454",
+       "Chief Constable of South Wales"
+      ],
+      [
+       "001-61454",
+       "his wife"
+      ],
+      [
+       "001-68178",
+       "Doctor P. Dekany"
+      ],
+      [
+       "001-68178",
+       "Doctor P. Dekany,"
+      ],
+      [
+       "001-114240",
+       "Mummery LJ"
+      ],
+      [
+       "001-72664",
+       "L."
+      ],
+      [
+       "001-72664",
+       "Lichfield Reynolds"
+      ],
+      [
+       "001-57990",
+       "Professor A. Bradley"
+      ],
+      [
+       "001-57990",
+       "Regina"
+      ],
+      [
+       "001-78293",
+       "Abdurrazak İnan"
+      ],
+      [
+       "001-78293",
+       "Erdal Güler"
+      ],
+      [
+       "001-78293",
+       "Mr Abdurrazak İnan"
+      ],
+      [
+       "001-78293",
+       "Mr Erdal Güler"
+      ],
+      [
+       "001-78293",
+       "Mr Resul Sadak"
+      ],
+      [
+       "001-78293",
+       "Mr İzzet Belge"
+      ],
+      [
+       "001-78293",
+       "Resul Sadak"
+      ],
+      [
+       "001-78293",
+       "İzzet Belge"
+      ],
+      [
+       "001-87466",
+       "Figiel"
+      ],
+      [
+       "001-87466",
+       "Mr Wojciech Figiel"
+      ],
+      [
+       "001-79415",
+       "Mecit Aygün"
+      ],
+      [
+       "001-79415",
+       "Mr Mecit Aygün"
+      ],
+      [
+       "001-73360",
+       "Auld LJ"
+      ],
+      [
+       "001-73360",
+       "Lord Phillips"
+      ],
+      [
+       "001-73360",
+       "Mance LJ"
+      ],
+      [
+       "001-73360",
+       "Mellor"
+      ],
+      [
+       "001-58458",
+       "Mr J.-P. Costa"
+      ],
+      [
+       "001-58409",
+       "Mr J.-P. Costa"
+      ],
+      [
+       "001-90250",
+       "W.K"
+      ],
+      [
+       "001-90250",
+       "W.K."
+      ],
+      [
+       "001-57849",
+       "Mrs A. Glover"
+      ],
+      [
+       "001-78427",
+       "Mr J. CROW Counsel"
+      ],
+      [
+       "001-78427",
+       "parents"
+      ],
+      [
+       "001-158475",
+       "B.Ӧ."
+      ],
+      [
+       "001-158475",
+       "F.A"
+      ],
+      [
+       "001-158475",
+       "F.A."
+      ],
+      [
+       "001-76453",
+       "Detective Constable Wilson"
+      ],
+      [
+       "001-76453",
+       "Heffy"
+      ],
+      [
+       "001-76453",
+       "Lord Justice Kennedy"
+      ],
+      [
+       "001-76453",
+       "Lord Justice Ward"
+      ],
+      [
+       "001-92767",
+       "Lord Justice Sedley"
+      ],
+      [
+       "001-58410",
+       "Costa"
+      ],
+      [
+       "001-58410",
+       "Mr J.-P"
+      ],
+      [
+       "001-58410",
+       "Mr J.-P. Costa"
+      ],
+      [
+       "001-80478",
+       "Mr George Runkee"
+      ],
+      [
+       "001-80478",
+       "Mr Runkee"
+      ],
+      [
+       "001-80478",
+       "Mr S. Right"
+      ],
+      [
+       "001-84580",
+       "J.H."
+      ],
+      [
+       "001-90200",
+       "A"
+      ],
+      [
+       "001-90200",
+       "B"
+      ],
+      [
+       "001-90200",
+       "DKK 3,600,000"
+      ],
+      [
+       "001-90200",
+       "H"
+      ],
+      [
+       "001-90200",
+       "N"
+      ],
+      [
+       "001-90200",
+       "R"
+      ],
+      [
+       "001-57874",
+       "M."
+      ],
+      [
+       "001-76766",
+       "Mr A. Gask"
+      ],
+      [
+       "001-79030",
+       "Captain"
+      ],
+      [
+       "001-79030",
+       "Captain J"
+      ],
+      [
+       "001-79030",
+       "Captain J’"
+      ],
+      [
+       "001-79030",
+       "Captain J’s"
+      ],
+      [
+       "001-79030",
+       "Corporal G"
+      ],
+      [
+       "001-79030",
+       "Guard Commander"
+      ],
+      [
+       "001-79030",
+       "Regimental Sergeant Major"
+      ],
+      [
+       "001-79030",
+       "Sergeant H"
+      ],
+      [
+       "001-79030",
+       "regimental sergeant major"
+      ],
+      [
+       "001-59098",
+       "his two sisters"
+      ],
+      [
+       "001-76303",
+       "Lord Slynn"
+      ],
+      [
+       "001-61680",
+       "Feal-Martinez"
+      ],
+      [
+       "001-61680",
+       "Linden JA"
+      ],
+      [
+       "001-61680",
+       "Lord Justice Buxton"
+      ],
+      [
+       "001-61680",
+       "Lord Justice Kennedy"
+      ],
+      [
+       "001-61680",
+       "Lord Justice Simon Brown"
+      ],
+      [
+       "001-61680",
+       "Mr Feal-Martinez"
+      ],
+      [
+       "001-61680",
+       "Mr Pearson"
+      ],
+      [
+       "001-61680",
+       "Pearson"
+      ],
+      [
+       "001-58086",
+       "M.S. v. Sweden"
+      ],
+      [
+       "001-58095",
+       "Judge Clarke"
+      ],
+      [
+       "001-58095",
+       "Judge Darwall-Smith"
+      ],
+      [
+       "001-58095",
+       "Mr"
+      ],
+      [
+       "001-57901",
+       "Lord Advocate"
+      ],
+      [
+       "001-57901",
+       "Lord Advocate, Mr R. Reed"
+      ],
+      [
+       "001-57901",
+       "Lord Justice Clerk"
+      ],
+      [
+       "001-57901",
+       "Lord Rodger"
+      ],
+      [
+       "001-57901",
+       "Lord Rodger of Earlsferry"
+      ],
+      [
+       "001-57901",
+       "QC"
+      ],
+      [
+       "001-68075",
+       "C.Ç"
+      ],
+      [
+       "001-68075",
+       "C.Ç."
+      ],
+      [
+       "001-79501",
+       "Mr M.N. Özmen"
+      ]
+     ]
+    },
+    "presidio": {
+     "hidden": {
+      "DIRECT": 161,
+      "QUASI": 600
+     },
+     "total": {
+      "DIRECT": 170,
+      "QUASI": 702
+     },
+     "kept": 426,
+     "keep_n": 1895,
+     "only_jnvoy_hid": 27,
+     "only_this_hid": 25
+    },
+    "presidio_tuned": {
+     "hidden": {
+      "DIRECT": 159,
+      "QUASI": 573
+     },
+     "total": {
+      "DIRECT": 170,
+      "QUASI": 702
+     },
+     "kept": 1816,
+     "keep_n": 1895,
+     "only_jnvoy_hid": 31,
+     "only_this_hid": 0
+    }
+   }
+  }
+ }
+}

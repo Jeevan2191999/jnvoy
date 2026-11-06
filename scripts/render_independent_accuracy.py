@@ -147,7 +147,7 @@ def render(res=None):
           <div class="row head"><div>Type</div><div>Result, with the 95% range in brackets</div><div>Jnvoy hid</div></div>
 {chr(10).join(rows)}
         </div>
-        <p><strong>Harmless words kept readable.</strong> Jnvoy kept {full(fr["keep_kept"], fr["keep_total"])}. Presidio with its default settings kept {full(P["keep_kept"], P["keep_total"])}, because it hides dates and places by default. With those switched off it kept {full(T["keep_kept"], T["keep_total"])} and hid {pc(T["caught"], T["n"])} of the sensitive values; without a date type it cannot see a birth date at all.</p>
+        <p><strong>Harmless words kept readable.</strong> Jnvoy kept {full(fr["keep_kept"], fr["keep_total"])}. Presidio with its default settings kept {full(P["keep_kept"], P["keep_total"])}, because it hides dates, places and organisations by default. Set up the way Jnvoy is, with dates, places, nationalities and organisations switched off, it kept {full(T["keep_kept"], T["keep_total"])} and hid {pc(T["caught"], T["n"])} of the sensitive values; without a date type it cannot see a birth date at all. <strong>So most of the gap in harmless words kept comes from settings, not from better detection.</strong> An earlier version of this page left Presidio's organisation type switched on in that comparison, which made Jnvoy's lead look larger than it is.</p>
         <h3>Where Jnvoy is ahead, behind, or too close to call</h3>
         <ul class="plain">
           <li><strong>Clearly ahead of Presidio's defaults</strong> (the ranges do not overlap): {", ".join(ahead) or "none"}.</li>

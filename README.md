@@ -99,13 +99,13 @@ All regions are on by default. Restrict them with `JNVOY_REGIONS` (for example `
 
 ## How well does it work
 
-Detection combines pattern rules, a trained model for names and places, and an optional second check by a language model. It is strong, and it is not guaranteed to catch everything. It can also hide harmless words.
+Detection combines pattern rules, a trained model for names and places, and an optional second check by a language model. It misses some values and can hide harmless words. Full figures, with ranges and the misses, are on the [accuracy page](https://www.jnvoy.com/accuracy).
 
-There is a small labelled test set in [`evaluation/`](evaluation/) written by the author. Run it yourself:
+- **Generated documents, wordings the rules were never tuned on** (600 short documents written by the author, values from the Faker library): 835 of 1,009 sensitive values hidden (82.8%). Addresses, postcodes and passwords are the weakest. `python evaluation/compare.py --dataset evaluation/large_fresh2.jsonl`
+- **Real court judgments labelled by an outside team** (the Text Anonymization Benchmark, 127 judgments, names only): 723 of 781 names hidden (92.6%). Microsoft Presidio set up the same way hid 89.9%; with its default settings it hid about as many names as Jnvoy but also hid 85% of harmless text. `python evaluation/tab_eval.py --fetch`
+- **Small hand-written sets**: `python evaluation/run_eval.py --misses`
 
-```bash
-python evaluation/run_eval.py --misses
-```
+None of these is an independent evaluation: the author chose and ran all of them.
 
 On the hold-out set, the optional second check raised recall from 93% to 100% of sensitive values. That set is small and was used while tuning the rules, so treat the number as indicative. The second check adds about a second per request and sends the already-redacted text to Anthropic. It is off by default.
 

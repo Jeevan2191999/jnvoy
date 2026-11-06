@@ -241,6 +241,7 @@
       <ul>
         <li><a href="#result">The result</a></li>
                 <li><a href="#larger-test">Larger test</a></li>
+        <li><a href="#court-judgments">Real court judgments</a></li>
         <li><a href="#protected-terms">Names you list</a></li>
         <li><a href="#medical-terms">Medical terms</a></li>
         <li><a href="#injection">Prompt injection</a></li>
@@ -300,7 +301,7 @@
           <div class="row"><div class="k">IBAN</div><div class="v">47 values. Jnvoy hid 100.0% (92.4 to 100.0). Presidio with its default settings hid 100.0% (92.4 to 100.0).</div><div class="s no">100.0%</div></div>
           <div class="row"><div class="k">DOB</div><div class="v">71 values. Jnvoy hid 100.0% (94.9 to 100.0). Presidio with its default settings hid 98.6% (92.4 to 99.8).</div><div class="s no">100.0%</div></div>
         </div>
-        <p><strong>Harmless words kept readable.</strong> Jnvoy kept 92.0% (89.5 to 94.0). Presidio with its default settings kept 43.0% (39.0 to 47.1), because it hides dates and places by default. With those switched off it kept 76.1% (72.4 to 79.4) and hid 62.5% of the sensitive values; without a date type it cannot see a birth date at all.</p>
+        <p><strong>Harmless words kept readable.</strong> Jnvoy kept 92.0% (89.5 to 94.0). Presidio with its default settings kept 43.0% (39.0 to 47.1), because it hides dates, places and organisations by default. Set up the way Jnvoy is, with dates, places, nationalities and organisations switched off, it kept 91.2% (88.6 to 93.2) and hid 57.9% of the sensitive values; without a date type it cannot see a birth date at all. <strong>So most of the gap in harmless words kept comes from settings, not from better detection.</strong> An earlier version of this page left Presidio's organisation type switched on in that comparison, which made Jnvoy's lead look larger than it is.</p>
         <h3>Where Jnvoy is ahead, behind, or too close to call</h3>
         <ul class="plain">
           <li><strong>Clearly ahead of Presidio's defaults</strong> (the ranges do not overlap): API_KEY (100.0% against 16.1%), ADDRESS (50.0% against 22.2%), PASSWORD (60.5% against 20.9%).</li>
@@ -346,6 +347,25 @@
         </ul>
       </section>
 <!-- larger-test:end -->
+<!-- court-judgments:start -->
+      <section id="court-judgments">
+        <h2>Real court judgments: an outside team's text and labels</h2>
+        <p>Every other test on this page uses text we wrote. This one does not. The <a href="https://arxiv.org/abs/2202.00443">Text Anonymization Benchmark</a> (TAB) is a set of English judgments of the European Court of Human Rights in which a research team marked by hand every name that should be hidden. We used its test set of 127 judgments, about 5,100 characters each, which is around fifty times longer than the documents in the larger test. Nothing in Jnvoy was changed after looking at it. It mainly tests <strong>names</strong>: the judgments contain no emails, card numbers, keys or postal addresses, so this test says nothing about those.</p>
+        <div class="ledger">
+          <div class="row head"><div>System</div><div>Result, with the 95% range in brackets</div><div>Names hidden</div></div>
+          <div class="row"><div class="k">Jnvoy</div><div class="v">Names hidden: 723 of 781, 92.6% (90.5 to 94.2). Harmless names of courts, countries and offices kept: 1,158 of 1,224, 94.6% (93.2 to 95.7).</div><div class="s mid">92.6%</div></div>
+          <div class="row"><div class="k">Presidio, default settings</div><div class="v">Names hidden: 724 of 781, 92.7% (90.7 to 94.3). Harmless names of courts, countries and offices kept: 188 of 1,224, 15.4% (13.4 to 17.5).</div><div class="s mid">92.7%</div></div>
+          <div class="row"><div class="k">Presidio, set up like Jnvoy</div><div class="v">Names hidden: 702 of 781, 89.9% (87.6 to 91.8). Harmless names of courts, countries and offices kept: 1,174 of 1,224, 95.9% (94.7 to 96.9).</div><div class="s mid">89.9%</div></div>
+        </div>
+        <p><strong>What it shows.</strong> Jnvoy and Presidio find names about equally well when both use their default settings (92.6% against 92.7%), but Presidio's defaults also hide most of the harmless text: they kept only 15.4% of the court, country and office names, against 94.6% for Jnvoy. Set up the way Jnvoy is, Presidio keeps about as much harmless text (95.9%) and hides fewer names (89.9%). Jnvoy hid every name that Presidio set up this way hid, and 21 more, mostly names written after a title such as "Mr", "Mrs" or "Judge". That difference is small but very unlikely to be chance.</p>
+        <ul class="plain">
+          <li><strong>On the second set of 127 judgments:</strong> Jnvoy hid 94.0% of names and Presidio set up like Jnvoy 91.8%. Of the names only one of the two hid, Jnvoy hid 19 and Presidio 0.</li>
+          <li><strong>Counting a name as one to hide if any annotator marked it:</strong> Jnvoy hid 87.5% of names and Presidio set up like Jnvoy 83.9%. Of the names only one of the two hid, Jnvoy hid 31 and Presidio 0.</li>
+        </ul>
+        <p><strong>What Jnvoy still misses here.</strong> 58 of 781 names stayed visible: names with no title in front, especially Turkish ones (for example Erdal Güler, Resul Sadak); British judges' styles (for example Mance LJ, Lord Slynn); initials (for example C.Ç., W.K.), and surnames on their own. It also hid some foreign-language court names that should have stayed readable.</p>
+        <p><strong>Limits.</strong> This is one kind of text, carefully written legal English. We chose this benchmark and ran it ourselves, so it is not an independent evaluation. The data is not stored in the repository: <code>python evaluation/tab_eval.py --fetch</code> downloads it at a fixed commit (558e09e26d) under its MIT licence and reproduces every number here. Its training set is the only part we will read when improving name detection, so these two sets stay unseen.</p>
+      </section>
+<!-- court-judgments:end -->
 
       <section id="protected-terms">
         <h2>Names you list: client and project names</h2>
@@ -438,9 +458,9 @@
       <section id="limits">
         <h2>Limits of this test</h2>
         <ul class="plain">
-          <li><strong>Written by us.</strong> The sets above are synthetic text from the person who built the tool, and in the larger test only the values are generated by someone else. None of it is an independent evaluation. Nobody outside the project has measured Jnvoy yet.</li>
+          <li><strong>Mostly written by us.</strong> Apart from the court judgments, the sets above are synthetic text from the person who built the tool, and in the larger test only the values are generated by someone else. The court judgments use an outside team's text and labels, but we chose that benchmark and ran it ourselves. None of it is an independent evaluation. Nobody outside the project has measured Jnvoy yet.</li>
           <li><strong>Small, except the larger test.</strong> 37 sensitive values in the fresh held-out set is a gauge, not a statistical measurement. The larger test has 1,009 on its unseen set, with ranges shown, but its text is still synthetic. Expect real figures to differ, probably downwards.</li>
-          <li><strong>Mostly English, mostly short.</strong> Names are detected best in English, and street addresses best in UK, US, French, German, Dutch, Spanish, Italian and Portuguese formats. Other languages have had little testing.</li>
+          <li><strong>Mostly English, mostly short.</strong> Apart from the court judgments, the test texts are a sentence or two long. Names are detected best in English, and street addresses best in UK, US, French, German, Dutch, Spanish, Italian and Portuguese formats. Other languages have had little testing.</li>
           <li><strong>Country identifiers were tested only on published sample numbers.</strong> Accuracy on real data in those countries has not been measured.</li>
           <li><strong>No real customer data was used.</strong> Every value is invented or a documented example number.</li>
           <li><strong>Library versions matter.</strong> These numbers were measured with Python 3.12, spaCy 3.7.5 and its en_core_web_lg 3.7.1 model, except where the small model is named. Newer versions scored one or two values differently in our checks.</li>
@@ -453,6 +473,7 @@
         <p>The data and the script are in the <a href="https://github.com/Jeevan2191999/jnvoy/tree/main/evaluation">evaluation folder</a>. After installing the requirements, run <code>python evaluation/run_eval.py --dataset evaluation/holdout5.jsonl --misses</code> to see the table above and every value that leaked. If you find text it should have caught, <a href="https://github.com/Jeevan2191999/jnvoy/issues">open an issue</a> with a made-up example of the same shape.</p>
       
         <p>For the larger test: <code>python evaluation/compare.py</code> scores Jnvoy and Presidio on the 1,000 documents with 95% ranges, and <code>python evaluation/compare.py --dataset evaluation/large_heldout.jsonl</code> <code>--dataset evaluation/large_fresh.jsonl</code> and <code>--dataset evaluation/large_fresh2.jsonl</code> do the same on the others. To measure Jnvoy on your own text, put it in a CSV with columns <code>text</code>, <code>sensitive</code> and <code>keep</code> (see <code>evaluation/example_my_data.csv</code>) and run <code>python evaluation/check_my_data.py your_file.csv</code>. Nothing leaves your machine.</p>
+        <p>For the court judgments: <code>python evaluation/tab_eval.py --fetch --misses</code> downloads the benchmark at a fixed commit, scores Jnvoy and Presidio on it and lists every name Jnvoy left visible. It takes a few minutes.</p>
       </section>
 
     </div>
