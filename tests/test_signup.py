@@ -43,6 +43,9 @@ def test_the_page_is_served_and_points_at_the_privacy_page(client):
     assert r.status_code == 200
     assert 'action' not in r.text.split('<form id="signup"')[1].split(">")[0]   # posts by script, not a page reload
     assert 'href="/privacy"' in r.text and "cannot be shown again" in r.text
+    # after the key is shown, a button goes home; nothing leaves the page on its own
+    assert 'href="/">I have saved my key, back to home</a>' in r.text
+    assert "location.href" not in r.text and "location.replace" not in r.text and 'http-equiv="refresh"' not in r.text
 
 
 def test_the_homepage_sends_people_to_the_page_not_to_email(client):
