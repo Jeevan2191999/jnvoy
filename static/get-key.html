@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Get a free Jnvoy API key</title>
+<meta name="description" content="Get a free Jnvoy key in a minute: 10,000 calls a month to try PII redaction on your own prompts. You use your own OpenAI or Anthropic key.">
+<link rel="canonical" href="https://www.jnvoy.com/get-key">
+<link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+<meta name="theme-color" content="#EDEEE9">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Jnvoy">
+<meta property="og:title" content="Get a free Jnvoy API key">
+<meta property="og:description" content="Get a free Jnvoy key in a minute: 10,000 calls a month to try PII redaction on your own prompts. You use your own OpenAI or Anthropic key.">
+<meta property="og:url" content="https://www.jnvoy.com/get-key">
+<meta property="og:image" content="https://www.jnvoy.com/static/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Get a free Jnvoy API key">
+<meta name="twitter:description" content="Get a free Jnvoy key in a minute: 10,000 calls a month to try PII redaction on your own prompts. You use your own OpenAI or Anthropic key.">
+<meta name="twitter:image" content="https://www.jnvoy.com/static/og-image.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* Same tokens as the homepage, so the two pages read as one product. */
+  :root{
+    --ink:        #12161B;
+    --ink-soft:   #42484F;
+    --ink-faint:  #5C6269;
+    --paper:      #EDEEE9;
+    --paper-raised:#F8F8F4;
+    --line:       #D7D8D1;
+    --line-strong:#B9BAB2;
+    --red:        #8A2A16;
+    --red-dim:    #B8491F;
+    --red-wash:   #F4E7E2;
+    --green:      #1E6450;
+    --green-wash: #E3EEE9;
+    --redact:     #15171A;
+
+    --mono: 'Courier Prime', ui-monospace, 'SF Mono', Consolas, monospace;
+    --sans: 'Inter', -apple-system, 'Segoe UI', sans-serif;
+
+    --maxw: 1180px;
+    --radius-ui: 4px;
+  }
+
+  *,*::before,*::after{ box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:var(--sans);
+    font-size:16px;
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,p,ul,figure{ margin:0; }
+  a{ color:inherit; }
+  .wrap{ max-width:var(--maxw); margin:0 auto; padding:0 28px; }
+  @media (max-width:480px){ .wrap{ padding-left:20px; padding-right:20px; } }
+  p code, li code, td code{ overflow-wrap:anywhere; }
+  :focus-visible{ outline:2px solid var(--green); outline-offset:3px; }
+  @media (prefers-reduced-motion: reduce){
+    html{ scroll-behavior:auto; }
+    *{ transition-duration:0.001ms !important; }
+  }
+
+  /* ---------- nav (identical to the homepage) ---------- */
+  header.site{
+    position:sticky; top:0; z-index:40;
+    background:rgba(237,238,233,0.92);
+    backdrop-filter:blur(6px);
+    border-bottom:1px solid var(--line);
+  }
+  .nav{ display:flex; align-items:center; justify-content:space-between; height:68px; }
+  .wordmark{
+    font-family:var(--mono); font-weight:700; font-size:1.05rem; letter-spacing:0.01em;
+    display:flex; align-items:center; gap:9px; text-decoration:none; color:var(--ink);
+  }
+  .wordmark .dot{ width:8px; height:8px; border-radius:50%; background:var(--green); box-shadow:0 0 0 3px var(--green-wash); }
+  .navlinks{ display:flex; align-items:center; gap:30px; }
+  .navlinks a{ text-decoration:none; font-size:0.9375rem; color:var(--ink-soft); font-weight:500; }
+  .navlinks a:hover{ color:var(--ink); }
+  .btn{
+    display:inline-flex; align-items:center; gap:8px;
+    font-family:var(--sans); font-weight:600; font-size:0.85rem;
+    padding:0.5em 1em; border-radius:var(--radius-ui); text-decoration:none;
+    border:1px solid transparent; transition:background 0.15s ease;
+  }
+  .navlinks a.btn{ background:var(--red); color:#fff; }
+  .navlinks a.btn:hover{ background:var(--red-dim); color:#fff; }
+  @media (max-width:760px){ .navlinks a:not(.btn){ display:none; } }
+
+  /* ---------- page head ---------- */
+  .pagehead{ padding:72px 0 56px; border-bottom:1px solid var(--line-strong); }
+  .pagehead h1{
+    font-family:var(--mono); font-weight:700;
+    font-size:clamp(2rem, 4.2vw, 3rem); line-height:1.1; letter-spacing:-0.01em;
+    max-width:18ch;
+  }
+  .pagehead .lede{ margin-top:20px; font-size:1.125rem; color:var(--ink-soft); max-width:56ch; line-height:1.65; }
+  .meta{ margin-top:28px; font-family:var(--mono); font-size:0.8125rem; color:var(--ink-faint); }
+
+  /* ---------- two column document ---------- */
+  .doc{
+    display:grid; grid-template-columns:200px minmax(0,1fr); gap:72px;
+    padding:64px 0 96px; align-items:start;
+  }
+  @media (max-width:900px){ .doc{ grid-template-columns:1fr; gap:0; padding-top:40px; } }
+  @media (max-width:1236px){ .doc{ padding-left:28px; padding-right:28px; } }
+  @media (max-width:480px){ .doc{ padding-left:20px; padding-right:20px; } }
+  .toc{ position:sticky; top:96px; font-size:0.9rem; }
+  .toc p{ font-weight:600; color:var(--ink-faint); font-size:0.8125rem; margin-bottom:10px; }
+  .toc ul{ list-style:none; padding:0; border-left:1px solid var(--line-strong); }
+  .toc a{
+    display:block; padding:6px 0 6px 16px; margin-left:-1px;
+    border-left:2px solid transparent; text-decoration:none; color:var(--ink-soft);
+  }
+  .toc a:hover{ color:var(--ink); border-left-color:var(--line-strong); }
+  .toc a.on{ color:var(--ink); font-weight:600; border-left-color:var(--green); }
+  @media (max-width:900px){ .toc{ display:none; } }
+
+  .content > section{ padding:0 0 64px; scroll-margin-top:92px; }
+  .content > section + section{ padding-top:56px; border-top:1px solid var(--line); }
+  .content h2{
+    font-family:var(--mono); font-weight:700; font-size:1.55rem; line-height:1.25; margin-bottom:18px;
+  }
+  .content h3{ font-size:1rem; font-weight:600; margin:28px 0 6px; }
+  .content p{ color:var(--ink-soft); max-width:66ch; margin-top:14px; }
+  .content p:first-of-type{ margin-top:0; }
+  .content p strong, .content li strong{ color:var(--ink); font-weight:600; }
+  .content ul.plain{ padding-left:1.15em; margin-top:14px; color:var(--ink-soft); max-width:66ch; }
+  .content ul.plain li{ margin-top:8px; }
+  code{
+    font-family:var(--mono); font-size:0.9em; color:var(--ink);
+    background:var(--paper-raised); border:1px solid var(--line); border-radius:3px; padding:0.05em 0.35em;
+  }
+  .content a{ color:var(--green); text-underline-offset:3px; }
+
+  /* ---------- the ledger (answers at a glance, and storage) ---------- */
+  .ledger{ margin-top:26px; border-top:1px solid var(--line-strong); }
+  .row{
+    display:grid; grid-template-columns:minmax(0,1.1fr) minmax(0,1.6fr) minmax(0,0.9fr);
+    gap:20px; padding:16px 0; border-bottom:1px solid var(--line); align-items:baseline;
+  }
+  .row.head{ font-weight:600; font-size:0.8125rem; color:var(--ink-faint); padding-bottom:10px; }
+  .row .k{ font-weight:600; }
+  .row .v{ color:var(--ink-soft); font-size:0.9375rem; }
+  .row .s{ font-family:var(--mono); font-size:0.875rem; font-weight:700; }
+  .row .s.no{ color:var(--green); }
+  .row .s.yes{ color:var(--red); }
+  .row .s.mid{ color:var(--ink-soft); }
+  @media (max-width:700px){
+    .row{ grid-template-columns:1fr; gap:4px; }
+    .row.head{ display:none; }
+  }
+
+  /* ---------- the flow figure ---------- */
+  .flow{ margin-top:28px; }
+  .zones{ display:grid; grid-template-columns:1fr 1fr; gap:0; }
+  .zone{ padding-bottom:10px; font-size:0.8125rem; font-weight:600; border-bottom:2px solid var(--ink); }
+  .zone.out{ border-bottom-color:var(--green); color:var(--green); margin-left:12px; }
+  .zone.in{ color:var(--ink); margin-right:12px; }
+  .stops{ display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-top:12px; }
+  .stop{ background:var(--paper-raised); border:1px solid var(--line-strong); border-radius:3px; padding:16px 16px 18px; }
+  .stop h3{ margin:0 0 6px; font-size:0.9375rem; }
+  .stop .what{ font-size:0.8125rem; color:var(--ink-faint); line-height:1.5; }
+  .stop .sample{
+    margin-top:12px; padding:10px 10px; border-radius:3px;
+    font-family:var(--mono); font-size:0.78rem; line-height:1.55; overflow-wrap:anywhere;
+  }
+  .sample.raw{ background:var(--ink); color:#EDEEE9; }
+  .sample.tok{ background:var(--green-wash); color:var(--green); }
+  .stop.optional{ border-style:dashed; }
+  @media (max-width:900px){
+    .zones{ display:none; }
+    .stops{ grid-template-columns:1fr 1fr; }
+  }
+  @media (max-width:560px){ .stops{ grid-template-columns:1fr; } }
+  .flow figcaption{ margin-top:14px; font-size:0.875rem; color:var(--ink-faint); max-width:70ch; }
+
+  /* ---------- notice ---------- */
+  .notice{
+    margin-top:22px; padding:16px 18px; background:var(--red-wash);
+    border-left:3px solid var(--red); border-radius:0 3px 3px 0; max-width:66ch;
+    font-size:0.9375rem; color:var(--ink-soft);
+  }
+  .notice strong{ color:var(--ink); }
+
+
+  /* ---------- data-flow figure ---------- */
+  .dflow{ margin-top:26px; }
+  .dflow svg{ width:100%; height:auto; display:block; background:var(--paper-raised); border:1px solid var(--line-strong); border-radius:3px; }
+  .dflow .steps{ margin-top:20px; padding-left:1.3em; color:var(--ink-soft); max-width:70ch; }
+  .dflow .steps li{ margin-top:8px; }
+  .dflow figcaption{ margin-top:14px; font-size:0.875rem; color:var(--ink-faint); max-width:70ch; }
+  .dflow .t{ font-family:var(--sans); font-size:13px; fill:var(--ink); }
+  .dflow .t.h{ font-weight:600; font-size:14px; }
+  .dflow .t.s{ fill:var(--ink-soft); font-size:12px; }
+  .dflow .t.z{ font-family:var(--mono); font-weight:700; font-size:12px; }
+  .dflow .t.n{ font-family:var(--mono); font-weight:700; font-size:13px; fill:var(--green); }
+  @media (max-width:760px){ .dflow svg{ display:none; } }
+
+  /* ---------- footer (identical to the homepage plus Privacy) ---------- */
+  footer{ padding:40px 0; border-top:1px solid var(--line); }
+  .fgrid{ display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px; }
+  .fgrid .left{ font-family:var(--mono); font-size:0.8125rem; color:var(--ink-faint); }
+  .flinks{ display:flex; gap:22px; flex-wrap:wrap; }
+  .flinks a{ text-decoration:none; font-size:0.875rem; color:var(--ink-soft); }
+  .flinks a:hover{ color:var(--ink); }
+
+  .form-wrap{ max-width:620px; padding:48px 0 96px; }
+  .form-wrap label{ display:block; font-weight:600; margin:22px 0 8px; }
+  .form-wrap input[type=email], .form-wrap input[type=text]{
+    width:100%; padding:12px 14px; font:inherit; border:1px solid var(--line-strong);
+    border-radius:var(--radius-ui); background:var(--paper-raised); color:var(--ink); }
+  .form-wrap .check{ display:flex; gap:10px; align-items:flex-start; font-weight:400; }
+  .form-wrap .check input{ margin-top:5px; }
+  .form-wrap .hint{ font-size:0.9rem; color:var(--ink-faint); margin-top:6px; }
+  .form-wrap button, .copy{ margin-top:28px; cursor:pointer; background:var(--red); color:#fff; border:0;
+    padding:13px 22px; font:600 1rem var(--sans); border-radius:var(--radius-ui); }
+  .form-wrap button:hover, .copy:hover{ background:var(--red-dim); }
+  .form-wrap button:disabled{ opacity:0.6; cursor:wait; }
+  .copy{ margin-top:12px; padding:9px 16px; font-size:0.9rem; }
+  .hp{ position:absolute; left:-10000px; width:1px; height:1px; overflow:hidden; }
+  .result{ margin-top:32px; padding:20px; border:1px solid var(--line-strong); border-radius:var(--radius-ui);
+    background:var(--paper-raised); }
+  .result.err{ border-color:var(--red-dim); background:var(--red-wash); }
+  .result pre{ white-space:pre-wrap; word-break:break-all; font-family:var(--mono); font-size:0.875rem;
+    margin-top:12px; }
+  .form-wrap p{ margin-top:16px; line-height:1.65; color:var(--ink-soft); }
+</style>
+</head>
+<body>
+
+<header class="site">
+  <div class="wrap nav">
+    <a href="/" class="wordmark"><span class="dot"></span>jnvoy</a>
+    <nav class="navlinks" aria-label="Main">
+      <a href="/">Home</a>
+      <a href="/docs">Docs</a>
+      <a href="https://github.com/Jeevan2191999/jnvoy">GitHub</a>
+      <a class="btn" href="/docs">Try the API</a>
+    </nav>
+  </div>
+</header>
+
+
+<main>
+  <div class="pagehead">
+    <div class="wrap">
+      <h1>Get a free key</h1>
+      <p class="lede">10,000 calls a month to try Jnvoy on your own prompts. You keep using your own OpenAI or Anthropic key, so there is nothing to pay.</p>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="form-wrap">
+      <form id="signup" novalidate>
+        <label for="email">Work email</label>
+        <input id="email" name="email" type="email" autocomplete="email" required maxlength="254">
+        <p class="hint">Only used to reach you about your key. Not added to any mailing list.</p>
+
+        <label for="company">Company or project <span style="font-weight:400;color:var(--ink-faint)">(optional)</span></label>
+        <input id="company" name="company_name" type="text" maxlength="200" autocomplete="organization">
+
+        <div class="hp" aria-hidden="true">
+          <label for="website">Leave this empty</label>
+          <input id="website" name="website" type="text" tabindex="-1" autocomplete="off">
+        </div>
+
+        <label class="check"><input id="agree" name="agree" type="checkbox" required>
+          <span>I have read the <a href="/privacy">privacy page</a>, including what Jnvoy stores and what redaction does not promise.</span></label>
+
+        <button type="submit">Get my key</button>
+      </form>
+
+      <div id="out" role="status" aria-live="polite"></div>
+
+      <p>The key is shown once, on this page. Jnvoy stores only a hash of it, so it cannot be shown again. If you lose it, email <a href="mailto:j.nagaraj2109@gmail.com?subject=Jnvoy%20key">j.nagaraj2109@gmail.com</a> for a new one.</p>
+      <p>Prefer to run it yourself? The <a href="https://github.com/Jeevan2191999/jnvoy">source is on GitHub</a> and <code>docker-compose up</code> starts it with no key from us.</p>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap fgrid">
+    <div class="left">JNVOY LIMITED. Registered in England and Wales, company number 17536574.</div>
+    <div class="flinks">
+      <a href="/docs">API docs</a>
+      <a href="/accuracy">Accuracy</a>
+      <a href="/guides/remove-personal-data-from-prompts">Guide</a>
+      <a href="/guides/litellm">LiteLLM</a>
+      <a href="https://github.com/Jeevan2191999/jnvoy">GitHub</a>
+      <a href="/v1/report/compliance">Sample report</a>
+      <a href="/privacy">Privacy</a>
+      <a href="/security">Security</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+  (function(){
+    var form = document.getElementById('signup'), out = document.getElementById('out');
+    function show(cls, html){ out.className = 'result' + (cls ? ' ' + cls : ''); out.innerHTML = html; }
+    function esc(s){ var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+    form.addEventListener('submit', function(e){
+      e.preventDefault();
+      var btn = form.querySelector('button'); btn.disabled = true;
+      fetch('/signup', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({
+        email: form.email.value, company_name: form.company_name.value,
+        agree: form.agree.checked, website: form.website.value})})
+      .then(function(r){ return r.json().then(function(j){ return {ok:r.ok, j:j}; }); })
+      .then(function(res){
+        if (!res.ok){
+          var d = res.j.detail || {}; btn.disabled = false;
+          show('err', '<strong>Not issued.</strong> ' + esc(d.message || 'Please try again.')); return;
+        }
+        var k = res.j.api_key;
+        form.style.display = 'none';
+        show('', '<strong>Your key. Save it now: it cannot be shown again.</strong><pre id="key">' + esc(k) + '</pre>' +
+          '<button class="copy" type="button" id="copy">Copy key</button>' +
+          '<p>Try it: this shows what a model would receive.</p><pre>curl -X POST https://www.jnvoy.com/v1/scan \\\n' +
+          '  -H "x-api-key: ' + esc(k) + '" -H "Content-Type: application/json" \\\n' +
+          '  -d \'{"text": "Email anna.lee@example.com about NHS number 943 476 5919."}\'</pre>' +
+          '<p>Next: the <a href="https://github.com/Jeevan2191999/jnvoy/blob/main/QUICKSTART.md">five-minute quickstart</a>.</p>');
+        document.getElementById('copy').addEventListener('click', function(){
+          var b = this;
+          (navigator.clipboard ? navigator.clipboard.writeText(k) : Promise.reject()).then(
+            function(){ b.textContent = 'Copied'; },
+            function(){ b.textContent = 'Select the key above and copy it'; });
+        });
+      })
+      .catch(function(){ btn.disabled = false; show('err', 'Could not reach Jnvoy. Please try again.'); });
+    });
+  })();
+</script>
+</body>
+</html>

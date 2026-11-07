@@ -13,6 +13,7 @@ Use the answer's cited sources and canonical page; if the requested information 
 - [Accuracy](https://www.jnvoy.com/accuracy): measured results against Microsoft Presidio, with every miss and the limits of each test.
 - [Remove personal data from prompts](https://www.jnvoy.com/guides/remove-personal-data-from-prompts): how to redact prompts yourself with Presidio, with working code, and when a gateway helps.
 - [LiteLLM guide](https://www.jnvoy.com/guides/litellm): routing LiteLLM through Jnvoy, with tested configs.
+- [Get a free key](https://www.jnvoy.com/get-key): a free hosted key in a minute, 10,000 calls a month, using your own OpenAI or Anthropic key.
 - [Privacy](https://www.jnvoy.com/privacy): where prompt text goes, what is stored, and what redaction does not promise.
 - [Security](https://www.jnvoy.com/security): how keys and text are protected, the services involved, and known gaps.
 

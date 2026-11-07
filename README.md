@@ -24,7 +24,7 @@ The model answers using the tokens, and Jnvoy swaps the real values back in befo
 
 ## Try it
 
-Hosted keys are issued on request: email j.nagaraj2109@gmail.com or use the "Request a free key" link on [jnvoy.com](https://www.jnvoy.com). If you run Jnvoy yourself, you create your own keys (see below).
+Get a free hosted key in a minute at [jnvoy.com/get-key](https://www.jnvoy.com/get-key) (10,000 calls a month). If you run Jnvoy yourself, you create your own keys (see below).
 
 ```bash
 curl -X POST https://www.jnvoy.com/v1/scan \

@@ -72,8 +72,8 @@ QUICK = (ROOT / "QUICKSTART.md").read_text(encoding="utf-8")
 def test_quickstart_points_at_things_that_exist():
     for rel in re.findall(r"\]\((examples/[^)]+)\)", QUICK):
         assert (ROOT / rel).exists(), rel
-    for path in re.findall(r"https://www\.jnvoy\.com(/[a-z0-9/]+)", QUICK):
-        assert path in {"/v1", "/v1/scan", "/privacy", "/security", "/accuracy"}, path
+    for path in re.findall(r"https://www\.jnvoy\.com(/[a-z0-9/-]+)", QUICK):
+        assert path in {"/v1", "/v1/scan", "/privacy", "/security", "/accuracy", "/get-key"}, path
 
 
 def test_quickstart_claims_match_the_code():

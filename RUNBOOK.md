@@ -38,6 +38,18 @@ Switch a customer off (their key stops working at once; their audit log is kept)
 
     curl -s -X DELETE https://www.jnvoy.com/v1/admin/tenants/TENANT_ID -H "x-api-key: $ADMIN_KEY"
 
+### Self-serve keys from www.jnvoy.com/get-key
+
+People can now get a free key without writing to you. They appear in the list above like any other
+customer; ones who left the company field empty are named `Self-serve (their-domain)`. Nobody is
+notified when someone signs up, so look at the list once a day while it is new.
+
+Limits: 3 keys a day per address, 50 a day for the whole site. To change the site-wide cap, set
+`JNVOY_SIGNUPS_PER_DAY` on Render (0 stops new sign-ups; the page then asks people to email you).
+
+Emails are not verified. If someone writes to say an account uses their address and is not theirs,
+switch it off with the DELETE above and tell them they can now sign up themselves.
+
 ## 3. Keys
 
 **A customer's key leaked or was lost.** Replace it. The old key stops working at once and the

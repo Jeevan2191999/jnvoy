@@ -223,6 +223,20 @@ def create_tenant(
     )
 
 
+def count_created_since(hours: int) -> int:
+    """How many customers were created in the last `hours` hours. Used to cap self-serve sign-ups
+    for the whole site, so the cap holds even when one person uses many addresses."""
+    pool = get_pool()
+    conn = pool.getconn()
+    try:
+        with conn.cursor() as cur:
+            cur.execute("SELECT COUNT(*) FROM tenants WHERE created_at > NOW() - make_interval(hours => %s)",
+                        (int(hours),))
+            return int(cur.fetchone()[0])
+    finally:
+        pool.putconn(conn)
+
+
 def get_tenant_by_api_key(api_key: str) -> Optional[Tenant]:
     """
     Look up a tenant by their API key.

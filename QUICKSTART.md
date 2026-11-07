@@ -4,7 +4,7 @@ Jnvoy sits between your app and a model provider. It replaces personal data in e
 
 You need two keys:
 
-- a **Jnvoy key**, which we issue (ask for one at j.nagaraj2109@gmail.com, free pilots get 10,000 calls a month), and
+- a **Jnvoy key**: get a free one in a minute at https://www.jnvoy.com/get-key (10,000 calls a month), and
 - **your own key from the model provider** (OpenAI or Anthropic). You pay the provider directly. Jnvoy uses your provider key for that one request and does not store or log it.
 
 ## 1. See what it would hide (1 minute, no provider key needed)

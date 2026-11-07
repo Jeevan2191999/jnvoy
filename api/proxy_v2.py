@@ -204,6 +204,7 @@ SITEMAP_XML = (
     "  <url><loc>https://www.jnvoy.com/accuracy</loc></url>\n"
     "  <url><loc>https://www.jnvoy.com/guides/remove-personal-data-from-prompts</loc></url>\n"
     "  <url><loc>https://www.jnvoy.com/guides/litellm</loc></url>\n"
+    "  <url><loc>https://www.jnvoy.com/get-key</loc></url>\n"
     "</urlset>\n"
 )
 
@@ -1762,5 +1763,7 @@ async def scan_tool_description(body: ToolDescriptionRequest):
 
 from api.account_routes import router as account_router  # noqa: E402
 app.include_router(account_router)
+from api.signup_routes import router as signup_router  # noqa: E402
+app.include_router(signup_router)
 
 apply_docs(app)
