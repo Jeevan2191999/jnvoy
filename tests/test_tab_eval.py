@@ -97,3 +97,11 @@ def test_the_readme_figures_are_the_stored_figures():
     assert f"{jh} of {jn} names hidden ({100 * jh / jn:.1f}%)" in readme
     assert f"set up the same way hid {100 * th / tn:.1f}%" in readme
     assert f"also hid {hidden_harmless:.0f}% of harmless text" in readme
+
+
+def test_the_page_intro_and_date_match_the_results():
+    from datetime import date
+    large = json.loads((ROOT / "evaluation" / "results_large.json").read_text(encoding="utf-8"))
+    latest = max(date.fromisoformat(RESULTS["measured"]), date.fromisoformat(large["measured"]))
+    assert f"Last measured {latest.day} {latest:%B %Y}" in PAGE
+    assert "real court judgments labelled by an outside team" in PAGE.split('<p class="lede">')[1].split("</p>")[0]

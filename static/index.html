@@ -20,8 +20,10 @@
 <meta name="twitter:image" content="https://www.jnvoy.com/static/og-image.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
+  /* every piece of code uses the code font unless a rule below says otherwise */
+  pre, code, kbd, samp{ font-family:var(--mono); }
 
   /* ============================================================
      TOKENS
@@ -44,7 +46,7 @@
     --green-wash: #E3EEE9;
     --redact:     #15171A;
 
-    --mono: 'Courier Prime', ui-monospace, 'SF Mono', Consolas, monospace;
+    --mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
     --sans: 'Inter', -apple-system, 'Segoe UI', sans-serif;
 
     --maxw: 1180px;
@@ -107,8 +109,8 @@
     height:68px;
   }
   .wordmark{
-    font-family:var(--mono); font-weight:700; font-size:1.05rem;
-    letter-spacing:0.01em;
+    font-family:var(--sans); font-weight:700; font-size:1.05rem;
+    letter-spacing:-0.02em;
     display:flex; align-items:center; gap:9px;
     text-decoration:none; color:var(--ink);
   }
@@ -160,20 +162,21 @@
     .hero-grid{ grid-template-columns:1fr; gap:48px; }
   }
   .hero h1{
-    font-family:var(--mono);
+    font-family:var(--sans);
     font-weight:700;
     font-size:clamp(2.1rem, 4.6vw, 3.4rem);
     line-height:1.08;
-    letter-spacing:-0.01em;
+    letter-spacing:-0.02em;
     color:var(--ink);
   }
   .hero h1 .soft{ color:var(--ink-faint); }
   .hero .lede{ margin-top:22px; }
   .hero-ctas{ display:flex; gap:14px; margin-top:34px; flex-wrap:wrap; }
+  .hero-note{ margin-top:16px; font-size:0.9375rem; color:var(--ink-soft); max-width:56ch; line-height:1.6; }
   .hero-meta{
     margin-top:26px;
     display:flex; align-items:center; gap:9px;
-    font-family:var(--mono); font-size:0.8125rem; color:var(--ink-faint);
+    font-family:var(--sans); font-size:0.8125rem; color:var(--ink-faint);
   }
   .hero-meta .dot{ width:7px;height:7px;border-radius:50%;background:var(--green); }
 
@@ -259,10 +262,9 @@
     .stat:first-child{ border-top:none; }
   }
   .stat .n{
-    font-family:var(--mono); font-weight:700;
+    font-family:var(--sans); font-weight:700;
     font-size:clamp(2rem,4vw,2.6rem);
-    color:var(--ink);
-  }
+    color:var(--ink); letter-spacing:-0.02em; font-variant-numeric:tabular-nums; }
   .stat .d{ margin-top:6px; color:var(--ink-soft); font-size:0.9375rem; }
 
   /* ============================================================
@@ -272,10 +274,9 @@
   .stats{ scroll-margin-top:84px; }
   .shead{ max-width:620px; margin-bottom:56px; }
   .shead h2{
-    font-family:var(--mono); font-weight:700;
+    font-family:var(--sans); font-weight:700;
     font-size:clamp(1.6rem,3vw,2.1rem);
-    line-height:1.2;
-  }
+    line-height:1.2; letter-spacing:-0.02em; }
   .shead p{ margin-top:14px; color:var(--ink-soft); font-size:1.0625rem; max-width:52ch; }
 
   /* ============================================================
@@ -301,15 +302,14 @@
     .step:last-child{ border-bottom:none; }
   }
   .step .num{
-    font-family:var(--mono); font-weight:700; font-size:1.6rem;
-    color:var(--line-strong);
-  }
+    font-family:var(--sans); font-weight:700; font-size:1.6rem;
+    color:var(--line-strong); letter-spacing:-0.02em; font-variant-numeric:tabular-nums; }
   .step h3{
     margin-top:10px; font-size:1.0625rem; font-weight:600;
   }
   .step p{ margin-top:8px; font-size:0.9375rem; color:var(--ink-soft); }
   .step .who{
-    margin-top:14px; font-family:var(--mono); font-size:0.75rem; color:var(--ink-faint);
+    margin-top:14px; font-family:var(--sans); font-size:0.75rem; color:var(--ink-faint);
   }
 
   /* ============================================================
@@ -369,7 +369,7 @@
   .clause a{ color:var(--green); }
   .why-note{ margin-top:48px; max-width:680px; }
   .why-note p{ color:var(--ink-soft); font-size:1.0625rem; }
-  .why-note .sig{ margin-top:10px; font-family:var(--mono); font-size:0.875rem; color:var(--ink-faint); }
+  .why-note .sig{ margin-top:10px; font-family:var(--sans); font-size:0.875rem; color:var(--ink-faint); }
   .why-limits{ margin-top:32px; max-width:680px; padding:16px 20px; background:var(--paper-raised); border-left:3px solid var(--red); font-size:0.9375rem; color:var(--ink-soft); }
   .why-limits strong{ color:var(--ink); }
 
@@ -391,7 +391,7 @@
   .price-card.featured{ background:var(--paper-raised); }
   .price-card .tier-tag{
     display:flex; align-items:center; gap:8px;
-    font-family:var(--mono); font-size:0.75rem; font-weight:600;
+    font-family:var(--sans); font-size:0.75rem; font-weight:600;
     color:var(--red); text-transform:uppercase; letter-spacing:0.03em;
   }
   .price-card .tier-tag .flag{
@@ -401,9 +401,8 @@
   }
   .price-card h3{ margin-top:10px; font-size:1.1rem; font-weight:600; }
   .price-card .amount{
-    margin-top:16px; font-family:var(--mono); font-weight:700;
-    font-size:2rem; color:var(--ink);
-  }
+    margin-top:16px; font-family:var(--sans); font-weight:700;
+    font-size:2rem; color:var(--ink); letter-spacing:-0.02em; font-variant-numeric:tabular-nums; }
   .price-card .amount span{
     font-family:var(--sans); font-weight:500; font-size:0.875rem; color:var(--ink-faint);
   }
@@ -431,9 +430,8 @@
   .included b{ font-size:0.875rem; font-weight:600; color:var(--ink); }
   .included span{ font-size:0.875rem; color:var(--ink-soft); }
   .price-card .vol{
-    margin-top:16px; font-family:var(--mono); font-weight:700;
-    font-size:1.75rem; line-height:1.15; color:var(--ink);
-  }
+    margin-top:16px; font-family:var(--sans); font-weight:700;
+    font-size:1.75rem; line-height:1.15; color:var(--ink); letter-spacing:-0.02em; font-variant-numeric:tabular-nums; }
   .price-card .vol-sub{ margin-top:4px; font-size:0.875rem; color:var(--ink-soft); }
   .price-card .outcome{ margin-top:14px; font-size:0.875rem; color:var(--ink-soft); line-height:1.5; }
   .demo{
@@ -442,7 +440,7 @@
     border:1px solid var(--line-strong); border-top:3px solid var(--red);
   }
   @media (max-width:860px){ .demo{ grid-template-columns:1fr; } }
-  .demo h3{ font-family:var(--mono); font-size:1.4rem; font-weight:700; line-height:1.2; }
+  .demo h3{ font-family:var(--sans); font-size:1.4rem; font-weight:700; line-height:1.2; letter-spacing:-0.02em; }
   .demo .lede2{ margin-top:12px; font-size:1rem; color:var(--ink-soft); max-width:40ch; }
   .demo .btn{ margin-top:22px; }
   .demo .small{ margin-top:12px; font-size:0.8125rem; color:var(--ink-faint); }
@@ -525,7 +523,7 @@
     border-bottom:1px solid var(--line);
     padding-bottom:16px;
   }
-  .cert-top h3{ font-family:var(--mono); font-size:1rem; font-weight:700; }
+  .cert-top h3{ font-family:var(--sans); font-size:1rem; font-weight:700; letter-spacing:-0.02em; }
   .cert-top .ref{ font-family:var(--mono); font-size:0.75rem; color:var(--ink-faint); margin-top:4px; }
   .stamp{
     width:76px; height:76px; border-radius:50%;
@@ -574,10 +572,9 @@
     padding:86px 0;
   }
   .closer h2{
-    font-family:var(--mono); font-weight:700;
+    font-family:var(--sans); font-weight:700;
     font-size:clamp(1.7rem,3.4vw,2.4rem);
-    max-width:16ch;
-  }
+    max-width:16ch; letter-spacing:-0.02em; }
   .closer p.lede{ color:rgba(237,238,233,0.68); margin-top:16px; }
   .closer-ctas{ display:flex; gap:14px; margin-top:30px; flex-wrap:wrap; }
   .closer .btn-ghost{ color:var(--paper); border-color:rgba(237,238,233,0.35); }
@@ -590,7 +587,7 @@
   .fgrid{
     display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;
   }
-  .fgrid .left{ font-family:var(--mono); font-size:0.8125rem; color:var(--ink-faint); }
+  .fgrid .left{ font-family:var(--sans); font-size:0.8125rem; color:var(--ink-faint); }
   .flinks{ display:flex; gap:22px; flex-wrap:wrap; }
   .flinks a{ text-decoration:none; font-size:0.875rem; color:var(--ink-soft); }
   .flinks a:hover{ color:var(--ink); }
@@ -657,6 +654,7 @@
     <div>
       <h1>Your AI reads everything<br>you send it.<br><span class="soft">Jnvoy decides what it's allowed to see.</span></h1>
       <p class="lede">A proxy that sits between your application and your model provider. Sensitive data is detected and replaced before it leaves your system. Claude and GPT-4o receive the redacted text, not the original values Jnvoy found. Point your calls at Jnvoy with your Jnvoy key and your own provider key.</p>
+      <p class="hero-note"><strong>Not another AI model.</strong> Pattern rules and spaCy, a widely used text-analysis library, decide what to hide. Your own LLM does the rest.</p>
       <div class="hero-ctas">
         <a href="/get-key" class="btn btn-primary">Get a free key</a>
         <a href="https://github.com/Jeevan2191999/jnvoy" class="btn btn-ghost">View source on GitHub</a>

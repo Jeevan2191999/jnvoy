@@ -20,8 +20,10 @@
 <meta name="twitter:image" content="https://www.jnvoy.com/static/og-image.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
+  /* every piece of code uses the code font unless a rule below says otherwise */
+  pre, code, kbd, samp{ font-family:var(--mono); }
   /* Same tokens as the homepage, so the two pages read as one product. */
   :root{
     --ink:        #12161B;
@@ -38,7 +40,7 @@
     --green-wash: #E3EEE9;
     --redact:     #15171A;
 
-    --mono: 'Courier Prime', ui-monospace, 'SF Mono', Consolas, monospace;
+    --mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
     --sans: 'Inter', -apple-system, 'Segoe UI', sans-serif;
 
     --maxw: 1180px;
@@ -76,7 +78,7 @@
   }
   .nav{ display:flex; align-items:center; justify-content:space-between; height:68px; }
   .wordmark{
-    font-family:var(--mono); font-weight:700; font-size:1.05rem; letter-spacing:0.01em;
+    font-family:var(--sans); font-weight:700; font-size:1.05rem; letter-spacing:-0.02em;
     display:flex; align-items:center; gap:9px; text-decoration:none; color:var(--ink);
   }
   .wordmark .dot{ width:8px; height:8px; border-radius:50%; background:var(--green); box-shadow:0 0 0 3px var(--green-wash); }
@@ -85,7 +87,7 @@
   .navlinks a:hover{ color:var(--ink); }
   .btn{
     display:inline-flex; align-items:center; gap:8px;
-    font-family:var(--sans); font-weight:600; font-size:0.85rem;
+    font-family:var(--sans); font-weight:600; font-size:0.9375rem;
     padding:0.5em 1em; border-radius:var(--radius-ui); text-decoration:none;
     border:1px solid transparent; transition:background 0.15s ease;
   }
@@ -96,12 +98,12 @@
   /* ---------- page head ---------- */
   .pagehead{ padding:72px 0 56px; border-bottom:1px solid var(--line-strong); }
   .pagehead h1{
-    font-family:var(--mono); font-weight:700;
-    font-size:clamp(2rem, 4.2vw, 3rem); line-height:1.1; letter-spacing:-0.01em;
+    font-family:var(--sans); font-weight:700;
+    font-size:clamp(2rem, 4.2vw, 3rem); line-height:1.1; letter-spacing:-0.02em;
     max-width:18ch;
   }
   .pagehead .lede{ margin-top:20px; font-size:1.125rem; color:var(--ink-soft); max-width:56ch; line-height:1.65; }
-  .meta{ margin-top:28px; font-family:var(--mono); font-size:0.8125rem; color:var(--ink-faint); }
+  .meta{ margin-top:28px; font-family:var(--sans); font-size:0.8125rem; color:var(--ink-faint); }
 
   /* ---------- two column document ---------- */
   .doc{
@@ -125,8 +127,7 @@
   .content > section{ padding:0 0 64px; scroll-margin-top:92px; }
   .content > section + section{ padding-top:56px; border-top:1px solid var(--line); }
   .content h2{
-    font-family:var(--mono); font-weight:700; font-size:1.55rem; line-height:1.25; margin-bottom:18px;
-  }
+    font-family:var(--sans); font-weight:700; font-size:1.55rem; line-height:1.25; margin-bottom:18px; letter-spacing:-0.02em; }
   .content h3{ font-size:1rem; font-weight:600; margin:28px 0 6px; }
   .content p{ color:var(--ink-soft); max-width:66ch; margin-top:14px; }
   .content p:first-of-type{ margin-top:0; }
@@ -148,7 +149,7 @@
   .row.head{ font-weight:600; font-size:0.8125rem; color:var(--ink-faint); padding-bottom:10px; }
   .row .k{ font-weight:600; }
   .row .v{ color:var(--ink-soft); font-size:0.9375rem; }
-  .row .s{ font-family:var(--mono); font-size:0.875rem; font-weight:700; }
+  .row .s{ font-family:var(--sans); font-size:0.875rem; font-weight:700; font-variant-numeric:tabular-nums; }
   .row .s.no{ color:var(--green); }
   .row .s.yes{ color:var(--red); }
   .row .s.mid{ color:var(--ink-soft); }
@@ -206,13 +207,13 @@
   /* ---------- footer (identical to the homepage plus Privacy) ---------- */
   footer{ padding:40px 0; border-top:1px solid var(--line); }
   .fgrid{ display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px; }
-  .fgrid .left{ font-family:var(--mono); font-size:0.8125rem; color:var(--ink-faint); }
+  .fgrid .left{ font-family:var(--sans); font-size:0.8125rem; color:var(--ink-faint); }
   .flinks{ display:flex; gap:22px; flex-wrap:wrap; }
   .flinks a{ text-decoration:none; font-size:0.875rem; color:var(--ink-soft); }
   .flinks a:hover{ color:var(--ink); }
 </style>
 <style>
-  .content pre{ margin:18px 0 0; padding:16px 18px; background:var(--ink); color:#EDEEE9; border-radius:3px; overflow-x:auto; font-size:0.84rem; line-height:1.6; max-width:min(100%,78ch); }
+  .content pre{ font-family:var(--mono); margin:18px 0 0; padding:16px 18px; background:var(--ink); color:#EDEEE9; border-radius:3px; overflow-x:auto; font-size:0.84rem; line-height:1.6; max-width:min(100%,78ch); }
   .content pre code{ background:none; border:0; padding:0; color:inherit; font-size:inherit; }
   .content .tight li{ margin-top:6px; }
   .doc > .content{ min-width:0; }
@@ -267,7 +268,7 @@
       <a href="/">Home</a>
       <a href="/docs">Docs</a>
       <a href="https://github.com/Jeevan2191999/jnvoy">GitHub</a>
-      <a class="btn" href="/docs">Try the API</a>
+      <a class="btn" href="/get-key">Get a key</a>
     </nav>
   </div>
 </header>

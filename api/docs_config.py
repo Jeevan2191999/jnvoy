@@ -99,12 +99,12 @@ _SECURITY_SCHEMES = {
 }
 
 _HEAD = """
-<link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
   body{ margin:0; background:#EDEEE9; }
   .jn-bar{ display:flex; align-items:center; justify-content:space-between; height:60px; padding:0 28px;
     border-bottom:1px solid #D7D8D1; font-family:Inter,-apple-system,'Segoe UI',sans-serif; }
-  .jn-word{ font-family:'Courier Prime',ui-monospace,monospace; font-weight:700; font-size:1.05rem; color:#12161B;
+  .jn-word{ font-family:Inter,-apple-system,'Segoe UI',sans-serif; font-weight:700; letter-spacing:-0.02em; font-size:1.05rem; color:#12161B;
     text-decoration:none; display:flex; align-items:center; gap:9px; }
   .jn-word i{ width:8px; height:8px; border-radius:50%; background:#1E6450; box-shadow:0 0 0 3px #E3EEE9; display:block; }
   .jn-links{ display:flex; gap:24px; }
@@ -113,7 +113,7 @@ _HEAD = """
   .swagger-ui, .swagger-ui .opblock-summary-description, .swagger-ui .opblock-tag, .swagger-ui .btn,
   .swagger-ui table thead tr th, .swagger-ui .parameter__name, .swagger-ui select, .swagger-ui input{
     font-family:Inter,-apple-system,'Segoe UI',sans-serif; }
-  .swagger-ui .info .title{ font-family:'Courier Prime',ui-monospace,monospace; font-weight:700; color:#12161B; }
+  .swagger-ui .info .title{ font-family:Inter,-apple-system,'Segoe UI',sans-serif; font-weight:700; letter-spacing:-0.02em; color:#12161B; }
   .swagger-ui .info .title small{ background:#1E6450; }
   .swagger-ui .scheme-container{ background:#F8F8F4; box-shadow:none; border-bottom:1px solid #D7D8D1; }
   .swagger-ui .btn.authorize{ color:#1E6450; border-color:#1E6450; }
