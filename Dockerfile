@@ -4,7 +4,7 @@
 # The image that runs has no compiler, no pip cache and no build tools.
 
 # ── Stage 1: install ──────────────────────────────────────────────────────────
-FROM python:3.12-slim AS builder
+FROM python:3.15-slim AS builder
 
 ENV PIP_NO_CACHE_DIR=1 PIP_DISABLE_PIP_VERSION_CHECK=1
 RUN apt-get update && apt-get install -y --no-install-recommends build-essential \
@@ -22,7 +22,7 @@ RUN pip install -r requirements.txt
 RUN python -m spacy download en_core_web_lg && python -m spacy download en_core_web_sm
 
 # ── Stage 2: run ──────────────────────────────────────────────────────────────
-FROM python:3.12-slim
+FROM python:3.15-slim
 
 ENV PATH="/opt/venv/bin:$PATH" PYTHONUNBUFFERED=1 PYTHONDONTWRITEBYTECODE=1
 
